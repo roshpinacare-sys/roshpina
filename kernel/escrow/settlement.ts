@@ -1,0 +1,472 @@
+/**
+ * lib/escrow/settlement.ts — Settlement State-Machine: post-fund disbursement with partial release.
+ *
+ * States (fail-closed):
+ *   created → held → partially_released → released
+ *                      ↓                   ↑
+ *                    disputed  → reversed   (authority resolves)
+ *
+ * Invariants:
+ *   • Money moves ONLY via orchestrated transfers — never by mutating balances.
+ *   • Tenant isolation on every lookup; cross-tenant access behaves as not_found.
+ *   • A guard denial aborts the state change — state stays as it was.
+ *   • Each successful release records a kernel auditId on the agreement (provable trail).
+ *   • Dispute freezes releases; reverse (from disputed) returns unreleased funds to payer.
+ *   • Only the settlement authority (settledBy) may release, partial-release, or reverse.
+ */
+import { randomUUID } from "node:crypto";
+import type { LedgerOrchestrator } from "../ledger-orchestrator/ledger-orchestrator";
+
+export type SettlementState =
+  | "created"
+  | "held"
+  | "partially_released"
+  | "released"
+  | "disputed"
+  | "reversed";
+
+export interface SettlementAgreement {
+  id: string;
+  tenantId: string;
+  opportunityId: string;
+  payerAccountId: string;
+  workerAccountId: string;
+  escrowAccountId: string;
+  totalAmount: bigint;
+  releasedAmount: bigint;
+  state: SettlementState;
+  createdAt: string;
+  /** Identity that authorized the settlement — the release authority. */
+  settledBy: string;
+  /** Audit ids of every release / partial-release transfer recorded in the kernel. */
+  releaseAuditIds?: string[];
+  /** Audit id of the reversal transfer (disputed → reversed). */
+  reversalAuditId?: string;
+  /** Audit id of the initial funding transfer. */
+  fundAuditId?: string;
+  /** Identity that raised the dispute (present only when state === "disputed"). */
+  disputedBy?: string;
+  /** Optional human-readable reason for the dispute. */
+  disputeReason?: string;
+  /**
+   * Optional threshold amount (μ¢). Releases above this require a ThresholdApproval token.
+   * Stored at creation time; checked by the route layer before delegating to the service.
+   */
+  thresholdAmount?: bigint;
+  /**
+   * DisbursementResult records for every external rail disbursal (release / partialRelease).
+   * Ordered: oldest first. Absent when no rail is configured or no release has occurred.
+   */
+  disbursementResults?: DisbursementResult[];
+}
+
+export type SettlementErrorCode =
+  | "invalid_input"
+  | "not_found"
+  | "wrong_state"
+  | "tenant_mismatch"
+  | "unauthorized"
+  | "ledger_denied"
+  | "insufficient_funds";
+
+export class SettlementError extends Error {
+  code: SettlementErrorCode;
+  constructor(code: SettlementErrorCode, message: string) {
+    super(message);
+    this.name = "SettlementError";
+    this.code = code;
+  }
+}
+
+export interface CreateSettlementInput {
+  tenantId: string;
+  opportunityId: string;
+  payerAccountId: string;
+  workerAccountId: string;
+  totalAmount: bigint; // μ¢, must be > 0n
+  settledBy: string;
+  /**
+   * Optional threshold amount (μ¢). When present and a release amount exceeds this,
+   * the route layer requires a ThresholdApproval token before executing (Settlement #3).
+   */
+  thresholdAmount?: bigint;
+}
+
+export interface SettlementStore {
+  put(a: SettlementAgreement): Promise<void>;
+  get(tenantId: string, id: string): Promise<SettlementAgreement | null>;
+  list(tenantId: string): Promise<SettlementAgreement[]>;
+}
+
+/** In-memory store (tests/dev). Production: a pg-backed store behind the same interface. */
+export class InMemorySettlementStore implements SettlementStore {
+  private byTenant = new Map<string, Map<string, SettlementAgreement>>();
+  async put(a: SettlementAgreement): Promise<void> {
+    let m = this.byTenant.get(a.tenantId);
+    if (!m) {
+      m = new Map();
+      this.byTenant.set(a.tenantId, m);
+    }
+    m.set(a.id, a);
+  }
+  async get(tenantId: string, id: string): Promise<SettlementAgreement | null> {
+    return this.byTenant.get(tenantId)?.get(id) ?? null; // cross-tenant = null (fail-closed)
+  }
+  async list(tenantId: string): Promise<SettlementAgreement[]> {
+    return [...(this.byTenant.get(tenantId)?.values() ?? [])];
+  }
+}
+
+export class SettlementService {
+  private readonly ledger: LedgerOrchestrator;
+  private readonly store: SettlementStore;
+  private readonly railRegistry: RailRegistry | null;
+
+  constructor(
+    ledger: LedgerOrchestrator,
+    store: SettlementStore = new InMemorySettlementStore(),
+    railRegistry: RailRegistry | null = null,
+  ) {
+    this.ledger = ledger;
+    this.store = store;
+    this.railRegistry = railRegistry;
+  }
+
+  /**
+   * Look up the configured rail for a tenant, falling back to the "*" default.
+   * Returns null if no rail is registered (fail-open for disbursement — log only).
+   */
+  private getRail(tenantId: string): SettlementRail | null {
+    return this.railRegistry?.getRail(tenantId) ?? null;
+  }
+
+  /**
+   * Disburse via the rail after a successful ledger transfer.
+   * fail-open: if no rail is configured, log and continue (ledger is the source of truth).
+   * fail-closed on bad input (SettlementRailError propagates as SettlementError).
+   */
+  private async disburse(
+    a: SettlementAgreement,
+    amount: bigint,
+    releaseSeq: number,
+  ): Promise<DisbursementResult | null> {
+    const rail = this.getRail(a.tenantId);
+    if (!rail) return null;
+
+    const idempotencyKey = `${a.tenantId}:${a.id}:release:${releaseSeq}`;
+    try {
+      return await rail.disburse({
+        idempotencyKey,
+        tenantId: a.tenantId,
+        settlementId: a.id,
+        payeeId: a.workerAccountId,
+        amountMicrounits: amount,
+        currency: "USD",
+        description: `Settlement release ${releaseSeq} for agreement ${a.id}`,
+      });
+    } catch (e: unknown) {
+      // Rail errors surface as settlement errors — callers decide retry
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new SettlementError("ledger_denied", `rail disbursement failed: ${msg}`);
+    }
+  }
+
+  /** Create the agreement + its dedicated settlement ledger account. No money moves yet. */
+  async create(input: CreateSettlementInput): Promise<SettlementAgreement> {
+    if (!input?.tenantId || !input.opportunityId) {
+      throw new SettlementError("invalid_input", "tenantId and opportunityId required");
+    }
+    if (!input.payerAccountId || !input.workerAccountId) {
+      throw new SettlementError("invalid_input", "payerAccountId and workerAccountId required");
+    }
+    if (input.payerAccountId === input.workerAccountId) {
+      throw new SettlementError("invalid_input", "payer and worker must differ");
+    }
+    if (typeof input.totalAmount !== "bigint" || input.totalAmount <= 0n) {
+      throw new SettlementError("invalid_input", "totalAmount must be a positive bigint (μ¢)");
+    }
+    if (!input.settledBy) {
+      throw new SettlementError("invalid_input", "settledBy required");
+    }
+
+    const id = randomUUID();
+    const escrowAccount = await this.ledger.createAccount(
+      input.tenantId,
+      `settlement:${id}`,
+      "asset",
+      `settlement for ${input.opportunityId}`,
+    );
+
+    const agreement: SettlementAgreement = {
+      id,
+      tenantId: input.tenantId,
+      opportunityId: input.opportunityId,
+      payerAccountId: input.payerAccountId,
+      workerAccountId: input.workerAccountId,
+      escrowAccountId: escrowAccount.id,
+      totalAmount: input.totalAmount,
+      releasedAmount: 0n,
+      ...(input.thresholdAmount !== undefined ? { thresholdAmount: input.thresholdAmount } : {}),
+      state: "created",
+      createdAt: new Date().toISOString(),
+      settledBy: input.settledBy,
+    };
+    await this.store.put(agreement);
+    return agreement;
+  }
+
+  async get(tenantId: string, id: string): Promise<SettlementAgreement | null> {
+    return this.store.get(tenantId, id);
+  }
+
+  async list(tenantId: string): Promise<SettlementAgreement[]> {
+    return this.store.list(tenantId);
+  }
+
+  /** payer→settlement escrow through the chokepoint. created→held. */
+  async fund(tenantId: string, id: string, initiatedBy: string): Promise<SettlementAgreement> {
+    const a = await this.requireState(tenantId, id, "created");
+    if (!initiatedBy || initiatedBy !== a.settledBy) {
+      throw new SettlementError(
+        "unauthorized",
+        `fund requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+      );
+    }
+    const res = await this.ledger.transfer(
+      tenantId,
+      a.payerAccountId,
+      a.escrowAccountId,
+      a.totalAmount,
+      `settlement.fund:${a.id}`,
+      initiatedBy,
+      false,
+    );
+    if (!res.ok) {
+      throw new SettlementError("ledger_denied", res.reason || "funding denied by guard (fail-closed)");
+    }
+    const updated: SettlementAgreement = {
+      ...a,
+      state: "held",
+      fundAuditId: res.auditId,
+    };
+    await this.store.put(updated);
+    return updated;
+  }
+
+  /**
+   * Release a portion of the held funds to the worker.
+   * held/partially_released → partially_released (or released if fully drained).
+   * Only the settlement authority may call.
+   */
+  async partialRelease(
+    tenantId: string,
+    id: string,
+    amount: bigint,
+    initiatedBy: string,
+  ): Promise<SettlementAgreement> {
+    const a = await this.requireActive(tenantId, id);
+    if (!initiatedBy || initiatedBy !== a.settledBy) {
+      throw new SettlementError(
+        "unauthorized",
+        `partialRelease requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+      );
+    }
+    if (typeof amount !== "bigint" || amount <= 0n) {
+      throw new SettlementError("invalid_input", "amount must be a positive bigint (μ¢)");
+    }
+    const remaining = a.totalAmount - a.releasedAmount;
+    if (amount > remaining) {
+      throw new SettlementError(
+        "insufficient_funds",
+        `partialRelease amount ${amount} exceeds remaining ${remaining}`,
+      );
+    }
+
+    const res = await this.ledger.transfer(
+      tenantId,
+      a.escrowAccountId,
+      a.workerAccountId,
+      amount,
+      `settlement.partialRelease:${a.id}`,
+      initiatedBy,
+      false,
+    );
+    if (!res.ok) {
+      throw new SettlementError("ledger_denied", res.reason || "partial release denied by guard (fail-closed)");
+    }
+
+    const newReleased = a.releasedAmount + amount;
+    const newState: SettlementState = newReleased === a.totalAmount ? "released" : "partially_released";
+    const releaseAuditIds = [...(a.releaseAuditIds ?? []), res.auditId!];
+
+    const releaseSeq = (a.disbursementResults ?? []).length + 1;
+    const disbursementResult = await this.disburse(a, amount, releaseSeq);
+    const disbursementResults = [
+      ...(a.disbursementResults ?? []),
+      ...(disbursementResult ? [disbursementResult] : []),
+    ];
+
+    const updated: SettlementAgreement = {
+      ...a,
+      releasedAmount: newReleased,
+      state: newState,
+      releaseAuditIds,
+      disbursementResults,
+    };
+    await this.store.put(updated);
+    return updated;
+  }
+
+  /**
+   * Release all remaining funds to the worker.
+   * held/partially_released → released.
+   * Only the settlement authority may call.
+   */
+  async release(tenantId: string, id: string, initiatedBy: string): Promise<SettlementAgreement> {
+    const a = await this.requireActive(tenantId, id);
+    if (!initiatedBy || initiatedBy !== a.settledBy) {
+      throw new SettlementError(
+        "unauthorized",
+        `release requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+      );
+    }
+    const remaining = a.totalAmount - a.releasedAmount;
+    if (remaining <= 0n) {
+      throw new SettlementError("wrong_state", "nothing left to release");
+    }
+
+    const res = await this.ledger.transfer(
+      tenantId,
+      a.escrowAccountId,
+      a.workerAccountId,
+      remaining,
+      `settlement.release:${a.id}`,
+      initiatedBy,
+      false,
+    );
+    if (!res.ok) {
+      throw new SettlementError("ledger_denied", res.reason || "release denied by guard (fail-closed)");
+    }
+
+    const releaseAuditIds = [...(a.releaseAuditIds ?? []), res.auditId!];
+
+    const releaseSeq = (a.disbursementResults ?? []).length + 1;
+    const disbursementResult = await this.disburse(a, remaining, releaseSeq);
+    const disbursementResults = [
+      ...(a.disbursementResults ?? []),
+      ...(disbursementResult ? [disbursementResult] : []),
+    ];
+
+    const updated: SettlementAgreement = {
+      ...a,
+      releasedAmount: a.totalAmount,
+      state: "released",
+      releaseAuditIds,
+      disbursementResults,
+    };
+    await this.store.put(updated);
+    return updated;
+  }
+
+  /**
+   * Dispute: active → disputed. Either party may raise a dispute.
+   * No money moves — only releases are stopped.
+   */
+  async dispute(
+    tenantId: string,
+    id: string,
+    initiatedBy: string,
+    reason?: string,
+  ): Promise<SettlementAgreement> {
+    if (!initiatedBy) {
+      throw new SettlementError("invalid_input", "initiatedBy required to raise a dispute");
+    }
+    const a = await this.requireActive(tenantId, id);
+    const updated: SettlementAgreement = {
+      ...a,
+      state: "disputed",
+      disputedBy: initiatedBy,
+      ...(reason ? { disputeReason: reason } : {}),
+    };
+    await this.store.put(updated);
+    return updated;
+  }
+
+  /**
+   * Reverse (dispute resolution in payer's favor): disputed → reversed.
+   * Returns all unreleased funds to the payer. Only the settlement authority may call.
+   */
+  async reverse(tenantId: string, id: string, initiatedBy: string): Promise<SettlementAgreement> {
+    const a = await this.requireState(tenantId, id, "disputed");
+    if (!initiatedBy || initiatedBy !== a.settledBy) {
+      throw new SettlementError(
+        "unauthorized",
+        `reverse requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+      );
+    }
+    const remaining = a.totalAmount - a.releasedAmount;
+    if (remaining > 0n) {
+      const res = await this.ledger.transfer(
+        tenantId,
+        a.escrowAccountId,
+        a.payerAccountId,
+        remaining,
+        `settlement.reverse:${a.id}`,
+        initiatedBy,
+        false,
+      );
+      if (!res.ok) {
+        throw new SettlementError("ledger_denied", res.reason || "reverse denied by guard (fail-closed)");
+      }
+      const updated: SettlementAgreement = {
+        ...a,
+        state: "reversed",
+        reversalAuditId: res.auditId,
+      };
+      await this.store.put(updated);
+      return updated;
+    }
+    // Nothing left to reverse; mark as reversed anyway.
+    const updated: SettlementAgreement = { ...a, state: "reversed" };
+    await this.store.put(updated);
+    return updated;
+  }
+
+  private async requireState(
+    tenantId: string,
+    id: string,
+    want: SettlementState,
+  ): Promise<SettlementAgreement> {
+    if (!tenantId || !id) {
+      throw new SettlementError("invalid_input", "tenantId and id required");
+    }
+    const a = await this.store.get(tenantId, id);
+    if (!a) {
+      throw new SettlementError("not_found", "settlement agreement not found");
+    }
+    if (a.state !== want) {
+      throw new SettlementError(
+        "wrong_state",
+        `settlement is '${a.state}', operation requires '${want}'`,
+      );
+    }
+    return a;
+  }
+
+  private async requireActive(tenantId: string, id: string): Promise<SettlementAgreement> {
+    if (!tenantId || !id) {
+      throw new SettlementError("invalid_input", "tenantId and id required");
+    }
+    const a = await this.store.get(tenantId, id);
+    if (!a) {
+      throw new SettlementError("not_found", "settlement agreement not found");
+    }
+    if (a.state !== "held" && a.state !== "partially_released") {
+      throw new SettlementError(
+        "wrong_state",
+        `settlement is '${a.state}', operation requires 'held' or 'partially_released'`,
+      );
+    }
+    return a;
+  }
+}
