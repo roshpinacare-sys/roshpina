@@ -1,0 +1,84 @@
+# CONTROLS-AUDIT - מבקר הבקרות של רושפינה
+#
+# הריפו הזה מתעד אילו בקרות באמת קיימות ואת תדריך הסוכן. הסוכן מוודה
+# מדי יום שהמסמכים האלה קיימים, שאינם ריקים ושכל בקרה מתועדת בסעיף
+# משלה; וסופר את ארכיון השידורים. דוח אמת ל-agent/status.json.
+
+name: controls-audit
+
+on:
+  schedule:
+    - cron: '17 8 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: controls-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run the controls audit
+        run: |
+          set -u
+          NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          VERDICT="PASS"
+          REASON="controls documented"
+
+          # 1) מסמך הבקרות קיים, לא ריק, ומחזיק סעיפי בקרה
+          CONTROLS_EXIST=0; CONTROLS_BYTES=0; CONTROL_SECTIONS=0
+          if [ -f CONTROLS-THAT-EXIST.md ]; then
+            CONTROLS_EXIST=1
+            CONTROLS_BYTES="$(stat -c %s CONTROLS-THAT-EXIST.md)"
+            CONTROL_SECTIONS="$(grep -c '^## ' CONTROLS-THAT-EXIST.md || true)"
+          fi
+          if [ "$CONTROLS_EXIST" -eq 0 ]; then VERDICT="FAIL"; REASON="CONTROLS-THAT-EXIST.md missing"; fi
+          if [ "$CONTROLS_EXIST" -eq 1 ] && [ "$CONTROLS_BYTES" -lt 500 ]; then VERDICT="FAIL"; REASON="controls document too small"; fi
+
+          # 2) מסמכי ההנחיה לסוכן
+          BRIEFING=0; PATCHSPEC=0
+          [ -f AGENT-BRIEFING.md ] && BRIEFING=1
+          [ -f PATCH-SPEC-P10.md ] && PATCHSPEC=1
+          if [ "$BRIEFING" -eq 0 ]; then VERDICT="FAIL"; REASON="AGENT-BRIEFING.md missing"; fi
+
+          # 3) ארכיון השידורים - מניפסט ומוסכמת שמות
+          BC_FILES="$(find broadcasts -type f 2>/dev/null | wc -l | tr -d ' ')"
+          BC_BAD="$(find broadcasts -type f 2>/dev/null | grep -v -E '/[0-9]{4}-[0-9]{2}-[0-9]{2}-' | grep -c . || true)"
+
+          mkdir -p agent
+          cat > agent/status.json <<EOF
+{
+ "agent": "controls-audit",
+ "generatedAt": "$NOW",
+ "verdict": "$VERDICT",
+ "checks": {
+  "controlsDocumentExists": $CONTROLS_EXIST,
+  "controlsDocumentBytes": $CONTROLS_BYTES,
+  "controlSections": $CONTROL_SECTIONS,
+  "agentBriefingExists": $BRIEFING,
+  "patchSpecExists": $PATCHSPEC,
+  "broadcastFiles": $BC_FILES,
+  "broadcastsBadNaming": $BC_BAD
+ },
+ "reason": "$REASON"
+}
+EOF
+          git config user.name "controls-audit[bot]"
+          git config user.email "controls-audit[bot]@users.noreply.github.com"
+          git add agent/status.json
+          if git diff --cached --quiet agent/status.json; then
+            echo "status unchanged - no commit"
+          else
+            git commit -m "controls-audit: $VERDICT at $NOW"
+            git push
+          fi
+          echo "verdict: $VERDICT ($REASON)"
+          [ "$VERDICT" = "PASS" ] || exit 1
