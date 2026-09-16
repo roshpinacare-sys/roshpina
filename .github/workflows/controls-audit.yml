@@ -55,22 +55,22 @@ jobs:
 
           mkdir -p agent
           cat > agent/status.json <<EOF
-{
- "agent": "controls-audit",
- "generatedAt": "$NOW",
- "verdict": "$VERDICT",
- "checks": {
-  "controlsDocumentExists": $CONTROLS_EXIST,
-  "controlsDocumentBytes": $CONTROLS_BYTES,
-  "controlSections": $CONTROL_SECTIONS,
-  "agentBriefingExists": $BRIEFING,
-  "patchSpecExists": $PATCHSPEC,
-  "broadcastFiles": $BC_FILES,
-  "broadcastsBadNaming": $BC_BAD
- },
- "reason": "$REASON"
-}
-EOF
+          {
+           "agent": "controls-audit",
+           "generatedAt": "$NOW",
+           "verdict": "$VERDICT",
+           "checks": {
+            "controlsDocumentExists": $CONTROLS_EXIST,
+            "controlsDocumentBytes": $CONTROLS_BYTES,
+            "controlSections": $CONTROL_SECTIONS,
+            "agentBriefingExists": $BRIEFING,
+            "patchSpecExists": $PATCHSPEC,
+            "broadcastFiles": $BC_FILES,
+            "broadcastsBadNaming": $BC_BAD
+           },
+           "reason": "$REASON"
+          }
+          EOF
           git config user.name "controls-audit[bot]"
           git config user.email "controls-audit[bot]@users.noreply.github.com"
           git add agent/status.json
