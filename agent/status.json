@@ -1,0 +1,15 @@
+{
+ "agent": "controls-audit",
+ "generatedAt": "2026-09-16T21:11:49Z",
+ "verdict": "PASS",
+ "checks": {
+  "controlsDocumentExists": 1,
+  "controlsDocumentBytes": 1141,
+  "controlSections": 0,
+  "agentBriefingExists": 1,
+  "patchSpecExists": 1,
+  "broadcastFiles": 29,
+  "broadcastsBadNaming": 1
+ },
+ "reason": "controls documented"
+}
