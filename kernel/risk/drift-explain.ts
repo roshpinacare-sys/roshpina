@@ -106,6 +106,7 @@ export interface DriftComplianceReport {
 
 const RECOMMENDATIONS: Record<ApprovalClass, string> = {
   auto:             "No immediate action required; continue monitoring.",
+  opa_check:        "Re-run the OPA policy check and review the verdict before the next action.",
   human:            "Escalate to human reviewer before the next high-risk action.",
   threshold_escrow: "Lock value in escrow; do not release until the drift trend reverses.",
   deny:             "Block the agent immediately and initiate a compliance review.",
@@ -135,7 +136,6 @@ export function explainDriftCompliance(input: DriftExplainInput): DriftComplianc
   // 2. Fuse with static/behavioural/reputation context.
   const baseContext: RiskIntelligenceInput = {
     baseApprovalClass: "auto",    // neutral default — drift is the signal
-    behaviouralSignals: [],
     reputationScore: undefined,
     ...(input.context ?? {}),
     drift,                        // always wire drift — cannot be overridden by caller

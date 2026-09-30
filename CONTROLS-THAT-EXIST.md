@@ -7,8 +7,8 @@
 | שדה | ערך |
 |---|---|
 | העותק הקנוני | roshpinacare-sys/steem · CONTROLS-THAT-EXIST.md |
-| sha256 העותק שהיה כאן | undefined |
-| גודל העותק שהיה כאן | undefined bytes |
+| sha256 העותק שהיה כאן | לא-נרשם (באג בכותב-הסטאב של G6: הדפיס `undefined`) |
+| גודל העותק שהיה כאן | לא-נרשם (באג בכותב-הסטאב של G6) |
 | מיקום העותק שהיה כאן | roshpinacare-sys/roshpina · CONTROLS-THAT-EXIST.md |
 | אוחד | 2026-09-14 · THE WEAVE · weave-ecosystem G6 |
 

@@ -32,7 +32,7 @@
  * Zero external dependencies.
  */
 
-import type { Signer } from "../orchestrator/signer.ts";
+import type { Signer } from "../orchestrator/types.ts";
 import type { ExecutionReceipt } from "./agent-adapter.ts";
 import type { KeyRing } from "../passport/key-ring.ts";
 

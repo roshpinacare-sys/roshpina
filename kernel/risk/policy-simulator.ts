@@ -177,7 +177,9 @@ export async function runPolicySimulation(input: PolicySimulationInput): Promise
     action,
     tenantId: action.tenantId,
     timestamp: new Date().toISOString(),
-    riskContext: input.riskContext,
+    // TS-CFA: RiskContext is an interface (no implicit index signature), so a
+    // shallow copy is used to satisfy ActionContext's Record<string, unknown>.
+    riskContext: input.riskContext ? { ...input.riskContext } : undefined,
   };
 
   // 3. Server-side risk classification (never trusts client claim).
@@ -281,6 +283,8 @@ export async function runPolicySimulation(input: PolicySimulationInput): Promise
         effectiveApprovalClass: "deny",
         escalated: true,
         reputationBand: band,
+        // fail-closed catch path: no drift signal was ever supplied or applied here
+        driftApplied: false,
         factors: [{ factor: "risk_intelligence_error", contribution: 100, detail: "risk intelligence fusion threw" }],
         contextual: contextualRisk,
         explanation: ["risk intelligence fusion failed → deny (fail-closed)"],
@@ -408,9 +412,12 @@ export async function compareScenarios(inputs: PolicySimulationInput[]): Promise
     // or deny), so one loop suffices instead of filter+map twice (4 passes).
     const allowLabels: string[] = [];
     const denyLabels: string[] = [];
-    for (const s of scenarios) {
-      if (s.wouldAllow) allowLabels.push(s.scenarioLabel);
-      else denyLabels.push(s.scenarioLabel);
+    for (const [i, s] of scenarios.entries()) {
+      // scenarioLabel is always set by the loop above (scenario-${i + 1}); the
+      // fallback only satisfies the optional field's type, matching that naming.
+      const label = s.scenarioLabel ?? `scenario-${i + 1}`;
+      if (s.wouldAllow) allowLabels.push(label);
+      else denyLabels.push(label);
     }
     differences.push(`Allow/deny split: ALLOW in [${allowLabels.join(", ")}] vs DENY in [${denyLabels.join(", ")}].`);
   }

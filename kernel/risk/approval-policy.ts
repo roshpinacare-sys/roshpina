@@ -280,6 +280,8 @@ export function approvalPolicyRouter(signer: Signer, name = "approval-policy-rou
             effectiveApprovalClass: "deny",
             escalated: true,
             reputationBand: band,
+            // fail-closed catch path: no drift signal was ever supplied or applied here
+            driftApplied: false,
             factors: [{ factor: "contextual_risk_error", contribution: 100, detail: "contextual risk scoring threw" }],
             contextual: {
               baseApprovalClass,
@@ -291,7 +293,9 @@ export function approvalPolicyRouter(signer: Signer, name = "approval-policy-rou
             explanation: ["contextual risk scoring failed → deny (fail-closed)"],
           };
         }
-        effectiveApprovalClass = riskAssessment.effectiveApprovalClass;
+        // TS-CFA: try/catch assignment is always present by here (both branches
+        // assign); assert for the compiler without changing runtime behavior.
+        effectiveApprovalClass = (riskAssessment as RiskAssessment).effectiveApprovalClass;
       } else {
         // Legacy path (no reputationScore yet wired from track-record).
         // scoreContextualRisk is called exactly once; legacyRiskResult is reused

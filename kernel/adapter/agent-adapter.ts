@@ -23,10 +23,10 @@
  * Zero external dependencies.
  */
 
-import type { ActionIntent, Signer, ActionContext, ExecutionStore, ExecutionWorkflow } from "../orchestrator/types.ts";
+import type { ActionIntent, Signer, ActionContext, ExecutionStore, ExecutionWorkflow, ApprovalClass } from "../orchestrator/types.ts";
 import { validateActionIntent } from "../orchestrator/action-intent.ts";
 import { resolveApprovalClass, createDecisionTrace, canonicalTracePayload } from "../risk/approval-policy.ts";
-import type { ApprovalClass, DecisionTrace } from "../risk/approval-policy.ts";
+import type { DecisionTrace } from "../risk/approval-policy.ts";
 import { classifyActionServerSide } from "../risk/coding-actions.ts";
 import { simulateAction } from "../risk/action-simulator.ts";
 import type { SimulationResult } from "../risk/action-simulator.ts";

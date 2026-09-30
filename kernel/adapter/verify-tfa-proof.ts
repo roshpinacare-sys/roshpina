@@ -25,7 +25,7 @@ import type { ExecutionReceipt, ExecutionReceiptVerifyKeys } from "./agent-adapt
 import { verifyDecisionIntegrity } from "./decision-integrity.ts";
 import { verifyMandateLinkage } from "./ap2-mandate-link.ts";
 import type { MandateLinkage } from "./ap2-mandate-link.ts";
-import type { Signer } from "../orchestrator/signer.ts";
+import type { Signer } from "../orchestrator/types.ts";
 import type { KeyRing } from "../passport/key-ring.ts";
 
 export interface VerifyTfaProofOptions {

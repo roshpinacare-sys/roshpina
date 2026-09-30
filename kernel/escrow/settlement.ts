@@ -16,6 +16,7 @@
  */
 import { randomUUID } from "node:crypto";
 import type { LedgerOrchestrator } from "../ledger-orchestrator/ledger-orchestrator";
+import type { DisbursementResult, RailRegistry, SettlementRail } from "../settlement-rails/types";
 
 export type SettlementState =
   | "created"

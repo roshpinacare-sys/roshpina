@@ -51,16 +51,28 @@ function HealthChip() {
   const seeded = data?.seeded ?? false;
   const ok = seeded && integrity;
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs",
-        ok ? "border-verified/40 bg-verified/10 text-verified" : "border-gold/40 bg-gold/10 text-gold",
-      )}
-      title={data ? `kid ${data.kid} · audit ${data.counts.audit.length} רשומות` : undefined}
-    >
-      <span className={cn("live-dot", ok ? "bg-verified" : "bg-gold")} />
-      {ok ? "קרנל תקין" : seeded ? "בודק שלמות…" : "מזריע…"}
-      {data ? <span className="hash text-[10px] text-ink-2">kid {data.kid.slice(0, 8)}</span> : null}
+    <span className="inline-flex items-center gap-2">
+      <span
+        className={cn(
+          "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs",
+          ok ? "border-verified/40 bg-verified/10 text-verified" : "border-gold/40 bg-gold/10 text-gold",
+        )}
+        title={data ? `kid ${data.kid} · audit ${data.counts.audit.length} רשומות` : undefined}
+      >
+        <span className={cn("live-dot", ok ? "bg-verified" : "bg-gold")} />
+        {ok ? "קרנל תקין" : seeded ? "בודק שלמות…" : "מזריע…"}
+        {data ? <span className="hash text-[10px] text-ink-2">kid {data.kid.slice(0, 8)}</span> : null}
+      </span>
+      {/* כנות (Task 11-e): העולם כולו — יתרות-פתיחה, לקוחות, עובדים ומחזורי-הצבה —
+          נזרע סינתטית בעת-העלאה (src/lib/seed.ts). הספר אמיתי, המספרים זריעה. */}
+      {seeded ? (
+        <span
+          className="inline-flex items-center rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs text-gold"
+          title="כל היתרות, הלקוחות וההצבות במסך זה נזרעו סינתטית בזיכרון עם הפעלת הקרנל (src/lib/seed.ts) — עולם-הדגמה, לא פעילות-חוץ."
+        >
+          עולם-זריעה (sim)
+        </span>
+      ) : null}
     </span>
   );
 }

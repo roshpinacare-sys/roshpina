@@ -19,11 +19,11 @@ async function main() {
   const lorch = new LedgerOrchestrator(ledger, orch, { signer } as any);
   const escrow = new EscrowService(lorch, undefined, undefined, { basisPoints: 500 });
 
-  const op = await lorch.createAccount(T, "operator", "user", "Operator Operating");
-  const wk = await lorch.createAccount(T, "worker-a", "user", "Worker A");
+  const op = await lorch.createAccount(T, "operator", "asset", "Operator Operating");
+  const wk = await lorch.createAccount(T, "worker-a", "asset", "Worker A");
   const mint = await lorch.mint(T, op.id, 10_000_000n, "initial funding", "operator");
   if (!mint.ok) throw new Error("mint failed: " + JSON.stringify(mint, (_, v) => typeof v === "bigint" ? String(v) : v).slice(0, 400));
-  console.log("mint ok · auditId:", String(mint.auditId).slice(0, 8), "· tx:", String((mint.result as any)?.id ?? "").slice(0, 8));
+  console.log("mint ok · auditId:", String(mint.auditId).slice(0, 8), "· tx:", String((mint as { value?: { id?: string } }).value?.id ?? "").slice(0, 8));
 
   const agr = await escrow.create({ tenantId: T, opportunityId: "opp-1", payerAccountId: op.id, workerAccountId: wk.id, amount: 2_000_000n });
   await escrow.fund(T, agr.id, "operator");
@@ -37,8 +37,8 @@ async function main() {
   const fee = routingFeeFromSpread(q.spreadMc, 10n, 100n); // capture 10% of the spread as routing fee
   console.log("cost-arbitrage: winner =", q.winner.vendorId, "· spread =", q.spreadMc.toString(), "µ¢ · fee(10% of spread) =", fee.toString(), "µ¢");
 
-  const chain = audit.list ? audit.list(T) : null;
-  const recs = chain ? (Array.isArray(chain) ? chain : (chain as any).records ?? []).length : 0;
+  const chain = audit.getChain(T);
+  const recs = Array.isArray(chain) ? chain.length : 0;
   console.log("audit chain records:", recs, "· tamper-evident hash-linked ✓");
 
   const tlog = new InMemoryTransparencyLog({ logId: "roshpina-main" } as any);

@@ -33,15 +33,27 @@ jobs:
           VERDICT="PASS"
           REASON="controls documented"
 
-          # 1) מסמך הבקרות קיים, לא ריק, ומחזיק סעיפי בקרה
-          CONTROLS_EXIST=0; CONTROLS_BYTES=0; CONTROL_SECTIONS=0
+          # 1) מסמך הבקרות קיים, לא ריק, ומחזיק סעיפי בקרה — או שהוא סמן-הפניה
+          #    של G6 (התוכן אוחד לבית הקנוני; Task 11-e). סמן-הפניה לא ייכשל על
+          #    אפס-סעיפים, אבל הפסק יצהיר זאת במפורש; מסמך רגיל עם 0 סעיפי בקרה
+          #    ייכשל בכנות לפי תורת הבוט עצמו (כל בקרה בסעיף משלה).
+          CONTROLS_EXIST=0; CONTROLS_BYTES=0; CONTROL_SECTIONS=0; CONTROLS_POINTER=0
           if [ -f CONTROLS-THAT-EXIST.md ]; then
             CONTROLS_EXIST=1
             CONTROLS_BYTES="$(stat -c %s CONTROLS-THAT-EXIST.md)"
             CONTROL_SECTIONS="$(grep -c '^## ' CONTROLS-THAT-EXIST.md || true)"
+            if grep -q 'Consolidated by THE WEAVE ecosystem dedup (G6)' CONTROLS-THAT-EXIST.md; then
+              CONTROLS_POINTER=1
+            fi
           fi
           if [ "$CONTROLS_EXIST" -eq 0 ]; then VERDICT="FAIL"; REASON="CONTROLS-THAT-EXIST.md missing"; fi
           if [ "$CONTROLS_EXIST" -eq 1 ] && [ "$CONTROLS_BYTES" -lt 500 ]; then VERDICT="FAIL"; REASON="controls document too small"; fi
+          if [ "$VERDICT" = "PASS" ] && [ "$CONTROLS_POINTER" -eq 1 ]; then
+            REASON="controls are a G6 pointer - content consolidated to the canonical home (roshpinacare-sys/steem); this repo holds the link, not the controls"
+          fi
+          if [ "$VERDICT" = "PASS" ] && [ "$CONTROLS_POINTER" -eq 0 ] && [ "$CONTROL_SECTIONS" -eq 0 ]; then
+            VERDICT="FAIL"; REASON="controls document has zero control sections (no G6 pointer found)"
+          fi
 
           # 2) מסמכי ההנחיה לסוכן
           BRIEFING=0; PATCHSPEC=0
@@ -63,6 +75,7 @@ jobs:
             "controlsDocumentExists": $CONTROLS_EXIST,
             "controlsDocumentBytes": $CONTROLS_BYTES,
             "controlSections": $CONTROL_SECTIONS,
+            "controlsAreG6Pointer": $CONTROLS_POINTER,
             "agentBriefingExists": $BRIEFING,
             "patchSpecExists": $PATCHSPEC,
             "broadcastFiles": $BC_FILES,
