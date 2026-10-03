@@ -1,15 +1,16 @@
 {
  "agent": "controls-audit",
- "generatedAt": "2026-10-02T21:50:57Z",
+ "generatedAt": "2026-10-03T08:32:40Z",
  "verdict": "PASS",
  "checks": {
   "controlsDocumentExists": 1,
   "controlsDocumentBytes": 1245,
   "controlSections": 0,
+  "controlsAreG6Pointer": 1,
   "agentBriefingExists": 1,
   "patchSpecExists": 1,
   "broadcastFiles": 29,
   "broadcastsBadNaming": 1
  },
- "reason": "controls documented"
+ "reason": "controls are a G6 pointer - content consolidated to the canonical home (roshpinacare-sys/steem); this repo holds the link, not the controls"
 }
