@@ -10,10 +10,8 @@ name: gitleaks-secret-scan
 # ועשויים להתגלות ממצאים-היסטוריים ידועים (דור-מפתחות ישן) שדורשים-טריאז' X-1.
 
 on:
-  push:
   pull_request:
   workflow_dispatch:
-
 permissions:
   contents: read
 
