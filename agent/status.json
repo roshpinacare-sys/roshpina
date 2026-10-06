@@ -1,6 +1,6 @@
 {
  "agent": "controls-audit",
- "generatedAt": "2026-10-05T21:52:43Z",
+ "generatedAt": "2026-10-06T04:28:22Z",
  "verdict": "PASS",
  "checks": {
   "controlsDocumentExists": 1,
