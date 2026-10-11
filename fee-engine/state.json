@@ -1,0 +1,45 @@
+{
+  "schema": "saos.roshpina.fee-engine/1",
+  "status": "armed",
+  "at": "2026-10-11T20:40:00Z",
+  "wave": "T-58",
+  "honestVocabulary": "armed = artifacts + measured inventory + flow connection exist; NOT live (no runtime serving). Fakes are forbidden.",
+  "laneClaim": "FleetHQ GOVERNANCE/write-log.jsonl commit 9618fd3 (T-58 claim, law #2)",
+  "measuredInventory": {
+    "kernelFilesTs": 114,
+    "kernelDomains": [
+      "adapter", "agent-identity", "common", "escrow", "ledger",
+      "ledger-orchestrator", "marketplace", "mcp-server", "orchestrator",
+      "passport", "policy", "potential", "rbac", "risk",
+      "settlement-rails", "track-record", "transparency-log"
+    ],
+    "apiRoutes": [
+      "/api/health", "/api/audit", "/api/bridge/saos",
+      "/api/escrow", "/api/escrow/action",
+      "/api/ledger/accounts", "/api/ledger/mint", "/api/ledger/transfer",
+      "/api/marketplace", "/api/passports", "/api/passports/verify",
+      "/api/potential"
+    ],
+    "uiPanels": 11,
+    "selftestScript": "bun run kernel-smoke (kernel-smoke.ts, exists at repo root)",
+    "framework": "Next.js + TypeScript (package.json name: roshpina)"
+  },
+  "flowConnection": {
+    "graphEdge": "roshpina → economics (FLEET-GRAPH revival queue, FLEET-ROLES §זרימת ערך step 3)",
+    "publishModel": "git snapshot lane (this file) — mirrors the proven saos-dex pnl-desk.json doctrine: engine state lands as JSON, the fleet renders it LIVE, no dedicated server needed for the snapshot lane",
+    "existingBridge": "src/app/api/bridge/saos/route.ts already declares the fleet bridge surface",
+    "economicsRole": "fee engine — structural income stream (value chain step 3, after N2 D-023 escrow and N3 T2 hardening)"
+  },
+  "whyItWasQueued": "billing-wall silence (private repo, Actions minutes cut ~09-20) + the 2026-09-12 stall — measured, documented in the repo's own README role declaration (zai-10c, 19:28)",
+  "pendingOwnerDecisions": [
+    "hosting: run the kernel live via the local sovereign engine (:3044 pattern, zero Actions minutes) or an external runner — this is the ONLY step between armed and live",
+    "N2 D-023 escrow ≥1 SBD (defines the first fee lane the engine meters)"
+  ],
+  "revivalPath": [
+    "1. DONE T-58: lane claimed (law #2), inventory measured (this file), snapshot lane declared",
+    "2. owner/host: kernel-smoke green on a runner → status flips armed→live",
+    "3. first fee lane: ledger/mint + marketplace/cost-arbitrage wired to the D-023 escrow decision",
+    "4. snapshot cadence: fee-engine/state.json refreshed per cycle (same doctrine as pnl-desk.json)"
+  ],
+  "noSecrets": true
+}
