@@ -1,5 +1,15 @@
 # roshpina — sovereign trust & value console
 
+**ROLE (declared 2026-10-11, task 10-c un-silence sweep):** the **sovereign
+trust & value console (kernel estate)** — a real zero-dep kernel (BigInt µ¢
+ledger, Ed25519 passports, 5% escrow engine, transparency log) with a
+simulated world, honestly labeled. Never deployed, never autonomous — and
+honest about it. Why it was muted: never had a runtime lane + the org
+billing wall. Revival path: deploy the Next.js console (any Node host),
+wire `bridge/saos` from the pointer-file seam to a live reader, and point
+`controls-audit.yml` (dispatch-only, valid YAML) at a real G6 audit —
+the kernel itself needs no code work.
+
 RTL Next.js 16 console over a deterministic in-memory economic kernel
 ("TFA Sovereign Trust-as-a-Service"): double-entry ledger (BigInt µ¢),
 hash-linked signed audit chain, Ed25519 action passports, escrow with a 5%
