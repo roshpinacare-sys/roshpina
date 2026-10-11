@@ -67,6 +67,23 @@ export class EscrowService {
   private readonly feeConfig?: FeeConfig;
   /** Lazy map tenantId → platform fee revenue account id. */
   private readonly platformAccounts = new Map<string, string>();
+  /**
+   * v98 — single-process operation mutex, keyed per agreement. Serialises every
+   * state-changing op (fund/release/refund/dispute/undispute) so the
+   * read(requireState)→transfer→write window can no longer interleave two ops
+   * (closes the concurrent double-fund TOCTOU: two fund() calls both passing
+   * requireState("created") and both debiting the payer). Multi-instance
+   * deployments additionally need a store-level CAS behind this same interface —
+   * noted for the pg-backed store.
+   */
+  private readonly opLocks = new Map<string, Promise<unknown>>();
+
+  private async withLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    const prev = (this.opLocks.get(key) ?? Promise.resolve()).catch(() => {});
+    const done = prev.then(fn, fn);
+    this.opLocks.set(key, done.catch(() => {}));
+    return done;
+  }
 
   constructor(
     ledger: LedgerOrchestrator,
@@ -139,18 +156,20 @@ export class EscrowService {
     return this.store.get(tenantId, id);
   }
 
-  /** payer→escrow through the chokepoint. created→funded. */
+  /** payer→escrow through the chokepoint. created→funded. (v98: mutex — exactly one concurrent fund wins.) */
   async fund(tenantId: string, id: string, initiatedBy: string): Promise<EscrowAgreement> {
-    const a = await this.requireState(tenantId, id, "created");
-    const res = await this.ledger.transfer(
-      tenantId, a.payerAccountId, a.escrowAccountId, a.amount,
-      `escrow.fund:${a.id}`, initiatedBy, false,
-    );
-    if (!res.ok) throw new EscrowError("ledger_denied", res.reason || "funding denied by guard (fail-closed)");
-    const updated: EscrowAgreement = { ...a, state: "funded", fundAuditId: res.auditId, fundedBy: initiatedBy };
-    await this.store.put(updated);
-    await this.invalidateTrackRecords(updated);
-    return updated;
+    return this.withLock(`escrow:${tenantId}:${id}`, async () => {
+      const a = await this.requireState(tenantId, id, "created");
+      const res = await this.ledger.transfer(
+        tenantId, a.payerAccountId, a.escrowAccountId, a.amount,
+        `escrow.fund:${a.id}`, initiatedBy, false,
+      );
+      if (!res.ok) throw new EscrowError("ledger_denied", res.reason || "funding denied by guard (fail-closed)");
+      const updated: EscrowAgreement = { ...a, state: "funded", fundAuditId: res.auditId, fundedBy: initiatedBy };
+      await this.store.put(updated);
+      await this.invalidateTrackRecords(updated);
+      return updated;
+    });
   }
 
   /**
@@ -175,60 +194,72 @@ export class EscrowService {
     initiatedBy: string,
     attestation?: WorkerAttestation,
   ): Promise<EscrowAgreement> {
-    const a = await this.requireState(tenantId, id, "funded");
-    if (!initiatedBy || initiatedBy !== a.fundedBy) {
-      throw new EscrowError("unauthorized", `release requires the funding authority ('${a.fundedBy ?? "unknown"}'); caller '${initiatedBy}' denied (fail-closed)`);
-    }
-
-    let feeAmount = 0n;
-    let platformAccountId: string | undefined;
-    if (this.feeConfig && this.feeConfig.basisPoints > 0) {
-      feeAmount = this.computeFee(a.amount, this.feeConfig.basisPoints);
-      if (feeAmount > 0n) {
-        platformAccountId = await this.ensurePlatformAccount(tenantId);
+    return this.withLock(`escrow:${tenantId}:${id}`, async () => {
+      const a = await this.requireState(tenantId, id, "funded");
+      if (!initiatedBy || initiatedBy !== a.fundedBy) {
+        throw new EscrowError("unauthorized", `release requires the funding authority ('${a.fundedBy ?? "unknown"}'); caller '${initiatedBy}' denied (fail-closed)`);
       }
-    }
-    const workerAmount = a.amount - feeAmount;
 
-    // Pay worker first (primary beneficiary), then collect fee.
-    // Both transfers are from the same dedicated escrow account; total outflow = a.amount.
-    let settleAuditId: string | undefined;
-    if (workerAmount > 0n) {
-      const workerRes = await this.ledger.transfer(
-        tenantId, a.escrowAccountId, a.workerAccountId, workerAmount,
-        `escrow.release:${a.id}`, initiatedBy, false,
-      );
-      if (!workerRes.ok) throw new EscrowError("ledger_denied", workerRes.reason || "release denied by guard (fail-closed)");
-      settleAuditId = workerRes.auditId;
-    }
+      let feeAmount = 0n;
+      let platformAccountId: string | undefined;
+      if (this.feeConfig && this.feeConfig.basisPoints > 0) {
+        feeAmount = this.computeFee(a.amount, this.feeConfig.basisPoints);
+        if (feeAmount > 0n) {
+          platformAccountId = await this.ensurePlatformAccount(tenantId);
+        }
+      }
+      const workerAmount = a.amount - feeAmount;
 
-    let feeAuditId: string | undefined;
-    if (feeAmount > 0n && platformAccountId) {
-      const feeRes = await this.ledger.transfer(
-        tenantId, a.escrowAccountId, platformAccountId, feeAmount,
-        `escrow.fee:${a.id}`, initiatedBy, false,
-      );
-      if (!feeRes.ok) throw new EscrowError("ledger_denied", feeRes.reason || "fee transfer denied by guard (fail-closed)");
-      feeAuditId = feeRes.auditId;
-    }
+      // v98 RESUME LOG — the two-leg payout is now crash-safe and convergent:
+      // the worker leg is persisted to the store THE MOMENT it lands (state stays
+      // "funded"), BEFORE the fee leg is attempted. A denial/crash after the
+      // worker leg can no longer wedge the agreement (the old code threw with
+      // the worker paid and nothing recorded — retries always failed
+      // INSUFFICIENT_FUNDS and the fee was stranded). Every release() retries
+      // exactly the legs whose auditId is not yet on the agreement, so repeated
+      // calls converge to "released" with the worker paid exactly once and the
+      // fee collected exactly once. Total outflow from escrow = a.amount always.
+      let settleAuditId = a.settleAuditId;
+      if (workerAmount > 0n && !settleAuditId) {
+        const workerRes = await this.ledger.transfer(
+          tenantId, a.escrowAccountId, a.workerAccountId, workerAmount,
+          `escrow.release:${a.id}`, initiatedBy, false,
+        );
+        if (!workerRes.ok) throw new EscrowError("ledger_denied", workerRes.reason || "release denied by guard (fail-closed)");
+        settleAuditId = workerRes.auditId;
+        await this.store.put({ ...a, settleAuditId }); // persist progress BEFORE fee leg (no invalidate — same identities)
+      }
 
-    const updated: EscrowAgreement = {
-      ...a,
-      state: "released",
-      settleAuditId,
-      ...(attestation !== undefined ? { attestation } : {}),
-      ...(feeAmount > 0n
-        ? {
-            feeBasisPoints: this.feeConfig!.basisPoints,
-            feeAmount,
-            feeAccountId: platformAccountId,
-            feeAuditId,
-          }
-        : {}),
-    };
-    await this.store.put(updated);
-    await this.invalidateTrackRecords(updated);
-    return updated;
+      let feeAuditId = a.feeAuditId;
+      if (feeAmount > 0n && platformAccountId && !feeAuditId) {
+        const feeRes = await this.ledger.transfer(
+          tenantId, a.escrowAccountId, platformAccountId, feeAmount,
+          `escrow.fee:${a.id}`, initiatedBy, false,
+        );
+        if (!feeRes.ok) {
+          throw new EscrowError("ledger_denied", `${feeRes.reason || "fee transfer denied by guard (fail-closed)"} — worker leg already settled (audit ${settleAuditId ?? "n/a"}); retry release() to collect the fee; no funds are stranded`);
+        }
+        feeAuditId = feeRes.auditId;
+      }
+
+      const updated: EscrowAgreement = {
+        ...a,
+        state: "released",
+        settleAuditId,
+        ...(attestation !== undefined ? { attestation } : {}),
+        ...(feeAmount > 0n
+          ? {
+              feeBasisPoints: this.feeConfig!.basisPoints,
+              feeAmount,
+              feeAccountId: platformAccountId,
+              feeAuditId,
+            }
+          : {}),
+      };
+      await this.store.put(updated);
+      await this.invalidateTrackRecords(updated);
+      return updated;
+    });
   }
 
   /**
@@ -237,19 +268,28 @@ export class EscrowService {
    * walk away asks the funder to refund; money never moves on an unauthorized voice.
    */
   async refund(tenantId: string, id: string, initiatedBy: string): Promise<EscrowAgreement> {
-    const a = await this.requireState(tenantId, id, "funded");
-    if (!initiatedBy || initiatedBy !== a.fundedBy) {
-      throw new EscrowError("unauthorized", `refund requires the funding authority ('${a.fundedBy ?? "unknown"}'); caller '${initiatedBy}' denied (fail-closed)`);
-    }
-    const res = await this.ledger.transfer(
-      tenantId, a.escrowAccountId, a.payerAccountId, a.amount,
-      `escrow.refund:${a.id}`, initiatedBy, false,
-    );
-    if (!res.ok) throw new EscrowError("ledger_denied", res.reason || "refund denied by guard (fail-closed)");
-    const updated: EscrowAgreement = { ...a, state: "refunded", settleAuditId: res.auditId };
-    await this.store.put(updated);
-    await this.invalidateTrackRecords(updated);
-    return updated;
+    return this.withLock(`escrow:${tenantId}:${id}`, async () => {
+      const a = await this.requireState(tenantId, id, "funded");
+      if (!initiatedBy || initiatedBy !== a.fundedBy) {
+        throw new EscrowError("unauthorized", `refund requires the funding authority ('${a.fundedBy ?? "unknown"}'); caller '${initiatedBy}' denied (fail-closed)`);
+      }
+      // v98: a recorded settleAuditId on a "funded" agreement means the release()
+      // worker leg already moved (resume log). The escrow now holds only the fee
+      // remainder — a full refund would just fail INSUFFICIENT_FUNDS. Refuse it
+      // honestly instead.
+      if (a.settleAuditId) {
+        throw new EscrowError("wrong_state", "release worker leg already settled — refund unavailable (escrow holds only the fee remainder); complete release() instead");
+      }
+      const res = await this.ledger.transfer(
+        tenantId, a.escrowAccountId, a.payerAccountId, a.amount,
+        `escrow.refund:${a.id}`, initiatedBy, false,
+      );
+      if (!res.ok) throw new EscrowError("ledger_denied", res.reason || "refund denied by guard (fail-closed)");
+      const updated: EscrowAgreement = { ...a, state: "refunded", settleAuditId: res.auditId };
+      await this.store.put(updated);
+      await this.invalidateTrackRecords(updated);
+      return updated;
+    });
   }
 
   /**
@@ -265,16 +305,18 @@ export class EscrowService {
    */
   async dispute(tenantId: string, id: string, initiatedBy: string, reason?: string): Promise<EscrowAgreement> {
     if (!initiatedBy) throw new EscrowError("invalid_input", "initiatedBy required to raise a dispute");
-    const a = await this.requireState(tenantId, id, "funded");
-    const updated: EscrowAgreement = {
-      ...a,
-      state: "disputed",
-      disputedBy: initiatedBy,
-      ...(reason ? { disputeReason: reason } : {}),
-    };
-    await this.store.put(updated);
-    await this.invalidateTrackRecords(updated);
-    return updated;
+    return this.withLock(`escrow:${tenantId}:${id}`, async () => {
+      const a = await this.requireState(tenantId, id, "funded");
+      const updated: EscrowAgreement = {
+        ...a,
+        state: "disputed",
+        disputedBy: initiatedBy,
+        ...(reason ? { disputeReason: reason } : {}),
+      };
+      await this.store.put(updated);
+      await this.invalidateTrackRecords(updated);
+      return updated;
+    });
   }
 
   /**
@@ -284,19 +326,21 @@ export class EscrowService {
    */
   async undispute(tenantId: string, id: string, initiatedBy: string): Promise<EscrowAgreement> {
     if (!initiatedBy) throw new EscrowError("invalid_input", "initiatedBy required to undispute");
-    const a = await this.requireState(tenantId, id, "disputed");
-    if (initiatedBy !== a.fundedBy) {
-      throw new EscrowError(
-        "unauthorized",
-        `undispute requires the funding authority ('${a.fundedBy ?? "unknown"}'); caller '${initiatedBy}' denied (fail-closed)`,
-      );
-    }
-    // Clear dispute fields; restore to funded
-    const { disputedBy: _d, disputeReason: _r, ...rest } = a as any;
-    const updated: EscrowAgreement = { ...rest, state: "funded" };
-    await this.store.put(updated);
-    await this.invalidateTrackRecords(updated);
-    return updated;
+    return this.withLock(`escrow:${tenantId}:${id}`, async () => {
+      const a = await this.requireState(tenantId, id, "disputed");
+      if (initiatedBy !== a.fundedBy) {
+        throw new EscrowError(
+          "unauthorized",
+          `undispute requires the funding authority ('${a.fundedBy ?? "unknown"}'); caller '${initiatedBy}' denied (fail-closed)`,
+        );
+      }
+      // Clear dispute fields; restore to funded
+      const { disputedBy: _d, disputeReason: _r, ...rest } = a as any;
+      const updated: EscrowAgreement = { ...rest, state: "funded" };
+      await this.store.put(updated);
+      await this.invalidateTrackRecords(updated);
+      return updated;
+    });
   }
 
   private async requireState(tenantId: string, id: string, want: EscrowState): Promise<EscrowAgreement> {

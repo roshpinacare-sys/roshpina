@@ -59,6 +59,13 @@ export interface SettlementAgreement {
    * Ordered: oldest first. Absent when no rail is configured or no release has occurred.
    */
   disbursementResults?: DisbursementResult[];
+  /**
+   * v98 — a rail disbursement that FAILED after its ledger transfer was already
+   * recorded. The store always matches the ledger first (zero desync by design);
+   * the rail attempt is retried via retryDisburse() with the SAME idempotency
+   * key (rail-side dedupe keeps double-disbursement impossible).
+   */
+  pendingDisburse?: { seq: number; amount: bigint; error: string; at: string };
 }
 
 export type SettlementErrorCode =
@@ -134,6 +141,20 @@ export class SettlementService {
   }
 
   /**
+   * v98 — single-process operation mutex, keyed per agreement. Serialises every
+   * state-changing op (fund/partialRelease/release/retryDisburse/dispute/reverse)
+   * so the read→transfer→write window can no longer interleave two ops.
+   */
+  private readonly opLocks = new Map<string, Promise<unknown>>();
+
+  private async withLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    const prev = (this.opLocks.get(key) ?? Promise.resolve()).catch(() => {});
+    const done = prev.then(fn, fn);
+    this.opLocks.set(key, done.catch(() => {}));
+    return done;
+  }
+
+  /**
    * Look up the configured rail for a tenant, falling back to the "*" default.
    * Returns null if no rail is registered (fail-open for disbursement — log only).
    */
@@ -170,6 +191,57 @@ export class SettlementService {
       const msg = e instanceof Error ? e.message : String(e);
       throw new SettlementError("ledger_denied", `rail disbursement failed: ${msg}`);
     }
+  }
+
+  /**
+   * v98 — attempt the rail for a transfer that is ALREADY recorded in the ledger
+   * and store, and record the outcome on the agreement without ever throwing:
+   * success → appended to disbursementResults; failure → recorded in
+   * pendingDisburse (honest, retriable). This is the fail-open-for-rail doctrine
+   * implemented for real: the ledger stays the source of truth, the store always
+   * matches it, and a dead rail can no longer wedge the agreement or desync
+   * releasedAmount from the escrow balance.
+   */
+  private async attemptDisburse(a: SettlementAgreement, amount: bigint, seq: number): Promise<SettlementAgreement> {
+    try {
+      const result = await this.disburse(a, amount, seq);
+      const next: SettlementAgreement = { ...a };
+      if (result) next.disbursementResults = [...(a.disbursementResults ?? []), result];
+      delete next.pendingDisburse; // cleared for real — no undefined-valued key left behind
+      return next;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return {
+        ...a,
+        pendingDisburse: { seq, amount, error: msg.slice(0, 300), at: new Date().toISOString() },
+      };
+    }
+  }
+
+  /**
+   * Retry a rail disbursement that failed after its ledger transfer was recorded
+   * (pendingDisburse present). Same authority rules; same idempotency key, so a
+   * rail that actually processed the earlier attempt dedupes safely.
+   */
+  async retryDisburse(tenantId: string, id: string, initiatedBy: string): Promise<SettlementAgreement> {
+    if (!tenantId || !id) throw new SettlementError("invalid_input", "tenantId and id required");
+    if (!initiatedBy) throw new SettlementError("invalid_input", "initiatedBy required");
+    return this.withLock(`settlement:${tenantId}:${id}`, async () => {
+      const a = await this.store.get(tenantId, id);
+      if (!a) throw new SettlementError("not_found", "settlement agreement not found");
+      if (initiatedBy !== a.settledBy) {
+        throw new SettlementError(
+          "unauthorized",
+          `retryDisburse requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+        );
+      }
+      if (!a.pendingDisburse) {
+        throw new SettlementError("wrong_state", "no pending rail disbursement to retry");
+      }
+      const updated = await this.attemptDisburse({ ...a }, a.pendingDisburse.amount, a.pendingDisburse.seq);
+      await this.store.put(updated);
+      return updated;
+    });
   }
 
   /** Create the agreement + its dedicated settlement ledger account. No money moves yet. */
@@ -226,32 +298,34 @@ export class SettlementService {
 
   /** payer→settlement escrow through the chokepoint. created→held. */
   async fund(tenantId: string, id: string, initiatedBy: string): Promise<SettlementAgreement> {
-    const a = await this.requireState(tenantId, id, "created");
-    if (!initiatedBy || initiatedBy !== a.settledBy) {
-      throw new SettlementError(
-        "unauthorized",
-        `fund requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+    return this.withLock(`settlement:${tenantId}:${id}`, async () => {
+      const a = await this.requireState(tenantId, id, "created");
+      if (!initiatedBy || initiatedBy !== a.settledBy) {
+        throw new SettlementError(
+          "unauthorized",
+          `fund requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+        );
+      }
+      const res = await this.ledger.transfer(
+        tenantId,
+        a.payerAccountId,
+        a.escrowAccountId,
+        a.totalAmount,
+        `settlement.fund:${a.id}`,
+        initiatedBy,
+        false,
       );
-    }
-    const res = await this.ledger.transfer(
-      tenantId,
-      a.payerAccountId,
-      a.escrowAccountId,
-      a.totalAmount,
-      `settlement.fund:${a.id}`,
-      initiatedBy,
-      false,
-    );
-    if (!res.ok) {
-      throw new SettlementError("ledger_denied", res.reason || "funding denied by guard (fail-closed)");
-    }
-    const updated: SettlementAgreement = {
-      ...a,
-      state: "held",
-      fundAuditId: res.auditId,
-    };
-    await this.store.put(updated);
-    return updated;
+      if (!res.ok) {
+        throw new SettlementError("ledger_denied", res.reason || "funding denied by guard (fail-closed)");
+      }
+      const updated: SettlementAgreement = {
+        ...a,
+        state: "held",
+        fundAuditId: res.auditId,
+      };
+      await this.store.put(updated);
+      return updated;
+    });
   }
 
   /**
@@ -265,57 +339,60 @@ export class SettlementService {
     amount: bigint,
     initiatedBy: string,
   ): Promise<SettlementAgreement> {
-    const a = await this.requireActive(tenantId, id);
-    if (!initiatedBy || initiatedBy !== a.settledBy) {
-      throw new SettlementError(
-        "unauthorized",
-        `partialRelease requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+    return this.withLock(`settlement:${tenantId}:${id}`, async () => {
+      const a = await this.requireActive(tenantId, id);
+      if (!initiatedBy || initiatedBy !== a.settledBy) {
+        throw new SettlementError(
+          "unauthorized",
+          `partialRelease requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+        );
+      }
+      if (typeof amount !== "bigint" || amount <= 0n) {
+        throw new SettlementError("invalid_input", "amount must be a positive bigint (μ¢)");
+      }
+      const remaining = a.totalAmount - a.releasedAmount;
+      if (amount > remaining) {
+        throw new SettlementError(
+          "insufficient_funds",
+          `partialRelease amount ${amount} exceeds remaining ${remaining}`,
+        );
+      }
+
+      const res = await this.ledger.transfer(
+        tenantId,
+        a.escrowAccountId,
+        a.workerAccountId,
+        amount,
+        `settlement.partialRelease:${a.id}`,
+        initiatedBy,
+        false,
       );
-    }
-    if (typeof amount !== "bigint" || amount <= 0n) {
-      throw new SettlementError("invalid_input", "amount must be a positive bigint (μ¢)");
-    }
-    const remaining = a.totalAmount - a.releasedAmount;
-    if (amount > remaining) {
-      throw new SettlementError(
-        "insufficient_funds",
-        `partialRelease amount ${amount} exceeds remaining ${remaining}`,
-      );
-    }
+      if (!res.ok) {
+        throw new SettlementError("ledger_denied", res.reason || "partial release denied by guard (fail-closed)");
+      }
 
-    const res = await this.ledger.transfer(
-      tenantId,
-      a.escrowAccountId,
-      a.workerAccountId,
-      amount,
-      `settlement.partialRelease:${a.id}`,
-      initiatedBy,
-      false,
-    );
-    if (!res.ok) {
-      throw new SettlementError("ledger_denied", res.reason || "partial release denied by guard (fail-closed)");
-    }
+      const newReleased = a.releasedAmount + amount;
+      const newState: SettlementState = newReleased === a.totalAmount ? "released" : "partially_released";
+      const releaseAuditIds = [...(a.releaseAuditIds ?? []), res.auditId!];
 
-    const newReleased = a.releasedAmount + amount;
-    const newState: SettlementState = newReleased === a.totalAmount ? "released" : "partially_released";
-    const releaseAuditIds = [...(a.releaseAuditIds ?? []), res.auditId!];
+      // v98 — persist the LEDGER truth FIRST (store ⇔ ledger always agree), THEN
+      // attempt the rail. The old order (transfer → rail → store) wedged the
+      // agreement on rail failure: money had moved but releasedAmount never
+      // advanced, so the retry double-paid the worker. Now a rail failure only
+      // records pendingDisburse — retries converge, nothing desyncs.
+      const updated: SettlementAgreement = {
+        ...a,
+        releasedAmount: newReleased,
+        state: newState,
+        releaseAuditIds,
+      };
+      await this.store.put(updated);
 
-    const releaseSeq = (a.disbursementResults ?? []).length + 1;
-    const disbursementResult = await this.disburse(a, amount, releaseSeq);
-    const disbursementResults = [
-      ...(a.disbursementResults ?? []),
-      ...(disbursementResult ? [disbursementResult] : []),
-    ];
-
-    const updated: SettlementAgreement = {
-      ...a,
-      releasedAmount: newReleased,
-      state: newState,
-      releaseAuditIds,
-      disbursementResults,
-    };
-    await this.store.put(updated);
-    return updated;
+      const releaseSeq = (a.disbursementResults ?? []).length + 1;
+      const withRail = await this.attemptDisburse(updated, amount, releaseSeq);
+      await this.store.put(withRail);
+      return withRail;
+    });
   }
 
   /**
@@ -324,49 +401,48 @@ export class SettlementService {
    * Only the settlement authority may call.
    */
   async release(tenantId: string, id: string, initiatedBy: string): Promise<SettlementAgreement> {
-    const a = await this.requireActive(tenantId, id);
-    if (!initiatedBy || initiatedBy !== a.settledBy) {
-      throw new SettlementError(
-        "unauthorized",
-        `release requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+    return this.withLock(`settlement:${tenantId}:${id}`, async () => {
+      const a = await this.requireActive(tenantId, id);
+      if (!initiatedBy || initiatedBy !== a.settledBy) {
+        throw new SettlementError(
+          "unauthorized",
+          `release requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+        );
+      }
+      const remaining = a.totalAmount - a.releasedAmount;
+      if (remaining <= 0n) {
+        throw new SettlementError("wrong_state", "nothing left to release");
+      }
+
+      const res = await this.ledger.transfer(
+        tenantId,
+        a.escrowAccountId,
+        a.workerAccountId,
+        remaining,
+        `settlement.release:${a.id}`,
+        initiatedBy,
+        false,
       );
-    }
-    const remaining = a.totalAmount - a.releasedAmount;
-    if (remaining <= 0n) {
-      throw new SettlementError("wrong_state", "nothing left to release");
-    }
+      if (!res.ok) {
+        throw new SettlementError("ledger_denied", res.reason || "release denied by guard (fail-closed)");
+      }
 
-    const res = await this.ledger.transfer(
-      tenantId,
-      a.escrowAccountId,
-      a.workerAccountId,
-      remaining,
-      `settlement.release:${a.id}`,
-      initiatedBy,
-      false,
-    );
-    if (!res.ok) {
-      throw new SettlementError("ledger_denied", res.reason || "release denied by guard (fail-closed)");
-    }
+      const releaseAuditIds = [...(a.releaseAuditIds ?? []), res.auditId!];
 
-    const releaseAuditIds = [...(a.releaseAuditIds ?? []), res.auditId!];
+      // v98 — same ledger-first ordering as partialRelease (zero desync).
+      const updated: SettlementAgreement = {
+        ...a,
+        releasedAmount: a.totalAmount,
+        state: "released",
+        releaseAuditIds,
+      };
+      await this.store.put(updated);
 
-    const releaseSeq = (a.disbursementResults ?? []).length + 1;
-    const disbursementResult = await this.disburse(a, remaining, releaseSeq);
-    const disbursementResults = [
-      ...(a.disbursementResults ?? []),
-      ...(disbursementResult ? [disbursementResult] : []),
-    ];
-
-    const updated: SettlementAgreement = {
-      ...a,
-      releasedAmount: a.totalAmount,
-      state: "released",
-      releaseAuditIds,
-      disbursementResults,
-    };
-    await this.store.put(updated);
-    return updated;
+      const releaseSeq = (a.disbursementResults ?? []).length + 1;
+      const withRail = await this.attemptDisburse(updated, remaining, releaseSeq);
+      await this.store.put(withRail);
+      return withRail;
+    });
   }
 
   /**
@@ -382,15 +458,17 @@ export class SettlementService {
     if (!initiatedBy) {
       throw new SettlementError("invalid_input", "initiatedBy required to raise a dispute");
     }
-    const a = await this.requireActive(tenantId, id);
-    const updated: SettlementAgreement = {
-      ...a,
-      state: "disputed",
-      disputedBy: initiatedBy,
-      ...(reason ? { disputeReason: reason } : {}),
-    };
-    await this.store.put(updated);
-    return updated;
+    return this.withLock(`settlement:${tenantId}:${id}`, async () => {
+      const a = await this.requireActive(tenantId, id);
+      const updated: SettlementAgreement = {
+        ...a,
+        state: "disputed",
+        disputedBy: initiatedBy,
+        ...(reason ? { disputeReason: reason } : {}),
+      };
+      await this.store.put(updated);
+      return updated;
+    });
   }
 
   /**
@@ -398,39 +476,41 @@ export class SettlementService {
    * Returns all unreleased funds to the payer. Only the settlement authority may call.
    */
   async reverse(tenantId: string, id: string, initiatedBy: string): Promise<SettlementAgreement> {
-    const a = await this.requireState(tenantId, id, "disputed");
-    if (!initiatedBy || initiatedBy !== a.settledBy) {
-      throw new SettlementError(
-        "unauthorized",
-        `reverse requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
-      );
-    }
-    const remaining = a.totalAmount - a.releasedAmount;
-    if (remaining > 0n) {
-      const res = await this.ledger.transfer(
-        tenantId,
-        a.escrowAccountId,
-        a.payerAccountId,
-        remaining,
-        `settlement.reverse:${a.id}`,
-        initiatedBy,
-        false,
-      );
-      if (!res.ok) {
-        throw new SettlementError("ledger_denied", res.reason || "reverse denied by guard (fail-closed)");
+    return this.withLock(`settlement:${tenantId}:${id}`, async () => {
+      const a = await this.requireState(tenantId, id, "disputed");
+      if (!initiatedBy || initiatedBy !== a.settledBy) {
+        throw new SettlementError(
+          "unauthorized",
+          `reverse requires the settlement authority ('${a.settledBy}'); caller '${initiatedBy}' denied (fail-closed)`,
+        );
       }
-      const updated: SettlementAgreement = {
-        ...a,
-        state: "reversed",
-        reversalAuditId: res.auditId,
-      };
+      const remaining = a.totalAmount - a.releasedAmount;
+      if (remaining > 0n) {
+        const res = await this.ledger.transfer(
+          tenantId,
+          a.escrowAccountId,
+          a.payerAccountId,
+          remaining,
+          `settlement.reverse:${a.id}`,
+          initiatedBy,
+          false,
+        );
+        if (!res.ok) {
+          throw new SettlementError("ledger_denied", res.reason || "reverse denied by guard (fail-closed)");
+        }
+        const updated: SettlementAgreement = {
+          ...a,
+          state: "reversed",
+          reversalAuditId: res.auditId,
+        };
+        await this.store.put(updated);
+        return updated;
+      }
+      // Nothing left to reverse; mark as reversed anyway.
+      const updated: SettlementAgreement = { ...a, state: "reversed" };
       await this.store.put(updated);
       return updated;
-    }
-    // Nothing left to reverse; mark as reversed anyway.
-    const updated: SettlementAgreement = { ...a, state: "reversed" };
-    await this.store.put(updated);
-    return updated;
+    });
   }
 
   private async requireState(
