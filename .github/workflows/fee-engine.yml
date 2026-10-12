@@ -1,0 +1,96 @@
+# fee-engine.yml — N5/D4 (T-63): the roshpina kernel runs LIVE on the fleet's proven substrate.
+#
+# The hosting decision (N5 → D4, owner directive trace 1a12d4ae2964f45d "the sovereignty decides"):
+# substrate = GitHub Actions runner (the fleet's measured 24/7 rail with revival discipline) —
+# NOT a long-lived :3044 process (no persistent host measured). Per REVIVAL.md: kernel-smoke green
+# on a runner = live. The snapshot lane (this repo's fee-engine/state.json) mirrors the proven
+# saos-dex pnl-desk.json doctrine — engine state lands as JSON, no dedicated server needed.
+#
+# Honesty laws: a red smoke = red run + state says smoke-failed (never faked); every push FF-only
+# with yield-to-alive-custodian retries (T-58 doctrine); no secrets needed.
+name: fee-engine
+
+on:
+  schedule:
+    - cron: "23 */4 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fee-engine
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install --frozen-lockfile || bun install
+
+      - name: Kernel smoke (self-proving invariants — red run = live alarm)
+        id: smoke
+        run: |
+          set +e
+          bun run kernel-smoke 2>&1 | tee /tmp/smoke.log
+          code=${PIPESTATUS[0]}
+          echo "exit=$code" >> "$GITHUB_OUTPUT"
+          tail -20 /tmp/smoke.log
+          exit $code
+
+      - name: Publish snapshot (status live + lastSmoke evidence)
+        if: success()
+        run: |
+          set -Eeuo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = 'fee-engine/state.json';
+          const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+          const now = new Date().toISOString();
+          s.status = 'live';
+          s.hosting = {
+            decision: 'D4 (T-63) — substrate: GitHub Actions runner (fleet 24/7 rail); kernel-smoke green = live per REVIVAL.md',
+            decidedAt: now, decidedBy: 'the sovereignty (owner directive trace 1a12d4ae2964f45d)',
+            alternativesConsidered: ['local sovereign engine :3044 — no persistent host measured'],
+          };
+          s.lastSmoke = { at: now, runUrl: process.env.GITHUB_SERVER_URL + '/' + process.env.GITHUB_REPOSITORY + '/actions/runs/' + process.env.GITHUB_RUN_ID, verdict: 'green — self-proving invariants passed', runner: 'github-actions' };
+          s.pendingOwnerDecisions = (s.pendingOwnerDecisions || []).filter(d => !/hosting/i.test(d));
+          s.revivalPath = (s.revivalPath || []).map(x => x.replace('2. owner/host: kernel-smoke green on a runner → status flips armed→live', '2. DONE T-63 D4: kernel-smoke green on the Actions runner → status LIVE'));
+          fs.writeFileSync(p, JSON.stringify(s, null, 2) + '\n');
+          console.log('state.json -> live');
+          NODE
+          git config user.name "roshpina-fee-bot"
+          git config user.email "roshpina-fee-bot@users.noreply.github.com"
+          git add fee-engine/state.json
+          git commit -m "live(N5/T-63): kernel-smoke green on the Actions runner - armed->live per REVIVAL.md (hosting decision D4, substrate measured 24/7 rail)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push origin main && break || { echo "yield+retry $i (alive custodian wins — never force)"; sleep 8; }
+          done
+
+      - name: Publish honest failure snapshot
+        if: failure()
+        run: |
+          set -Eeuo pipefail || true
+          node - <<'NODE' || true
+          const fs = require('fs');
+          try {
+            const p = 'fee-engine/state.json';
+            const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+            s.lastSmoke = { at: new Date().toISOString(), runUrl: process.env.GITHUB_SERVER_URL + '/' + process.env.GITHUB_REPOSITORY + '/actions/runs/' + process.env.GITHUB_RUN_ID, verdict: 'smoke-failed — red run is the alarm, never faked', runner: 'github-actions' };
+            fs.writeFileSync(p, JSON.stringify(s, null, 2) + '\n');
+            console.log('failure recorded honestly');
+          } catch (e) { console.log('state write skipped:', e.message); }
+          NODE
+          git config user.name "roshpina-fee-bot" || true
+          git config user.email "roshpina-fee-bot@users.noreply.github.com" || true
+          git add fee-engine/state.json || true
+          git commit -m "honest-fail(N5/T-63): kernel-smoke RED recorded (never faked)" || true
+          git pull --rebase origin main && git push origin main || echo "push skipped (honest failure stays in the run log)"
