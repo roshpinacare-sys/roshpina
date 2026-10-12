@@ -1,6 +1,6 @@
 {
   "schema": "saos.roshpina.fee-engine/1",
-  "status": "armed",
+  "status": "live",
   "at": "2026-10-11T20:40:00Z",
   "wave": "T-58",
   "honestVocabulary": "armed = artifacts + measured inventory + flow connection exist; NOT live (no runtime serving). Fakes are forbidden.",
@@ -8,16 +8,36 @@
   "measuredInventory": {
     "kernelFilesTs": 114,
     "kernelDomains": [
-      "adapter", "agent-identity", "common", "escrow", "ledger",
-      "ledger-orchestrator", "marketplace", "mcp-server", "orchestrator",
-      "passport", "policy", "potential", "rbac", "risk",
-      "settlement-rails", "track-record", "transparency-log"
+      "adapter",
+      "agent-identity",
+      "common",
+      "escrow",
+      "ledger",
+      "ledger-orchestrator",
+      "marketplace",
+      "mcp-server",
+      "orchestrator",
+      "passport",
+      "policy",
+      "potential",
+      "rbac",
+      "risk",
+      "settlement-rails",
+      "track-record",
+      "transparency-log"
     ],
     "apiRoutes": [
-      "/api/health", "/api/audit", "/api/bridge/saos",
-      "/api/escrow", "/api/escrow/action",
-      "/api/ledger/accounts", "/api/ledger/mint", "/api/ledger/transfer",
-      "/api/marketplace", "/api/passports", "/api/passports/verify",
+      "/api/health",
+      "/api/audit",
+      "/api/bridge/saos",
+      "/api/escrow",
+      "/api/escrow/action",
+      "/api/ledger/accounts",
+      "/api/ledger/mint",
+      "/api/ledger/transfer",
+      "/api/marketplace",
+      "/api/passports",
+      "/api/passports/verify",
       "/api/potential"
     ],
     "uiPanels": 11,
@@ -32,14 +52,25 @@
   },
   "whyItWasQueued": "billing-wall silence (private repo, Actions minutes cut ~09-20) + the 2026-09-12 stall — measured, documented in the repo's own README role declaration (zai-10c, 19:28)",
   "pendingOwnerDecisions": [
-    "hosting: run the kernel live via the local sovereign engine (:3044 pattern, zero Actions minutes) or an external runner — this is the ONLY step between armed and live",
     "N2 D-023 escrow ≥1 SBD (defines the first fee lane the engine meters)"
   ],
   "revivalPath": [
     "1. DONE T-58: lane claimed (law #2), inventory measured (this file), snapshot lane declared",
-    "2. owner/host: kernel-smoke green on a runner → status flips armed→live",
+    "2. DONE T-63 D4: kernel-smoke green on the saos-runtime runner lane → status LIVE",
     "3. first fee lane: ledger/mint + marketplace/cost-arbitrage wired to the D-023 escrow decision",
     "4. snapshot cadence: fee-engine/state.json refreshed per cycle (same doctrine as pnl-desk.json)"
   ],
-  "noSecrets": true
+  "noSecrets": true,
+  "hosting": {
+    "decision": "D4 (T-63) — substrate: the saos-runtime runner lane (roshpina-own Actions walled, measured 2026-10-12); kernel-smoke green = live per REVIVAL.md",
+    "decidedAt": "2026-10-12T00:23:47.130Z",
+    "decidedBy": "the sovereignty (owner directive trace 1a12d4ae2964f45d)",
+    "measuredEvidence": "roshpina fee-engine 38187350674 + controls-audit 38187704256 both die in seconds with zero steps (wall); saos-runtime runs green"
+  },
+  "lastSmoke": {
+    "at": "2026-10-12T00:23:47.130Z",
+    "runUrl": "https://github.com/roshpinacare-sys/saos-runtime/actions/runs/38187803398",
+    "verdict": "green — self-proving invariants passed on the saos-runtime runner",
+    "runner": "saos-runtime-lane"
+  }
 }
