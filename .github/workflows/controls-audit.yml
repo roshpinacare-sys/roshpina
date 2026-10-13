@@ -82,7 +82,7 @@ jobs:
           }
           EOF
           git config user.name "controls-audit[bot]"
-          git config user.email "controls-audit[bot]@users.noreply.github.com"
+          git config user.email "controls-audit[bot]@agents.roshpinacare-sys"
           git add -f agent/status.json
           if git diff --cached --quiet agent/status.json; then
             echo "status unchanged - no commit"
