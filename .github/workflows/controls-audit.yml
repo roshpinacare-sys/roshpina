@@ -81,8 +81,8 @@ jobs:
            "reason": "$REASON"
           }
           EOF
-          git config user.name "controls-audit[bot]"
-          git config user.email "controls-audit[bot]@agents.roshpinacare-sys"
+          git config user.name "roshpinacare-sys"
+          git config user.email "326012154+roshpinacare-sys@users.noreply.github.com"
           git add -f agent/status.json
           if git diff --cached --quiet agent/status.json; then
             echo "status unchanged - no commit"
