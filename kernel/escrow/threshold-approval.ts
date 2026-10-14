@@ -5,9 +5,28 @@
  * a ThresholdApproval token must be obtained and presented at release time. This
  * implements the Safe-style pattern: N-of-M authority approval before large value moves.
  *
- * In v142 (this cycle): 1-of-1 authority approval — the settlement authority pre-authorises
+ * In v142: 1-of-1 authority approval — the settlement authority pre-authorises
  * a specific release amount for a specific agreement via a signed HMAC token. The token is
- * single-use (nonce tracked in an in-memory store) and short-lived (TTL configurable).
+ * single-use (nonce tracked) and short-lived (TTL configurable).
+ *
+ * K1 sharpening (v143, "threshold-approval wakes up") — three laws, wired at
+ * SettlementService.release/partialRelease and proven in kernel-smoke case 8:
+ *   1. VOTE CHANNEL (I21: single deny fails closed) — tokens carry vote:
+ *      "approve" | "deny". One valid deny from a distinct identity vetoes the
+ *      release; nothing is consumed on denial.
+ *   2. IDENTITY FROM KEY, NOT FROM BODY (I21: identity from the channel, never
+ *      the request) — generateThresholdApprovalForKey signs with a PER-APPROVER
+ *      key. validateQuorumApproval verifies each token against the trusted
+ *      keyring: a forged approvedBy with the wrong key fails the signature.
+ *      A shared-secret holder can no longer mint votes “as” other identities
+ *      (the old single-secret multi-party path was a cosmetic Sybil guard).
+ *   3. BYZANTINE FLOOR (DNA from valory-xyz/open-autonomy
+ *      transaction_settlement_abci/rounds.py — malicious_threshold = nb//3):
+ *      byzantineQuorum(M) tolerates f = ⌊(M−1)/3⌋ faulty members and requires
+ *      N = 2f+1 distinct approvals. requiredApprovals below the floor is an
+ *      invalid_config — a quorum cannot be weakened into existence.
+ *   NOTE: tokens minted before K1 (no vote field) fail signature verification
+ *   by design. The module had zero live callers, so nothing breaks.
  *
  * Design:
  *   1. Authority calls generateApproval(agreementId, tenantId, maxAmount, approvedBy, signer)
@@ -31,12 +50,15 @@ export const THRESHOLD_TOKEN_TTL_MS = 10 * 60 * 1000;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export type ApprovalVote = "approve" | "deny";
+
 export interface ThresholdApproval {
   id: string;
   agreementId: string;
   tenantId: string;
   maxAmount: string; // μ¢ as decimal string
   approvedBy: string;
+  vote: ApprovalVote; // K1: "approve" or "deny" — a deny is a veto (I21)
   issuedAt: string;  // ISO
   expiresAt: string; // ISO
   token: string;     // HMAC-signed opaque string (base64url)
@@ -70,8 +92,8 @@ export class InMemoryThresholdApprovalStore implements ThresholdApprovalStore {
 // ─── Token helpers ────────────────────────────────────────────────────────────
 
 /** Canonical payload for signing. Deterministic — join fields with | separator. */
-function makePayload(id: string, agreementId: string, tenantId: string, maxAmount: string, approvedBy: string, expiresAt: string): string {
-  return [id, agreementId, tenantId, maxAmount, approvedBy, expiresAt].join("|");
+function makePayload(id: string, agreementId: string, tenantId: string, maxAmount: string, approvedBy: string, expiresAt: string, vote: ApprovalVote): string {
+  return [id, agreementId, tenantId, maxAmount, approvedBy, expiresAt, vote].join("|");
 }
 
 /** Sign the canonical payload with the kernel secret using HMAC-SHA256. Returns base64. */
@@ -99,6 +121,7 @@ function encodeToken(approval: Omit<ThresholdApproval, "token">, sig: string): s
     tenantId: approval.tenantId,
     maxAmount: approval.maxAmount,
     approvedBy: approval.approvedBy,
+    vote: approval.vote,
     issuedAt: approval.issuedAt,
     expiresAt: approval.expiresAt,
     sig,
@@ -107,7 +130,7 @@ function encodeToken(approval: Omit<ThresholdApproval, "token">, sig: string): s
 }
 
 /** Decode a token back to its fields + signature. Returns null on parse error. */
-function decodeToken(token: string): { id: string; agreementId: string; tenantId: string; maxAmount: string; approvedBy: string; issuedAt: string; expiresAt: string; sig: string } | null {
+function decodeToken(token: string): { id: string; agreementId: string; tenantId: string; maxAmount: string; approvedBy: string; vote: ApprovalVote; issuedAt: string; expiresAt: string; sig: string } | null {
   try {
     const obj = JSON.parse(Buffer.from(token, "base64").toString("utf8")) as Record<string, unknown>;
     if (
@@ -116,20 +139,21 @@ function decodeToken(token: string): { id: string; agreementId: string; tenantId
       typeof obj.tenantId !== "string" ||
       typeof obj.maxAmount !== "string" ||
       typeof obj.approvedBy !== "string" ||
+      (obj.vote !== "approve" && obj.vote !== "deny") ||
       typeof obj.issuedAt !== "string" ||
       typeof obj.expiresAt !== "string" ||
       typeof obj.sig !== "string"
     ) return null;
-    return obj as { id: string; agreementId: string; tenantId: string; maxAmount: string; approvedBy: string; issuedAt: string; expiresAt: string; sig: string };
+    return obj as { id: string; agreementId: string; tenantId: string; maxAmount: string; approvedBy: string; vote: ApprovalVote; issuedAt: string; expiresAt: string; sig: string };
   } catch { return null; }
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Generate a threshold approval token for a specific release.
+ * Generate a threshold approval token for a specific release (shared-secret path).
  * @param secret  - The kernel HMAC secret (from the signer, never caller-controlled).
- * @param input   - Agreement + amount constraints.
+ * @param input   - Agreement + amount constraints + vote (default "approve").
  * @param ttlMs   - Token lifetime in milliseconds (default: 10 minutes).
  */
 export function generateThresholdApproval(
@@ -139,8 +163,47 @@ export function generateThresholdApproval(
     tenantId: string;
     maxAmount: bigint;
     approvedBy: string;
+    vote?: ApprovalVote;
   },
   ttlMs: number = THRESHOLD_TOKEN_TTL_MS,
+): ThresholdApproval {
+  return mintApproval(secret, input, ttlMs);
+}
+
+/**
+ * K1 (I21: identity from key possession, not from the request body).
+ * Generate a threshold approval signed with a PER-APPROVER key. Validation
+ * against the trusted keyring proves WHO signed — a forged approvedBy with
+ * the wrong key fails the signature check. This is the only path that
+ * validateQuorumApproval accepts (the shared-secret path cannot distinguish
+ * identities and is therefore Sybil-cosmetic for quorum purposes).
+ */
+export function generateThresholdApprovalForKey(
+  approverKey: string,
+  input: {
+    agreementId: string;
+    tenantId: string;
+    maxAmount: bigint;
+    approvedBy: string;
+    vote?: ApprovalVote;
+  },
+  ttlMs: number = THRESHOLD_TOKEN_TTL_MS,
+): ThresholdApproval {
+  if (!approverKey) throw new ThresholdApprovalError("invalid_token", "approverKey required (identity comes from key possession, not the body)");
+  return mintApproval(approverKey, input, ttlMs);
+}
+
+/** Shared minting core — signs the canonical payload (with vote) using the given key. */
+function mintApproval(
+  key: string,
+  input: {
+    agreementId: string;
+    tenantId: string;
+    maxAmount: bigint;
+    approvedBy: string;
+    vote?: ApprovalVote;
+  },
+  ttlMs: number,
 ): ThresholdApproval {
   if (!input.agreementId) throw new ThresholdApprovalError("invalid_token", "agreementId required");
   if (!input.tenantId) throw new ThresholdApprovalError("invalid_token", "tenantId required");
@@ -148,15 +211,16 @@ export function generateThresholdApproval(
     throw new ThresholdApprovalError("invalid_token", "maxAmount must be a positive bigint (μ¢)");
   }
   if (!input.approvedBy) throw new ThresholdApprovalError("invalid_token", "approvedBy required");
+  const vote: ApprovalVote = input.vote === "deny" ? "deny" : "approve";
 
   const id = randomUUID();
   const issuedAt = new Date().toISOString();
   const expiresAt = new Date(Date.now() + ttlMs).toISOString();
   const maxAmountStr = input.maxAmount.toString();
 
-  const payload = makePayload(id, input.agreementId, input.tenantId, maxAmountStr, input.approvedBy, expiresAt);
-  const sig = sign(secret, payload);
-  const base = { id, agreementId: input.agreementId, tenantId: input.tenantId, maxAmount: maxAmountStr, approvedBy: input.approvedBy, issuedAt, expiresAt };
+  const payload = makePayload(id, input.agreementId, input.tenantId, maxAmountStr, input.approvedBy, expiresAt, vote);
+  const sig = sign(key, payload);
+  const base = { id, agreementId: input.agreementId, tenantId: input.tenantId, maxAmount: maxAmountStr, approvedBy: input.approvedBy, vote, issuedAt, expiresAt } as Omit<ThresholdApproval, "token">;
   const token = encodeToken(base, sig);
 
   return { ...base, token };
@@ -197,8 +261,8 @@ export function validateAndConsumeApproval(
     throw new ThresholdApprovalError("expired", "approval token has expired");
   }
 
-  // Signature verification
-  const expectedPayload = makePayload(decoded.id, decoded.agreementId, decoded.tenantId, decoded.maxAmount, decoded.approvedBy, decoded.expiresAt);
+  // Signature verification (K1: payload now includes the vote channel)
+  const expectedPayload = makePayload(decoded.id, decoded.agreementId, decoded.tenantId, decoded.maxAmount, decoded.approvedBy, decoded.expiresAt, decoded.vote);
   const expectedSig = sign(secret, expectedPayload);
   if (!safeEqual(expectedSig, decoded.sig)) {
     throw new ThresholdApprovalError("invalid_token", "approval token signature is invalid");
@@ -257,7 +321,8 @@ export class MultiPartyThresholdError extends Error {
     | "unauthorized_approver"
     | "duplicate_approver"
     | "token_invalid"
-    | "invalid_config";
+    | "invalid_config"
+    | "denied"; // K1 (I21): a valid deny is a veto — fail-closed
 
   constructor(
     code:
@@ -265,7 +330,8 @@ export class MultiPartyThresholdError extends Error {
       | "unauthorized_approver"
       | "duplicate_approver"
       | "token_invalid"
-      | "invalid_config",
+      | "invalid_config"
+      | "denied",
     message: string,
   ) {
     super(message);
@@ -387,4 +453,161 @@ export function validateMultiPartyApprovals(
   for (const { id } of decodedInfos) {
     store.consume(id);
   }
+}
+
+// ─── K1: Byzantine-floor quorum with per-identity keys + deny veto ───────────
+//
+// The sharpened pathway (wired at SettlementService.release/partialRelease):
+//   • M committee members, each with their OWN HMAC key (keyring is trusted
+//     config — it arrives from the deployment channel, never from a request).
+//   • byzantineQuorum(M): tolerate f = ⌊(M−1)/3⌋ faulty members, require
+//     N = 2f+1 distinct approvals (classic BFT bound; same DNA as
+//     open-autonomy transaction_settlement_abci/rounds.py L121-124).
+//   • ONE valid deny from a distinct identity vetoes the release (I21).
+//   • Identity is proven by which key validates, never by the token body.
+
+/**
+ * Byzantine-aware quorum math.
+ * M=1 → f=0, N=1 · M=4 → f=1, N=3 · M=7 → f=2, N=5 · M must be ≥ 3f+1.
+ */
+export function byzantineQuorum(committeeSize: number): { byzantineTolerance: number; requiredApprovals: number } {
+  if (!Number.isInteger(committeeSize) || committeeSize < 1) {
+    throw new MultiPartyThresholdError("invalid_config", "committeeSize must be a positive integer");
+  }
+  const f = Math.floor((committeeSize - 1) / 3);
+  const required = 2 * f + 1;
+  if (required > committeeSize) {
+    throw new MultiPartyThresholdError("invalid_config", `committee of ${committeeSize} cannot reach a Byzantine quorum (needs ${required})`);
+  }
+  return { byzantineTolerance: f, requiredApprovals: required };
+}
+
+export interface QuorumConfig {
+  /** Trusted keyring: identity → HMAC key. From deployment config, NEVER from a request. */
+  approverKeys: Record<string, string>;
+  /** Optional explicit committee list (M). Defaults to Object.keys(approverKeys). */
+  authorizedApprovers?: string[];
+  /** Optional N override. MUST be ≥ byzantineQuorum(M).requiredApprovals (cannot weaken). */
+  requiredApprovals?: number;
+}
+
+/**
+ * Validate and consume a Byzantine-floor quorum of per-key signed tokens.
+ *
+ * Fail-closed invariants (all proven in kernel-smoke case 8):
+ *   • 0 tokens, missing keyring entry, forged identity (wrong key), expired,
+ *     wrong binding, or over-amount → whole set rejected, NOTHING consumed.
+ *   • ANY valid deny from a distinct identity → "denied" — release vetoed.
+ *   • Duplicate identity → rejected (one vote per identity, enforced by key).
+ *   • requiredApprovals below the Byzantine floor → invalid_config at entry.
+ *   • Consumption happens only AFTER every check passes.
+ */
+export function validateQuorumApproval(
+  tokens: string[],
+  agreementId: string,
+  tenantId: string,
+  releaseAmount: bigint,
+  store: ThresholdApprovalStore,
+  config: QuorumConfig,
+): { approvals: string[]; denials: string[]; requiredApprovals: number; byzantineTolerance: number } {
+  const keyring = config.approverKeys ?? {};
+  if (!keyring || Object.keys(keyring).length === 0) {
+    throw new MultiPartyThresholdError("invalid_config", "approverKeys must be a non-empty keyring (identity = key possession)");
+  }
+
+  const committee = config.authorizedApprovers ?? Object.keys(keyring);
+  const { byzantineTolerance, requiredApprovals: floor } = byzantineQuorum(committee.length);
+  const required = config.requiredApprovals ?? floor;
+  if (required < floor) {
+    throw new MultiPartyThresholdError("invalid_config", `requiredApprovals ${required} is below the Byzantine floor ${floor} for a committee of ${committee.length} (cannot weaken a quorum into existence)`);
+  }
+
+  if (!tokens || tokens.length === 0) {
+    throw new MultiPartyThresholdError("insufficient_approvals", `quorum requires ${required} approvals; 0 tokens provided`);
+  }
+
+  const authorizedSet = new Set(committee);
+
+  // Phase 1: decode + verify each token against the keyring (consume nothing yet)
+  const votes: Array<{ id: string; approvedBy: string; vote: ApprovalVote }> = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const decoded = decodeToken(tokens[i]);
+    if (!decoded) {
+      throw new MultiPartyThresholdError("token_invalid", `token[${i}] is malformed`);
+    }
+
+    // Identity from KEY possession (I21): the body's approvedBy only SELECTS the
+    // keyring entry; trust comes from the signature verifying under that key.
+    const key = keyring[decoded.approvedBy];
+    if (!key) {
+      throw new MultiPartyThresholdError("token_invalid", `token[${i}]: identity "${decoded.approvedBy}" has no key in the keyring — unprovable identity is a rejection (fail-closed)`);
+    }
+
+    // Binding (fail-closed)
+    if (decoded.tenantId !== tenantId) {
+      throw new MultiPartyThresholdError("token_invalid", `token[${i}]: tenant mismatch`);
+    }
+    if (decoded.agreementId !== agreementId) {
+      throw new MultiPartyThresholdError("token_invalid", `token[${i}]: agreement mismatch`);
+    }
+
+    // Expiry (fail-closed)
+    if (Date.now() > new Date(decoded.expiresAt).getTime()) {
+      throw new MultiPartyThresholdError("token_invalid", `token[${i}]: expired`);
+    }
+
+    // Signature under the approver's own key — a forged identity fails here
+    const expectedSig = sign(key, makePayload(decoded.id, decoded.agreementId, decoded.tenantId, decoded.maxAmount, decoded.approvedBy, decoded.expiresAt, decoded.vote));
+    if (!safeEqual(expectedSig, decoded.sig)) {
+      throw new MultiPartyThresholdError("token_invalid", `token[${i}]: signature does not verify under "${decoded.approvedBy}"'s key (forged identity rejected)`);
+    }
+
+    // Amount (fail-closed)
+    if (releaseAmount > BigInt(decoded.maxAmount)) {
+      throw new MultiPartyThresholdError("token_invalid", `token[${i}]: release ${releaseAmount} exceeds approved maximum ${decoded.maxAmount}`);
+    }
+
+    // Replay peek (consume nothing in phase 1)
+    if (store.hasConsumed(decoded.id)) {
+      throw new MultiPartyThresholdError("token_invalid", `token[${i}]: already used (replay)`);
+    }
+
+    votes.push({ id: decoded.id, approvedBy: decoded.approvedBy, vote: decoded.vote });
+  }
+
+  // Phase 2: deny veto FIRST (I21 — one deny fails closed, before counting approvals)
+  const deniers = new Set<string>();
+  const approvers = new Map<string, number>();
+  for (const v of votes) {
+    if (v.vote === "deny") {
+      deniers.add(v.approvedBy);
+      continue;
+    }
+    if (approvers.has(v.approvedBy)) {
+      throw new MultiPartyThresholdError("duplicate_approver", `approver "${v.approvedBy}" voted twice; each identity may only contribute one vote`);
+    }
+    approvers.set(v.approvedBy, 0);
+    if (authorizedSet.size > 0 && !authorizedSet.has(v.approvedBy)) {
+      throw new MultiPartyThresholdError("unauthorized_approver", `approver "${v.approvedBy}" is not in the committee`);
+    }
+  }
+  for (const d of deniers) {
+    if (authorizedSet.size > 0 && !authorizedSet.has(d)) {
+      throw new MultiPartyThresholdError("unauthorized_approver", `denier "${d}" is not in the committee`);
+    }
+  }
+  if (deniers.size > 0) {
+    throw new MultiPartyThresholdError("denied", `release vetoed by deny vote(s) from: ${[...deniers].join(", ")} — a single deny fails the quorum closed (I21)`);
+  }
+
+  if (approvers.size < required) {
+    throw new MultiPartyThresholdError("insufficient_approvals", `quorum requires ${required} distinct approvals (Byzantine floor for committee of ${committee.length}); got ${approvers.size}`);
+  }
+
+  // Phase 3: everything passed — consume every token (approves AND denies) against replay
+  for (const v of votes) {
+    store.consume(v.id);
+  }
+
+  return { approvals: [...approvers.keys()], denials: [...deniers], requiredApprovals: required, byzantineTolerance };
 }

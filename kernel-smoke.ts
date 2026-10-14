@@ -13,6 +13,11 @@
  *   6. canonical-json v2 — shared/acyclic refs serialise in full (old code silently
  *      dropped them), duplicate array slots preserved, BigInt type-tagged (123n ≠ "123"),
  *      true cycles still cut.
+ *   8. K1 threshold quorum (v143) — releases above a declared threshold move ONLY
+ *      with a Byzantine-floor quorum of per-key approval tokens: no tokens refused,
+ *      forged identity refused, one deny vetoes (I21), 2f+1 distinct approvals pass,
+ *      consumed tokens replay-refused. Before v143 this was a doc claim with ZERO
+ *      enforcement (the H-3 disease); now it is wired and proven.
  * Runs: bun run kernel-smoke  (exit 1 + SMOKE-FAIL on any violated invariant).
  */
 import { generateKeyPairSync } from "node:crypto";
@@ -21,6 +26,7 @@ import { LedgerOrchestrator } from "./kernel/ledger-orchestrator/ledger-orchestr
 import { TfaOrchestrator as Orchestrator } from "./kernel/orchestrator/orchestrator";
 import { EscrowService, InMemoryEscrowStore } from "./kernel/escrow/escrow";
 import { SettlementService } from "./kernel/escrow/settlement";
+import { generateThresholdApprovalForKey, InMemoryThresholdApprovalStore, byzantineQuorum } from "./kernel/escrow/threshold-approval";
 import { InMemoryAuditStore } from "./kernel/orchestrator/audit";
 import { Ed25519Signer } from "./kernel/orchestrator/signer";
 import { canonicalJson } from "./kernel/common/canonical-json";
@@ -160,6 +166,40 @@ async function main() {
   const totalOut = (await bal(op.id)) + (await bal(wk.id)) + (await bal(rel1.feeAccountId!)) + (await bal(rel3.feeAccountId!)) + escrow2Bal + escrow4Bal;
   assert(totalOut === 10_000_000n, `money conserved end-to-end (${totalOut} = minted, incl. in-flight)`);
   console.log("7) integrity ✓ · audit chain", chain.length, "records · money conserved to the last µ¢");
+
+  // ── 8) K1 — threshold quorum law (I21 × Byzantine floor; DNA: Olas rounds.py L121-124) ──
+  const qKeys: Record<string, string> = { alice: "k-alice", bob: "k-bob", carol: "k-carol", dave: "k-dave" };
+  const qStore = new InMemoryThresholdApprovalStore();
+  const qFloor = byzantineQuorum(4); // M=4 → tolerate f=1 → require N=3
+  assert(qFloor.byzantineTolerance === 1 && qFloor.requiredApprovals === 3, "byzantineQuorum(4) = tolerate 1, require 3");
+  const settlQ = new SettlementService(lorch, undefined, null, { approverKeys: qKeys, store: qStore });
+  const qagr = await settlQ.create({ tenantId: T, opportunityId: "opp-q", payerAccountId: op.id, workerAccountId: wk.id, totalAmount: 1_000_000n, settledBy: "operator", thresholdAmount: 500_000n });
+  await settlQ.fund(T, qagr.id, "operator");
+  const mintVote = (who: string, vote: "approve" | "deny" = "approve", maxAmount: bigint = 600_000n) =>
+    generateThresholdApprovalForKey(qKeys[who], { agreementId: qagr.id, tenantId: T, maxAmount, approvedBy: who, vote }).token;
+  // 8a — above threshold with 0 tokens → refused (the H-3 hole is closed for real)
+  const noTok = await settlQ.release(T, qagr.id, "operator").then(() => false, (e: { code?: string }) => e?.code === "approval_required");
+  assert(noTok === true, "release above threshold with 0 tokens refused (fail-closed)");
+  // 8b — below threshold: no quorum needed (boundary exact)
+  const below = await settlQ.partialRelease(T, qagr.id, 400_000n, "operator");
+  assert(below.releasedAmount === 400_000n, "sub-threshold release needs no quorum");
+  // 8c — Sybil refused: token claims "bob" but signed with alice's key
+  const forgedBob = generateThresholdApprovalForKey(qKeys.alice, { agreementId: qagr.id, tenantId: T, maxAmount: 600_000n, approvedBy: "bob" }).token;
+  const sybil = await settlQ.release(T, qagr.id, "operator", [mintVote("alice"), forgedBob, mintVote("carol")]).then(() => false, (e: { code?: string }) => e?.code === "approval_denied");
+  assert(sybil === true, "forged identity (signed with the wrong key) rejected");
+  // 8d — ONE deny vetoes the whole quorum (I21: single deny fails closed)
+  const vetoed = await settlQ.release(T, qagr.id, "operator", [mintVote("alice"), mintVote("bob"), mintVote("carol", "deny")]).then(() => false, (e: { code?: string }) => e?.code === "approval_denied");
+  assert(vetoed === true, "a single deny fails the quorum closed");
+  // 8e — 3 distinct per-key approvals release above threshold
+  const okTokens = [mintVote("alice"), mintVote("bob"), mintVote("carol")];
+  const finQ = await settlQ.release(T, qagr.id, "operator", okTokens);
+  assert(finQ.state === "released" && finQ.releasedAmount === 1_000_000n, "3-of-4 distinct approvals release above threshold");
+  // 8f — the same consumed tokens can never release a second agreement (replay refused)
+  const qagr2 = await settlQ.create({ tenantId: T, opportunityId: "opp-q2", payerAccountId: op.id, workerAccountId: wk.id, totalAmount: 1_000_000n, settledBy: "operator", thresholdAmount: 500_000n });
+  await settlQ.fund(T, qagr2.id, "operator");
+  const replayed = await settlQ.release(T, qagr2.id, "operator", okTokens).then(() => false, (e: { code?: string }) => e?.code === "approval_denied");
+  assert(replayed === true, "consumed tokens replay-refused on a second agreement");
+  console.log("8) K1 quorum ✓ · 0-tokens refused · Sybil refused · single-deny veto · 3-of-4 releases · replay refused");
   console.log("SMOKE-OK · all invariants proven against the live ledger — אין טענות, יש הוכחות");
 }
 

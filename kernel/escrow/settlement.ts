@@ -17,6 +17,7 @@
 import { randomUUID } from "node:crypto";
 import type { LedgerOrchestrator } from "../ledger-orchestrator/ledger-orchestrator";
 import type { DisbursementResult, RailRegistry, SettlementRail } from "../settlement-rails/types";
+import { validateQuorumApproval, type QuorumConfig, type ThresholdApprovalStore } from "./threshold-approval";
 
 export type SettlementState =
   | "created"
@@ -50,8 +51,9 @@ export interface SettlementAgreement {
   /** Optional human-readable reason for the dispute. */
   disputeReason?: string;
   /**
-   * Optional threshold amount (μ¢). Releases above this require a ThresholdApproval token.
-   * Stored at creation time; checked by the route layer before delegating to the service.
+   * Optional threshold amount (μ¢). Releases above this REQUIRE a valid quorum of
+   * per-key approval tokens (K1 — enforced HERE in the kernel, fail-closed; before
+   * v143 this line was a doc claim with zero enforcement: the H-3 disease).
    */
   thresholdAmount?: bigint;
   /**
@@ -75,7 +77,9 @@ export type SettlementErrorCode =
   | "tenant_mismatch"
   | "unauthorized"
   | "ledger_denied"
-  | "insufficient_funds";
+  | "insufficient_funds"
+  | "approval_required" // K1: above-threshold release without quorum tokens
+  | "approval_denied"; // K1: quorum rejected the release (deny / insufficient / forged)
 
 export class SettlementError extends Error {
   code: SettlementErrorCode;
@@ -95,10 +99,21 @@ export interface CreateSettlementInput {
   settledBy: string;
   /**
    * Optional threshold amount (μ¢). When present and a release amount exceeds this,
-   * the route layer requires a ThresholdApproval token before executing (Settlement #3).
+   * the KERNEL requires a valid Byzantine-floor quorum of per-key approval tokens
+   * before any money moves (K1 — enforced in release/partialRelease, fail-closed).
    */
   thresholdAmount?: bigint;
 }
+
+/**
+ * K1 — quorum verifier configuration for the settlement chokepoint.
+ * The keyring arrives from trusted deployment config; it is NEVER taken from a
+ * request body (I21: identity from the channel, not the request).
+ */
+export type SettlementApprovalConfig = QuorumConfig & {
+  /** Replay store for consumed approval tokens. */
+  store: ThresholdApprovalStore;
+};
 
 export interface SettlementStore {
   put(a: SettlementAgreement): Promise<void>;
@@ -129,15 +144,18 @@ export class SettlementService {
   private readonly ledger: LedgerOrchestrator;
   private readonly store: SettlementStore;
   private readonly railRegistry: RailRegistry | null;
+  private readonly approvalConfig: SettlementApprovalConfig | null;
 
   constructor(
     ledger: LedgerOrchestrator,
     store: SettlementStore = new InMemorySettlementStore(),
     railRegistry: RailRegistry | null = null,
+    approvalConfig?: SettlementApprovalConfig | null,
   ) {
     this.ledger = ledger;
     this.store = store;
     this.railRegistry = railRegistry;
+    this.approvalConfig = approvalConfig ?? null;
   }
 
   /**
@@ -329,15 +347,51 @@ export class SettlementService {
   }
 
   /**
+   * K1 — the threshold quorum law at the money chokepoint.
+   * A release above the agreement's thresholdAmount moves ONLY with a valid
+   * Byzantine-floor quorum of per-key approval tokens. Fail-closed:
+   *   • no verifier configured → approval_required (a declared threshold with
+   *     no way to verify it stops money — the end of doc-claims-without-wiring)
+   *   • 0/forged/insufficient/denied tokens → approval_denied, nothing consumed
+   */
+  private enforceQuorum(a: SettlementAgreement, releaseAmount: bigint, tokens: string[]): void {
+    if (!this.approvalConfig) {
+      throw new SettlementError(
+        "approval_required",
+        `release ${releaseAmount} µ¢ exceeds threshold ${a.thresholdAmount} µ¢ but no quorum verifier is configured — money does not move on an unverified threshold (K1, fail-closed)`,
+      );
+    }
+    if (!tokens || tokens.length === 0) {
+      throw new SettlementError(
+        "approval_required",
+        `release ${releaseAmount} µ¢ exceeds threshold ${a.thresholdAmount} µ¢; quorum approval tokens are required and none were presented (K1, fail-closed)`,
+      );
+    }
+    try {
+      validateQuorumApproval(tokens, a.id, a.tenantId, releaseAmount, this.approvalConfig.store, this.approvalConfig);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new SettlementError("approval_denied", `threshold quorum rejected the release: ${msg}`);
+    }
+  }
+
+  /** K1 gate: does this release amount cross the declared threshold? */
+  private crossesThreshold(a: SettlementAgreement, releaseAmount: bigint): boolean {
+    return a.thresholdAmount !== undefined && releaseAmount > a.thresholdAmount;
+  }
+
+  /**
    * Release a portion of the held funds to the worker.
    * held/partially_released → partially_released (or released if fully drained).
    * Only the settlement authority may call.
+   * K1: releases above thresholdAmount require quorum approval tokens.
    */
   async partialRelease(
     tenantId: string,
     id: string,
     amount: bigint,
     initiatedBy: string,
+    approvalTokens: string[] = [],
   ): Promise<SettlementAgreement> {
     return this.withLock(`settlement:${tenantId}:${id}`, async () => {
       const a = await this.requireActive(tenantId, id);
@@ -356,6 +410,11 @@ export class SettlementService {
           "insufficient_funds",
           `partialRelease amount ${amount} exceeds remaining ${remaining}`,
         );
+      }
+
+      // K1 — above-threshold partial release moves only with a valid quorum
+      if (this.crossesThreshold(a, amount)) {
+        this.enforceQuorum(a, amount, approvalTokens);
       }
 
       const res = await this.ledger.transfer(
@@ -399,8 +458,9 @@ export class SettlementService {
    * Release all remaining funds to the worker.
    * held/partially_released → released.
    * Only the settlement authority may call.
+   * K1: releases above thresholdAmount require quorum approval tokens.
    */
-  async release(tenantId: string, id: string, initiatedBy: string): Promise<SettlementAgreement> {
+  async release(tenantId: string, id: string, initiatedBy: string, approvalTokens: string[] = []): Promise<SettlementAgreement> {
     return this.withLock(`settlement:${tenantId}:${id}`, async () => {
       const a = await this.requireActive(tenantId, id);
       if (!initiatedBy || initiatedBy !== a.settledBy) {
@@ -412,6 +472,11 @@ export class SettlementService {
       const remaining = a.totalAmount - a.releasedAmount;
       if (remaining <= 0n) {
         throw new SettlementError("wrong_state", "nothing left to release");
+      }
+
+      // K1 — above-threshold full release moves only with a valid quorum
+      if (this.crossesThreshold(a, remaining)) {
+        this.enforceQuorum(a, remaining, approvalTokens);
       }
 
       const res = await this.ledger.transfer(
