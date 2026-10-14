@@ -1,0 +1,4 @@
+{
+  "workflows": {},
+  "_note": "I38 registry — every scheduled workflow declares its ceiling here (fn -> {max: int>=0}) OR inline via '# budget: max=N' in the workflow file itself. sovereign-invariants-i38.yml carries its budget INLINE by design (dogfood) and intentionally has no entry here. Ghost entries (naming non-existent workflows) are RED per check_i38.py — reverse-drift sharpening beyond Sandbox D3."
+}

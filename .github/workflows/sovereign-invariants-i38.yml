@@ -1,0 +1,41 @@
+# SOVEREIGN-INVARIANTS-I38 — מכונת-החוק הממוקדת של רושפינה
+#
+# I38: כל workflow מתוזמן חייב תקרת-תקציב מוצהרת (inline "# budget: max=N"
+# או ops/sovereign-invariants/budgets.json). המכונה מתקצבת את עצמה —
+# הקרון שלה-עצמה נושא תקרה inline (הדוגמה-העצמית של החוק).
+# R-D4: אין דחיפה-שקטה (סמנטיקת D4 של ה-Sandbox, מושתלת מילה-במילה).
+#
+# הערת-מכסה (כנה): Actions על המסילה-הפרטית תקועות בקיר-המכסה מאז 2026-09-20
+# (אפס-שלבים, אפס-לוגים). החוק חי בגיט ומוכח-מקומית; יתלקח עם חזרת-המכסה.
+# החוק המלא: ops/sovereign-invariants/I38.md
+
+name: sovereign-invariants-i38
+
+on:
+  push:
+    paths:
+      - ".github/workflows/**"
+      - "ops/sovereign-invariants/**"
+  schedule:
+    - cron: "17 6 * * *" # budget: max=1 (I38 dogfood — המכונה מתקצבת את עצמה)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sovereign-invariants-i38
+  cancel-in-progress: false
+
+jobs:
+  invariants:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run the law (I38 + R-D4)
+        run: |
+          set -euo pipefail
+          python3 ops/sovereign-invariants/check_i38.py .
