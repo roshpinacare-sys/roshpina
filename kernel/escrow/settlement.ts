@@ -13,10 +13,15 @@
  *   • Each successful release records a kernel auditId on the agreement (provable trail).
  *   • Dispute freezes releases; reverse (from disputed) returns unreleased funds to payer.
  *   • Only the settlement authority (settledBy) may release, partial-release, or reverse.
+ *   • K4 (v146): the RAIL artery trips after repeated consecutive failures —
+ *     an OPEN breaker refuses the external disbursement call BEFORE it happens
+ *     (loud rail_open receipt). The breaker guards the rail, NEVER the ledger:
+ *     the internal transfer still lands (ledger-first doctrine intact).
  */
 import { randomUUID } from "node:crypto";
 import type { LedgerOrchestrator } from "../ledger-orchestrator/ledger-orchestrator";
 import type { DisbursementResult, RailRegistry, SettlementRail } from "../settlement-rails/types";
+import { ConsecutiveFailuresBreaker, type BreakerOptions } from "./webhook-breaker";
 import { validateQuorumApproval, type QuorumConfig, type ThresholdApprovalStore } from "./threshold-approval";
 
 export type SettlementState =
@@ -79,7 +84,8 @@ export type SettlementErrorCode =
   | "ledger_denied"
   | "insufficient_funds"
   | "approval_required" // K1: above-threshold release without quorum tokens
-  | "approval_denied"; // K1: quorum rejected the release (deny / insufficient / forged)
+  | "approval_denied" // K1: quorum rejected the release (deny / insufficient / forged)
+  | "rail_open"; // K4: rail breaker OPEN — external disbursement refused before the call
 
 export class SettlementError extends Error {
   code: SettlementErrorCode;
@@ -145,17 +151,28 @@ export class SettlementService {
   private readonly store: SettlementStore;
   private readonly railRegistry: RailRegistry | null;
   private readonly approvalConfig: SettlementApprovalConfig | null;
+  /** K4 — the always-armed breaker on the external rail artery (keyed `tenantId|railId`). */
+  private readonly railBreaker: ConsecutiveFailuresBreaker;
 
   constructor(
     ledger: LedgerOrchestrator,
     store: SettlementStore = new InMemorySettlementStore(),
     railRegistry: RailRegistry | null = null,
     approvalConfig?: SettlementApprovalConfig | null,
+    railBreakerOptions?: BreakerOptions | null,
   ) {
     this.ledger = ledger;
     this.store = store;
     this.railRegistry = railRegistry;
     this.approvalConfig = approvalConfig ?? null;
+    // K4 — the breaker is ALWAYS armed (no off switch): money-lane defaults are
+    // stricter than webhooks (3 consecutive failures, 60s cooldown) because rail
+    // disbursements are rare, deliberate events. Config tunes; it never disables.
+    this.railBreaker = new ConsecutiveFailuresBreaker({
+      threshold: 3,
+      cooldownMs: 60_000,
+      ...(railBreakerOptions ?? {}),
+    });
   }
 
   /**
@@ -193,9 +210,19 @@ export class SettlementService {
     const rail = this.getRail(a.tenantId);
     if (!rail) return null;
 
+    // K4 — the artery gate: consult the breaker BEFORE touching the external rail.
+    const bkKey = `${a.tenantId}|${rail.railId}`;
+    const decision = this.railBreaker.canAttempt(bkKey);
+    if (!decision.allowed) {
+      throw new SettlementError(
+        "rail_open",
+        `rail '${rail.railId}' is OPEN for tenant '${a.tenantId}' (${decision.consecutiveFailures} consecutive failures since ${decision.since}) — the external call was NOT attempted (K4, fail-closed)`,
+      );
+    }
+
     const idempotencyKey = `${a.tenantId}:${a.id}:release:${releaseSeq}`;
     try {
-      return await rail.disburse({
+      const result = await rail.disburse({
         idempotencyKey,
         tenantId: a.tenantId,
         settlementId: a.id,
@@ -204,7 +231,20 @@ export class SettlementService {
         currency: "USD",
         description: `Settlement release ${releaseSeq} for agreement ${a.id}`,
       });
+      // K4 — the outcome feeds the breaker: succeeded/pending prove the rail
+      // lives; failed counts. A skipped result is an ABSTENTION — never health,
+      // never failure — unless it was the half-open probe, which must resolve
+      // (re-arm) so the state machine can never wedge on a skipped answer.
+      if (result.status === "failed") {
+        this.railBreaker.recordFailure(bkKey);
+      } else if (result.status === "succeeded" || result.status === "pending") {
+        this.railBreaker.recordSuccess(bkKey);
+      } else if (decision.state === "half-open") {
+        this.railBreaker.recordFailure(bkKey); // abstaining probe re-arms, fresh cooldown
+      }
+      return result;
     } catch (e: unknown) {
+      this.railBreaker.recordFailure(bkKey);
       // Rail errors surface as settlement errors — callers decide retry
       const msg = e instanceof Error ? e.message : String(e);
       throw new SettlementError("ledger_denied", `rail disbursement failed: ${msg}`);
@@ -224,8 +264,21 @@ export class SettlementService {
     try {
       const result = await this.disburse(a, amount, seq);
       const next: SettlementAgreement = { ...a };
-      if (result) next.disbursementResults = [...(a.disbursementResults ?? []), result];
-      delete next.pendingDisburse; // cleared for real — no undefined-valued key left behind
+      if (result && (result.status === "succeeded" || result.status === "pending")) {
+        next.disbursementResults = [...(a.disbursementResults ?? []), result];
+        delete next.pendingDisburse; // cleared for real — no undefined-valued key left behind
+      } else if (result) {
+        // v146 (K4 smoke found this): a rail that answers WITHOUT throwing —
+        // "failed" or "skipped" — delivered NOTHING. The old code cleared the
+        // pending on any result, marking an undelivered disbursement as done.
+        // Honest state: still pending, retriable, the abstention recorded loud.
+        next.pendingDisburse = {
+          seq,
+          amount,
+          error: `rail did not deliver (status ${result.status}): ${result.message}`.slice(0, 300),
+          at: new Date().toISOString(),
+        };
+      }
       return next;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -255,6 +308,20 @@ export class SettlementService {
       }
       if (!a.pendingDisburse) {
         throw new SettlementError("wrong_state", "no pending rail disbursement to retry");
+      }
+      // K4 — loud refusal OUTSIDE the attempt: when the breaker is OPEN the
+      // retry is refused before touching the rail, the original pendingDisburse
+      // forensics stay untouched, and the consult is non-consuming (peekDecision
+      // never mutates — the gate in disburse() remains the single probe-granter).
+      const retryRail = this.getRail(a.tenantId);
+      if (retryRail) {
+        const retryDecision = this.railBreaker.peekDecision(`${a.tenantId}|${retryRail.railId}`);
+        if (!retryDecision.allowed) {
+          throw new SettlementError(
+            "rail_open",
+            `retryDisburse refused: rail '${retryRail.railId}' is OPEN for tenant '${a.tenantId}' (${retryDecision.consecutiveFailures} consecutive failures since ${retryDecision.since}) — pending disbursement preserved, no external call (K4, fail-closed)`,
+          );
+        }
       }
       const updated = await this.attemptDisburse({ ...a }, a.pendingDisburse.amount, a.pendingDisburse.seq);
       await this.store.put(updated);

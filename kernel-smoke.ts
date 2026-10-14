@@ -35,6 +35,16 @@
  *      and N consecutive failed deliveries OPEN the breaker: dispatch refuses
  *      without touching the transport, loudly in the delivery log; half-open
  *      probe after the cooldown; success closes, failed probe re-opens.
+ *  11. K4 rail breaker (v146; the money point) — the external disbursement
+ *      artery trips after 3 consecutive rail failures: OPEN refuses the rail
+ *      call BEFORE it happens (rail touches stay flat, loud rail_open), while
+ *      the internal ledger keeps moving (store ⇔ ledger still agree — the
+ *      breaker guards the rail, never the ledger); retryDisburse refuses from
+ *      the outside with the original pending forensics preserved
+ *      (non-consuming consult); half-open probes exactly once — a failed
+ *      probe re-arms fresh, a SKIPPED probe re-arms (an abstention never
+ *      wedges the machine and never counts as health), success closes and the
+ *      pending converges with the same idempotency key.
  * Runs: bun run kernel-smoke  (exit 1 + SMOKE-FAIL on any violated invariant).
  */
 import { generateKeyPairSync, randomBytes } from "node:crypto";
@@ -346,6 +356,68 @@ async function main() {
   await bk.dispatch(T, whEvent("evt-bk-r7", "settlement.released", { agreementId: "agr-bk" }));
   assert(bkInner.deliveries.length === 1 && bkInner.deliveries[0]!.result.ok === true, "probe after the full cooldown succeeds and the artery recovers");
   console.log("10) K3 seal+breaker ✓ · store never sees plaintext · once-return · read paths field-free · tamper loud · breaker trips/half-opens/closes/re-opens");
+
+  // ── 11) K4 — the rail artery gets its own measured breaker (the money point) ─
+  // (fresh service on the same ledger: the breaker guards the RAIL, never the ledger)
+  let railMode2: "fail" | "skip" | "ok" = "fail";
+  let railCalls2 = 0;
+  const rail2 = {
+    railId: "smoke-rail-k4",
+    async disburse(req: { idempotencyKey: string }) {
+      railCalls2++;
+      if (railMode2 === "fail") throw new Error("rail down (simulated K4)");
+      if (railMode2 === "skip") {
+        return { idempotencyKey: req.idempotencyKey, status: "skipped" as const, externalRef: null, processedAt: new Date().toISOString(), message: "skipped (probe abstained)" };
+      }
+      return { idempotencyKey: req.idempotencyKey, status: "succeeded" as const, externalRef: "ext-" + railCalls2, processedAt: new Date().toISOString(), message: "ok" };
+    },
+    async getStatus() { return null; },
+  };
+  const registry2: RailRegistry = { getRail: () => rail2 as any, register: () => {}, listTenants: () => ["*"] };
+  const k4Now = { t: 1_800_000_000_000 };
+  const settlK4 = new SettlementService(lorch, undefined, registry2, undefined, { threshold: 3, cooldownMs: 60_000, now: () => k4Now.t });
+  // 11a — three consecutive rail failures trip the breaker (threshold 3)
+  const k4agr = await settlK4.create({ tenantId: T, opportunityId: "opp-k4", payerAccountId: op.id, workerAccountId: wk.id, totalAmount: 1_000_000n, settledBy: "operator" });
+  await settlK4.fund(T, k4agr.id, "operator");
+  const wkK4 = await bal(wk.id);
+  for (let i = 0; i < 3; i++) {
+    const prK4 = await settlK4.partialRelease(T, k4agr.id, 100_000n, "operator");
+    assert(prK4.releasedAmount === BigInt(i + 1) * 100_000n && !!prK4.pendingDisburse, `failure ${i + 1} recorded honestly in pendingDisburse (ledger-first intact)`);
+  }
+  assert((await bal(wk.id)) === wkK4 + 300_000n, "ledger kept moving through all three failures (store ⇔ ledger agree)");
+  assert(railCalls2 === 3, "each of the three failures really hit the rail");
+  // 11b — OPEN: the 4th release refuses the rail BEFORE the call — but never the ledger
+  const pr4 = await settlK4.partialRelease(T, k4agr.id, 100_000n, "operator");
+  assert(railCalls2 === 3, "OPEN breaker: the 4th disbursement touched the rail ZERO times");
+  assert(pr4.releasedAmount === 400_000n && String(pr4.pendingDisburse?.error).includes("is OPEN"), "refusal recorded loudly in the agreement; the ledger STILL moved (rail breaker ≠ ledger lock)");
+  assert((await bal(wk.id)) === wkK4 + 400_000n, "worker still credited by the ledger despite the OPEN rail breaker");
+  // 11c — retryDisburse during OPEN: refused from the outside, forensics preserved
+  const origPending = (await settlK4.get(T, k4agr.id))!.pendingDisburse;
+  const retryRefused = await settlK4.retryDisburse(T, k4agr.id, "operator").then(() => false, (e: { code?: string }) => e?.code === "rail_open");
+  assert(retryRefused === true, "retry during OPEN refused (rail_open, fail-closed)");
+  const afterRefusal = (await settlK4.get(T, k4agr.id))!.pendingDisburse;
+  assert(afterRefusal?.error === origPending?.error && afterRefusal?.seq === origPending?.seq, "the refusal did NOT rewrite the original pending forensics");
+  // 11d — half-open: exactly ONE probe; a failed probe re-arms fresh
+  k4Now.t += 61_000;
+  await settlK4.retryDisburse(T, k4agr.id, "operator"); // probe granted, rail still down
+  assert(railCalls2 === 4, "cooldown elapsed: exactly ONE probe hit the rail");
+  const reOpenRefused = await settlK4.retryDisburse(T, k4agr.id, "operator").then(() => false, (e: { code?: string }) => e?.code === "rail_open");
+  assert(reOpenRefused === true, "failed probe re-armed the breaker (fresh cooldown holds)");
+  // 11e — a SKIPPED probe re-arms instead of wedging (an abstention is never health)
+  k4Now.t += 61_000;
+  railMode2 = "skip";
+  await settlK4.retryDisburse(T, k4agr.id, "operator"); // probe granted → the rail abstains
+  assert(railCalls2 === 5, "the skipped probe really reached the rail (it WAS the probe)");
+  const skipReArmed = await settlK4.retryDisburse(T, k4agr.id, "operator").then(() => false, (e: { code?: string }) => e?.code === "rail_open");
+  assert(skipReArmed === true, "abstaining probe re-armed the breaker — the state machine never wedges on 'skipped'");
+  // 11f — recovery: a succeeding probe closes the breaker; the pending converges
+  k4Now.t += 61_000;
+  railMode2 = "ok";
+  const converged = await settlK4.retryDisburse(T, k4agr.id, "operator");
+  assert(railCalls2 === 6 && (converged.disbursementResults?.length ?? 0) === 1 && !converged.pendingDisburse, "succeeding probe closed the breaker; retry converged, pending cleared");
+  const fineK4 = await settlK4.partialRelease(T, k4agr.id, 100_000n, "operator");
+  assert(railCalls2 === 7 && (fineK4.disbursementResults?.length ?? 0) === 2 && !fineK4.pendingDisburse, "closed breaker: disbursements flow again (artery recovered)");
+  console.log("11) K4 rail breaker ✓ · trips at 3 · OPEN refuses the rail not the ledger · retry refuses loud with forensics preserved · one probe · skipped re-arms · success closes");
   console.log("SMOKE-OK · all invariants proven against the live ledger — אין טענות, יש הוכחות");
 }
 

@@ -1,5 +1,8 @@
 /**
- * lib/escrow/webhook-breaker.ts — the circuit breaker on the outbound webhook artery (K3, v145).
+ * lib/escrow/webhook-breaker.ts — the circuit breaker state machine (K3, v145).
+ * Since K4 (v146) it guards TWO arteries: the outbound webhook lane (K3,
+ * per-registration) and the external settlement-rail lane (K4, per-tenant|rail
+ * — wired inside SettlementService.disburse).
  *
  * WHY THIS FILE EXISTS
  * --------------------
@@ -27,6 +30,10 @@
  *     (probeUsed flag under the single-threaded event loop).
  *   • Success resets completely — a recovered endpoint is trusted again.
  *   • `now` is injectable so time is measurable, not slept.
+ *   • K4 addition: `peekDecision` answers "would a probe be granted right
+ *     now?" WITHOUT consuming it — a caller that only wants to refuse loudly
+ *     (K4 retryDisburse) asks without eating the half-open probe. The artery
+ *     gate (canAttempt) remains the single probe-granter.
  */
 
 export type BreakerState = "closed" | "open" | "half-open";
@@ -86,6 +93,33 @@ export class ConsecutiveFailuresBreaker {
     if (cell.state === "open" && elapsed >= this.cooldownMs && !cell.probeUsed) {
       // exactly one probe — concurrent callers see probeUsed immediately
       cell.probeUsed = true;
+      return {
+        state: "half-open",
+        allowed: true,
+        since: new Date(cell.openedAt ?? 0).toISOString(),
+        consecutiveFailures: cell.consecutiveFailures,
+      };
+    }
+    return {
+      state: "open",
+      allowed: false,
+      reason: "circuit_breaker_open",
+      since: new Date(cell.openedAt ?? 0).toISOString(),
+      consecutiveFailures: cell.consecutiveFailures,
+    };
+  }
+
+  /**
+   * Non-consuming consult: identical verdict to canAttempt, but NEVER mutates
+   * probeUsed. Safe to ask from outside the artery (K4 retryDisburse refuses
+   * loudly from here while the actual probe is granted only by canAttempt at
+   * the disburse gate).
+   */
+  peekDecision(registrationId: string): BreakerDecision {
+    const cell = this.cells.get(registrationId);
+    if (!cell || cell.state === "closed") return { state: "closed", allowed: true };
+    const elapsed = this.now() - (cell.openedAt ?? 0);
+    if (cell.state === "open" && elapsed >= this.cooldownMs && !cell.probeUsed) {
       return {
         state: "half-open",
         allowed: true,
