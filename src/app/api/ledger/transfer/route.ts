@@ -1,11 +1,14 @@
 /**
  * POST /api/ledger/transfer — העברה בין-חשבונות דרך שער-האורקסטרטור.
  * כשל-guard (fail-closed) או יתרה-בלתי-מספקת → 409 עם סיבת-הקרנל האמיתית.
+ * K5 (C-2, v147): הבקשה חייבת חתימת-Ed25519 של מפעיל (route-gate) — בלי-אימות
+ * לא זז שקל; סירוב-השער → 401/503 עם קוד-יציב.
  */
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getKernel, TENANT } from "@/lib/kernel";
+import { gateMoneyRoute, parseJsonOrNull } from "@/lib/route-gate";
 import { money } from "@/lib/serialize";
 import { formatMc } from "@/lib/format";
 import { ensureSeed } from "@/lib/seed";
@@ -21,8 +24,12 @@ const TransferSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const gate = await gateMoneyRoute(req);
+  if (!gate.ok) {
+    return NextResponse.json({ ok: false as const, error: gate.code, reason: gate.detail }, { status: gate.status });
+  }
   await ensureSeed();
-  const parsed = TransferSchema.safeParse(await req.json().catch(() => null));
+  const parsed = TransferSchema.safeParse(parseJsonOrNull(gate.rawBody));
   if (!parsed.success) {
     return NextResponse.json(
       { ok: false as const, error: "קלט לא-חוקי", reason: parsed.error.issues[0]?.message },

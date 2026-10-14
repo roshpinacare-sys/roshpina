@@ -2,11 +2,14 @@
  * POST /api/escrow/action — שליטה מלאה במחזור-חיי-ההצבה.
  *   create | fund | release | refund | dispute | undispute
  * שגיאות-הקרנל נחשפות בכנות: 400 קלט, 404 לא-נמצא, 409 מצב-שגוי/סירוב/הרשאה.
+ * K5 (C-2, v147): כל-פעולה חייבת חתימת-Ed25519 של מפעיל (route-gate) — fund/
+ * release הם נקודת-הכסף; סירוב-השער → 401/503 עם קוד-יציב, לפני-כל-שאר.
  */
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getKernel, TENANT } from "@/lib/kernel";
+import { gateMoneyRoute, parseJsonOrNull } from "@/lib/route-gate";
 import { serializeAgreement } from "@/lib/serialize";
 import { formatNis } from "@/lib/format";
 import { ensureSeed } from "@/lib/seed";
@@ -51,8 +54,12 @@ function escrowStatus(code: string): number {
 }
 
 export async function POST(req: Request) {
+  const gate = await gateMoneyRoute(req);
+  if (!gate.ok) {
+    return NextResponse.json({ ok: false as const, error: gate.code, reason: gate.detail }, { status: gate.status });
+  }
   await ensureSeed();
-  const parsed = Schema.safeParse(await req.json().catch(() => null));
+  const parsed = Schema.safeParse(parseJsonOrNull(gate.rawBody));
   if (!parsed.success) {
     return NextResponse.json(
       { ok: false as const, error: "קלט לא-חוקי", reason: parsed.error.issues[0]?.message },

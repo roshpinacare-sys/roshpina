@@ -45,9 +45,20 @@
  *      probe re-arms fresh, a SKIPPED probe re-arms (an abstention never
  *      wedges the machine and never counts as health), success closes and the
  *      pending converges with the same idempotency key.
+ *  12. K5 route-auth gate (v147, C-2) — the transport door of the money routes:
+ *      anonymous POST to mint/transfer/escrow-action used to act as
+ *      "console-operator" (the KeyRing existed and gated NOTHING — the H-3
+ *      disease on the transport edge). Now: missing headers refused (named),
+ *      unknown kid refused, epoch/non-UTC timestamps refused (format=law),
+ *      stale/future timestamps refused (±5min window), tampered body refused
+ *      (signature binds kid|method|path|timestamp|sha256(body)), a winning
+ *      signature BURNS ITSELF (exact replay refused — no double-mint through
+ *      the window), revoked keys refuse always while retiring keys still
+ *      verify (rotation overlap), provisioning derives kid from material and
+ *      refuses broken PEM loudly.
  * Runs: bun run kernel-smoke  (exit 1 + SMOKE-FAIL on any violated invariant).
  */
-import { generateKeyPairSync, randomBytes } from "node:crypto";
+import { generateKeyPairSync, randomBytes, sign as edSign } from "node:crypto";
 import { InMemoryLedger } from "./kernel/ledger/in-memory-ledger";
 import { LedgerOrchestrator } from "./kernel/ledger-orchestrator/ledger-orchestrator";
 import { TfaOrchestrator as Orchestrator } from "./kernel/orchestrator/orchestrator";
@@ -60,6 +71,8 @@ import { ShareGate } from "./kernel/escrow/share-gate";
 import { InMemoryAuditStore } from "./kernel/orchestrator/audit";
 import { Ed25519Signer } from "./kernel/orchestrator/signer";
 import { canonicalJson } from "./kernel/common/canonical-json";
+import { KeyRing, computeKid } from "./kernel/passport/key-ring";
+import { InMemoryReplayCache, canonicalRoutePayload, provisionOperatorKeys, requireOperatorSignature, ROUTE_AUTH_REPLAY_WINDOW_MS, sha256Hex } from "./src/lib/route-auth";
 import type { RailRegistry } from "./kernel/settlement-rails/types";
 
 function assert(cond: boolean, label: string): void {
@@ -418,6 +431,90 @@ async function main() {
   const fineK4 = await settlK4.partialRelease(T, k4agr.id, 100_000n, "operator");
   assert(railCalls2 === 7 && (fineK4.disbursementResults?.length ?? 0) === 2 && !fineK4.pendingDisburse, "closed breaker: disbursements flow again (artery recovered)");
   console.log("11) K4 rail breaker ✓ · trips at 3 · OPEN refuses the rail not the ledger · retry refuses loud with forensics preserved · one probe · skipped re-arms · success closes");
+
+  // ── 12) K5 — route-auth gate (C-2, v147): the transport door of the money routes ─
+  {
+    const ring5 = new KeyRing();
+    const replay5 = new InMemoryReplayCache();
+    const now5 = 1_900_000_000_000;
+    const URL5 = "http://roshpina.test/api/ledger/mint";
+    const opKp = generateKeyPairSync("ed25519");
+    const opPem = opKp.publicKey.export({ type: "spki", format: "pem" }).toString();
+    // the sharpened law: EVERY side (signer included) derives the kid from the NORMALIZED material
+    const opPemNorm = opPem.replace(/\r\n/g, "\n").trim();
+    const opKid = computeKid("ed25519", opPemNorm);
+    ring5.register({ kid: opKid, algorithm: "ed25519", publicKey: opPemNorm, status: "active", createdAt: new Date(now5).toISOString() });
+    const sign5 = (priv: { type: "private" }, kid: string, ts: string, body: string) =>
+      edSign(null, Buffer.from(canonicalRoutePayload(kid, "POST", "/api/ledger/mint", ts, sha256Hex(body)), "utf8"), priv as never).toString("base64");
+    const deny5 = async (req: Request) => {
+      const r = await requireOperatorSignature(req, ring5, replay5, { now: now5 });
+      return r.ok ? null : r;
+    };
+    const signed5 = (body: string, ts: string = new Date(now5).toISOString(), kid: string = opKid, priv = opKp.privateKey) =>
+      new Request(URL5, { method: "POST", body, headers: { "x-roshpina-kid": kid, "x-roshpina-timestamp": ts, "x-roshpina-signature": sign5(priv, kid, ts, body) } });
+
+    // 12a — anonymous: no headers at all → refused, the missing set is named
+    const d5a = await deny5(new Request(URL5, { method: "POST", body: "{}" }));
+    assert(d5a !== null && d5a.status === 401 && d5a.code === "missing_headers" && d5a.detail.includes("x-roshpina-kid"), "anonymous POST refused with the missing header set named");
+    // 12b — unknown kid → refused (never trust by default)
+    const d5b = await deny5(new Request(URL5, { method: "POST", body: "{}", headers: { "x-roshpina-kid": "deadbeefdeadbeef", "x-roshpina-timestamp": new Date(now5).toISOString(), "x-roshpina-signature": "AA==" } }));
+    assert(d5b !== null && d5b.status === 401 && d5b.code === "unknown_kid", "unknown kid refused (never trust by default)");
+    // 12c — epoch timestamp → refused (format=law, the D3 lesson at the door)
+    const d5c = await deny5(new Request(URL5, { method: "POST", body: "{}", headers: { "x-roshpina-kid": opKid, "x-roshpina-timestamp": String(now5), "x-roshpina-signature": "AA==" } }));
+    assert(d5c !== null && d5c.status === 401 && d5c.code === "bad_timestamp", "epoch timestamp refused — ISO-8601 UTC or nothing");
+    // 12d — non-UTC offset → refused (format=law)
+    const d5d = await deny5(new Request(URL5, { method: "POST", body: "{}", headers: { "x-roshpina-kid": opKid, "x-roshpina-timestamp": new Date(now5).toISOString().replace("Z", "+02:00"), "x-roshpina-signature": "AA==" } }));
+    assert(d5d !== null && d5d.status === 401 && d5d.code === "bad_timestamp", "non-UTC offset refused — one clock, one format");
+    // 12e — stale (10 min old) AND future (10 min ahead): the window is two-sided
+    const stale5 = new Date(now5 - 10 * 60_000).toISOString();
+    const d5e = await deny5(signed5("{}", stale5));
+    assert(d5e !== null && d5e.status === 401 && d5e.code === "stale_timestamp", "stale timestamp refused even with a VALID signature (window precedes crypto)");
+    const future5 = new Date(now5 + 10 * 60_000).toISOString();
+    const d5f = await deny5(signed5("{}", future5));
+    assert(d5f !== null && d5f.status === 401 && d5f.code === "stale_timestamp", "future-beyond-window refused (clock-skew abuse caught)");
+    // 12f — tampered body: signature over body A, request carries body B
+    const sigA = sign5(opKp.privateKey, opKid, new Date(now5).toISOString(), '{"memo":"A"}');
+    const d5g = await deny5(new Request(URL5, { method: "POST", body: '{"memo":"B"}', headers: { "x-roshpina-kid": opKid, "x-roshpina-timestamp": new Date(now5).toISOString(), "x-roshpina-signature": sigA } }));
+    assert(d5g !== null && d5g.status === 401 && d5g.code === "bad_signature", "tampered body refused — the signature binds sha256(body)");
+    // 12g — the honest path: a valid operator signature PASSES, rawBody handed through (stream read once)
+    const goodBody = JSON.stringify({ accountId: "acct-k5-demo-01", amount: "1000", memo: "k5" });
+    const pass5 = await requireOperatorSignature(signed5(goodBody), ring5, replay5, { now: now5 });
+    assert(pass5.ok === true && pass5.rawBody === goodBody, "valid operator signature passes; rawBody handed to the route (stream read once)");
+    // 12h — exact replay of the winning tuple → refused (no double-mint through the window)
+    const d5h = await deny5(signed5(goodBody));
+    assert(d5h !== null && d5h.status === 401 && d5h.code === "replay_detected", "exact replay refused — a winning signature burns itself");
+    // 12i — revoked key refuses ALWAYS (compromise invalidates forever)
+    const revokedKp = generateKeyPairSync("ed25519");
+    const revokedPem = revokedKp.publicKey.export({ type: "spki", format: "pem" }).toString();
+    const revokedKid = computeKid("ed25519", revokedPem);
+    ring5.register({ kid: revokedKid, algorithm: "ed25519", publicKey: revokedPem, status: "active", createdAt: new Date(now5).toISOString() });
+    ring5.revoke(revokedKid);
+    const d5i = await deny5(signed5(JSON.stringify({ memo: "revoked" }), new Date(now5).toISOString(), revokedKid, revokedKp.privateKey));
+    assert(d5i !== null && d5i.status === 401 && d5i.code === "key_revoked", "revoked key refused ALWAYS (compromise invalidates, forever)");
+    // 12j — retiring keys still verify (rotation overlap — the KeyRing law holds at the door)
+    const nextKp = generateKeyPairSync("ed25519");
+    const nextPem = nextKp.publicKey.export({ type: "spki", format: "pem" }).toString();
+    ring5.rotate({ kid: computeKid("ed25519", nextPem), algorithm: "ed25519", publicKey: nextPem, status: "active", createdAt: new Date(now5).toISOString() });
+    const passRetired = await requireOperatorSignature(signed5(JSON.stringify({ memo: "retiring" }), new Date(now5).toISOString(), opKid, opKp.privateKey), ring5, replay5, { now: now5 });
+    assert(passRetired.ok === true, "retiring key still verifies at the door (rotation overlap preserved)");
+    // 12k — provisioning: kid derived from material; empty env = no anchors; broken PEM = loud error
+    const ringProv = new KeyRing();
+    const prov0 = provisionOperatorKeys(ringProv, {});
+    const prov1 = provisionOperatorKeys(ringProv, { ROSHPINA_OPERATOR_PUBLIC_KEY: opPem });
+    const prov2 = provisionOperatorKeys(ringProv, { ROSHPINA_OPERATOR_PUBLIC_KEY_CI: "not a pem" });
+    assert(prov0.registered.length === 0, "no env anchors = nothing registered (the gate will refuse everyone, loudly)");
+    assert(prov1.registered.length === 1 && prov1.registered[0] === opKid && prov1.registered[0] === computeKid("ed25519", opPemNorm), "operator anchor registered with kid derived from the normalized material (stable across deployments)");
+    assert(prov2.errors.length === 1 && prov2.errors[0]!.includes("PEM"), "broken PEM refused loudly at provisioning (format=law)");
+    // 12k' — env noise cannot fork the kid: trailing newlines and CRLF land on the SAME kid (measured live at the HTTP edge — the tailing-newline class of kid-mismatch is closed)
+    const ringNoise = new KeyRing();
+    const provNoise = provisionOperatorKeys(ringNoise, { ROSHPINA_OPERATOR_PUBLIC_KEY: opPem + "\n\n\n" });
+    const provCrlf = provisionOperatorKeys(ringNoise, { ROSHPINA_OPERATOR_PUBLIC_KEY_CI: opPem.replace(/\n/g, "\r\n") });
+    assert(provNoise.registered.length === 1 && provNoise.registered[0] === opKid, "trailing-newline noise registers to the SAME kid (normalization law)");
+    assert(provCrlf.registered.length === 1 && provCrlf.registered[0] === opKid, "CRLF noise registers to the SAME kid (normalization law)");
+    // 12l — the window constant is the sharpened money law (5 minutes, two-sided)
+    assert(ROUTE_AUTH_REPLAY_WINDOW_MS === 300_000, "replay window is exactly 5 minutes (measured constant, not folklore)");
+    console.log("12) K5 route-auth gate ✓ · anonymous refused (named) · unknown/revoked refused · format=law on time · two-sided ±5min window · body-bound signatures · replay burns itself · retiring verifies · kid derived from material · env-noise cannot fork the kid");
+  }
   console.log("SMOKE-OK · all invariants proven against the live ledger — אין טענות, יש הוכחות");
 }
 
