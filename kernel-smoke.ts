@@ -26,9 +26,18 @@
  *      redaction-set recorded in the delivery log. Before v144 the webhook
  *      surface shipped a free fetch(): any url, any bytes, anyone holding the
  *      relayer.
+ *  10. K3 seal + breaker (v145; DNA: verified coinbase/agentkit CdpEvmWalletProvider
+ *      dive — exportWallet returns {name,address} only, keys never in process;
+ *      the breaker is our own state machine, NOT in agentkit core) — the store
+ *      NEVER sees plaintext (sealed AES-256-GCM at the door), the secret is
+ *      returned EXACTLY ONCE (register), read paths lack the field at the type
+ *      level, tampered rows fail loud (secret_unseal_failed, nothing emitted),
+ *      and N consecutive failed deliveries OPEN the breaker: dispatch refuses
+ *      without touching the transport, loudly in the delivery log; half-open
+ *      probe after the cooldown; success closes, failed probe re-opens.
  * Runs: bun run kernel-smoke  (exit 1 + SMOKE-FAIL on any violated invariant).
  */
-import { generateKeyPairSync } from "node:crypto";
+import { generateKeyPairSync, randomBytes } from "node:crypto";
 import { InMemoryLedger } from "./kernel/ledger/in-memory-ledger";
 import { LedgerOrchestrator } from "./kernel/ledger-orchestrator/ledger-orchestrator";
 import { TfaOrchestrator as Orchestrator } from "./kernel/orchestrator/orchestrator";
@@ -36,6 +45,7 @@ import { EscrowService, InMemoryEscrowStore } from "./kernel/escrow/escrow";
 import { SettlementService } from "./kernel/escrow/settlement";
 import { generateThresholdApprovalForKey, InMemoryThresholdApprovalStore, byzantineQuorum } from "./kernel/escrow/threshold-approval";
 import { WebhookService, InMemoryWebhookRelayer, InMemoryWebhookStore, InMemoryWebhookDeliveryLog } from "./kernel/escrow/webhook";
+import { AesGcmSecretSealer, secretFingerprint } from "./kernel/escrow/webhook-secrets";
 import { ShareGate } from "./kernel/escrow/share-gate";
 import { InMemoryAuditStore } from "./kernel/orchestrator/audit";
 import { Ed25519Signer } from "./kernel/orchestrator/signer";
@@ -222,7 +232,7 @@ async function main() {
         ? [{ address: "10.0.0.5", family: 4 }]
         : [{ address: "93.184.216.34", family: 4 }],
   });
-  const wh = new WebhookService(whStore, inner, whLog, gate);
+  const wh = new WebhookService(whStore, inner, whLog, gate, { sealer: new AesGcmSecretSealer(randomBytes(32)) });
   const whEvent = (id: string, event: string, data: Record<string, unknown>) => ({ id, event, tenantId: T, occurredAt: new Date().toISOString(), data });
   // 9a — the door: loopback refused at register
   const doorLoopback = await wh.register({ tenantId: T, url: "https://127.0.0.1/hook", events: ["settlement.released"] }).then(() => false, (e: { code?: string; message?: string }) => e?.code === "invalid_input" && String(e?.message).startsWith("share_gate_refused"));
@@ -236,6 +246,7 @@ async function main() {
   // 9d — the wire: valid https destination delivers REDACTED bytes, signature over the redacted bytes
   const whSecret = "whsec-0123456789abcdef-0123456789abcdef";
   const regOk = await wh.register({ tenantId: T, url: "https://hooks.public.example/hook", events: ["settlement.released"], secret: whSecret });
+  assert(regOk.secret === whSecret, "the once-return: register hands the plaintext back exactly once");
   await wh.dispatch(T, whEvent("evt-1", "settlement.released", { agreementId: "agr-x", amount: "1000", apiKey: "sk-live-STEAL-ME", nested: { dbPassword: "hunter2" } }));
   assert(inner.deliveries.length === 1, "exactly one delivery reached the transport");
   const sent = inner.deliveries[0]!.delivery;
@@ -243,12 +254,14 @@ async function main() {
   assert(WebhookService.verifySignature(whSecret, sent.payload, sent.signature) === true, "receiver verifies the signature over exactly the redacted bytes");
   const logOk = (await whLog.list(T)).find((r) => r.registrationId === regOk.id)!;
   assert(logOk.ok === true && logOk.gate?.verdict === "allow" && logOk.gate.redactedKeys.includes("data.apiKey") && logOk.gate.redactedKeys.includes("data.nested.dbPassword"), "delivery log carries the applied redaction-set receipt");
-  // 9e — the wire re-check: a rogue store-row (tampered/stale registration) cannot smuggle a destination in
-  await whStore.put({ id: "rogue", tenantId: T, url: "https://10.0.0.9/hook", events: ["settlement.disputed"], secret: "r".repeat(32), createdAt: new Date().toISOString(), active: true });
+  // 9e — the wire re-check: a rogue store-row (tampered/stale registration) cannot smuggle a destination in.
+  // K3: it is sealed with a WRONG key — valid shape, dead content — so it dies at the unseal, emitting nothing.
+  const wrongKeySealer = new AesGcmSecretSealer(randomBytes(32));
+  await whStore.put({ id: "rogue", tenantId: T, url: "https://10.0.0.9/hook", events: ["settlement.disputed"], secretSealed: wrongKeySealer.seal("r".repeat(32)), secretFingerprint: secretFingerprint("r".repeat(32)), createdAt: new Date().toISOString(), active: true });
   await wh.dispatch(T, whEvent("evt-2", "settlement.disputed", { agreementId: "agr-x" }));
   assert(inner.deliveries.length === 1, "rogue destination emitted NOTHING (wire re-check)");
   const logRogue = (await whLog.list(T)).find((r) => r.registrationId === "rogue")!;
-  assert(logRogue.ok === false && String(logRogue.error).startsWith("share_gate_refused") && logRogue.gate?.verdict === "refuse", "rogue refusal recorded honestly in the delivery log");
+  assert(logRogue.ok === false && String(logRogue.error).startsWith("secret_unseal_failed"), "rogue row dies at the unseal, recorded honestly in the delivery log");
   // 9f — DNS-rebinding killed at the wire: registered public, resolves private at dispatch
   await wh.register({ tenantId: T, url: "https://rebind.public.example/hook", events: ["settlement.reversed"], secret: "b".repeat(32) });
   rebindPrivate = true;
@@ -260,6 +273,79 @@ async function main() {
   await wh.dispatch(T, whEvent("evt-4", "passport.issued", { subject: "worker-a" }));
   assert(inner.deliveries.length === 1, "unmatched event emitted nothing");
   console.log("9) K2 share-gate ✓ · door: loopback/metadata/http refused · wire: rogue row refused · DNS-rebind refused · credentials redacted before signing · redaction-set in the log");
+
+  // ── 10) K3 — sealed secrets at rest + circuit breaker ────────────────────────
+  // (fresh isolated service — the K2 service above stays untouched)
+  const k3Inner = new InMemoryWebhookRelayer();
+  const k3Store = new InMemoryWebhookStore();
+  const k3Log = new InMemoryWebhookDeliveryLog();
+  const k3Key = randomBytes(32);
+  const k3Wh = new WebhookService(k3Store, k3Inner, k3Log, new ShareGate(k3Inner, { resolveOnDispatch: true }, { resolve: async () => [{ address: "93.184.216.34", family: 4 }] }), { sealer: new AesGcmSecretSealer(k3Key) });
+  // 10a — no off switch: a service without a sealer is not constructible
+  const noSeal = (() => { try { new WebhookService(new InMemoryWebhookStore(), k3Inner, new InMemoryWebhookDeliveryLog()); return true; } catch (e) { return (e as { code?: string })?.code === "invalid_config"; } })();
+  assert(noSeal === true, "construction without a sealer refused (invalid_config — K3 has no off switch)");
+  // 10b — the store NEVER sees plaintext: the row is sealed, fingerprinted, field-free
+  const k3Secret = "k3-secret-0123456789abcdef";
+  const k3Reg = await k3Wh.register({ tenantId: T, url: "https://k3.public.example/hook", events: ["settlement.released"], secret: k3Secret });
+  const stored = (await k3Store.list(T))[0]!;
+  assert(!("secret" in stored) && typeof stored.secretSealed?.ct === "string" && stored.secretSealed.v === 1, "store row carries ONLY the sealed shape (no plaintext field)");
+  assert(stored.secretSealed.ct !== k3Secret && stored.secretSealed.ct.length >= 32, "ciphertext at rest (not the plaintext)");
+  assert(stored.secretFingerprint === secretFingerprint(k3Secret), "fingerprint matches (ops identification without material)");
+  // 10b-2 — the K2 wire re-check lives on with sealed rows: valid seal, internal url → gate refuses
+  await k3Store.put({ id: "k3-smuggler", tenantId: T, url: "https://192.168.1.9/hook", events: ["settlement.released"], secretSealed: (new AesGcmSecretSealer(k3Key)).seal(k3Secret), secretFingerprint: secretFingerprint(k3Secret), createdAt: new Date().toISOString(), active: true });
+  await k3Wh.dispatch(T, whEvent("evt-k3-wire", "settlement.released", { agreementId: "agr-x" }));
+  assert(k3Inner.deliveries.length === 1, "only the valid row emitted — the validly-sealed rogue destination was refused at the wire");
+  const logSmuggler = (await k3Log.list(T)).find((r) => r.registrationId === "k3-smuggler")!;
+  assert(logSmuggler.ok === false && String(logSmuggler.error).startsWith("share_gate_refused"), "smuggler refusal recorded honestly");
+  // 10c — read paths lack the field at the type level
+  const listed = await k3Wh.list(T);
+  const fetched = await k3Wh.get(T, k3Reg.id);
+  assert(listed.every((r) => !("secret" in r)) && fetched !== null && !("secret" in fetched), "get/list return NO secret material (type-level seal)");
+  // 10d — dispatch works end-to-end: unseal in the sign frame, receiver verifies
+  await k3Wh.dispatch(T, whEvent("evt-k3-1", "settlement.released", { agreementId: "agr-y" }));
+  assert(k3Inner.deliveries.length === 2, "valid sealed row delivers");
+  assert(WebhookService.verifySignature(k3Secret, k3Inner.deliveries[1]!.delivery.payload, k3Inner.deliveries[1]!.delivery.signature) === true, "signature verifies with the once-returned plaintext");
+  // 10e — tamper is loud: flip a byte in the ciphertext → secret_unseal_failed, nothing emitted
+  const tampered = { ...stored.secretSealed, ct: (stored.secretSealed.ct[0] === "0" ? "1" : "0") + stored.secretSealed.ct.slice(1) };
+  await k3Store.put({ ...stored, secretSealed: tampered });
+  await k3Wh.dispatch(T, whEvent("evt-k3-2", "settlement.released", { agreementId: "agr-y" }));
+  assert(k3Inner.deliveries.length === 2, "tampered row emitted NOTHING");
+  const logTamper = (await k3Log.list(T)).filter((r) => r.registrationId === k3Reg.id)[0]!; // delivery log is newest-first
+  assert(logTamper.ok === false && String(logTamper.error).startsWith("secret_unseal_failed"), "tamper recorded loud (secret_unseal_failed)");
+  // 10f — the breaker trips: threshold=5 consecutive failures → OPEN, transport untouched
+  const fakeNow = { t: 1_700_000_000_000 };
+  const bkInner = new InMemoryWebhookRelayer();
+  const bkStore = new InMemoryWebhookStore();
+  const bkLog = new InMemoryWebhookDeliveryLog();
+  const bk = new WebhookService(bkStore, bkInner, bkLog, new ShareGate(bkInner, { resolveOnDispatch: true }, { resolve: async () => [{ address: "93.184.216.34", family: 4 }] }), { sealer: new AesGcmSecretSealer(randomBytes(32)), breaker: { threshold: 5, cooldownMs: 60_000, now: () => fakeNow.t } });
+  await bk.register({ tenantId: T, url: "https://bk.public.example/hook", events: ["settlement.released"] });
+  bkInner.setFailNext(5);
+  for (let i = 0; i < 5; i++) await bk.dispatch(T, whEvent(`evt-bk-${i}`, "settlement.released", { agreementId: "agr-bk" }));
+  assert(bkInner.deliveries.length === 5, "5 failing deliveries reached the transport (each recorded)");
+  await bk.dispatch(T, whEvent("evt-bk-6", "settlement.released", { agreementId: "agr-bk" }));
+  assert(bkInner.deliveries.length === 5, "the 6th dispatch touched the transport ZERO times (breaker OPEN)");
+  const logOpen = (await bkLog.list(T))[0]!; // delivery log is newest-first
+  assert(logOpen.ok === false && logOpen.breaker?.state === "open" && String(logOpen.error).startsWith("circuit_breaker_open"), "open refusal recorded loudly with the breaker receipt");
+  // 10g — half-open: after the cooldown exactly ONE probe; success closes
+  fakeNow.t += 61_000;
+  await bk.dispatch(T, whEvent("evt-bk-7", "settlement.released", { agreementId: "agr-bk" }));
+  assert(bkInner.deliveries.length === 6 && bkInner.deliveries[5]!.result.ok === true, "half-open probe allowed after cooldown and succeeded");
+  await bk.dispatch(T, whEvent("evt-bk-8", "settlement.released", { agreementId: "agr-bk" }));
+  assert(bkInner.deliveries.length === 7, "breaker CLOSED after a successful probe (deliveries flow again)");
+  // 10h — a failed probe re-opens with a fresh cooldown (re-trip with threshold=5)
+  bkInner.setFailNext(5);
+  for (let i = 0; i < 5; i++) await bk.dispatch(T, whEvent(`evt-bk-r${i}`, "settlement.released", { agreementId: "agr-bk" }));
+  assert(bkInner.deliveries.length === 12, "re-tripped after 5 consecutive failures (12 attempts total)");
+  await bk.dispatch(T, whEvent("evt-bk-r5", "settlement.released", { agreementId: "agr-bk" }));
+  assert(bkInner.deliveries.length === 12, "OPEN again — transport untouched");
+  fakeNow.t += 30_000; // inside the fresh cooldown
+  await bk.dispatch(T, whEvent("evt-bk-r6", "settlement.released", { agreementId: "agr-bk" }));
+  assert(bkInner.deliveries.length === 12, "fresh cooldown holds (no probe before its time)");
+  fakeNow.t += 31_000;
+  bkInner.deliveries.length = 0; // clear the counter, keep the relayer succeeding
+  await bk.dispatch(T, whEvent("evt-bk-r7", "settlement.released", { agreementId: "agr-bk" }));
+  assert(bkInner.deliveries.length === 1 && bkInner.deliveries[0]!.result.ok === true, "probe after the full cooldown succeeds and the artery recovers");
+  console.log("10) K3 seal+breaker ✓ · store never sees plaintext · once-return · read paths field-free · tamper loud · breaker trips/half-opens/closes/re-opens");
   console.log("SMOKE-OK · all invariants proven against the live ledger — אין טענות, יש הוכחות");
 }
 

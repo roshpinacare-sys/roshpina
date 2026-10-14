@@ -25,6 +25,17 @@
  *     "[REDACTED]", depth-capped) BEFORE signing — receivers verify the exact
  *     bytes that left; the applied redaction-set lands in the delivery log.
  *   • BigInt amounts in event payloads serialized as strings.
+ *   • K3 seal law (v145): the store NEVER sees plaintext — register seals at the
+ *     door (AES-256-GCM under a deployment-held key, webhook-secrets.ts), the
+ *     plaintext is returned to the caller EXACTLY ONCE (WebhookRegistrationCreated),
+ *     every read path lacks the field at the type level (DNA: CdpEvmWalletProvider
+ *     exportWallet returns {name,address} only), and dispatch unseals just-in-time
+ *     inside the sign frame. Wrong/missing sealer = invalid_config (no off switch).
+ *   • K3 breaker law (v145): a registration with N consecutive failed deliveries
+ *     OPENS (webhook-breaker.ts); while open, dispatch refuses WITHOUT touching
+ *     the gate or the transport, and writes the refusal into the delivery log —
+ *     never silent. After the cooldown: one half-open probe; success closes,
+ *     failure re-opens with a fresh cooldown.
  *   • Dispatch errors are swallowed — a failed delivery must not abort the settlement.
  *   • Signature header: x-tfa-signature: sha256=<base64>
  *   • Event timestamp: x-tfa-event and x-tfa-timestamp headers on every delivery.
@@ -34,6 +45,8 @@ import { randomUUID } from "node:crypto";
 import { ShareGate } from "./share-gate";
 import { signPayload as hmacSign, verifySignature as hmacVerify } from "./webhook-crypto";
 import type { ShareGateReceipt } from "./share-gate";
+import { secretFingerprint, type SecretSealer, type SealedSecret } from "./webhook-secrets";
+import { ConsecutiveFailuresBreaker, type BreakerOptions } from "./webhook-breaker";
 
 // ─── Event types ──────────────────────────────────────────────────────────────
 
@@ -71,11 +84,21 @@ export interface WebhookRegistration {
   tenantId: string;
   url: string;
   events: string[];
-  /** HMAC secret — caller supplies or a random 32-byte secret is generated. */
-  secret: string;
+  /** K3: the secret SEALED at rest — the store never sees plaintext. */
+  secretSealed: SealedSecret;
+  /** K3: non-reversible ops identifier (sha256 prefix) — the only secret-ish thing read paths expose. */
+  secretFingerprint: string;
   createdAt: string;
   active: boolean;
 }
+
+/**
+ * K3: the return of register() — the ONE time the plaintext secret leaves the
+ * kernel. The caller keeps it (offline signature verification); the kernel
+ * never hands it back again (get/list return WebhookRegistration, which lacks
+ * the field at the type level).
+ */
+export type WebhookRegistrationCreated = WebhookRegistration & { secret: string };
 
 export interface CreateWebhookInput {
   tenantId: string;
@@ -86,8 +109,8 @@ export interface CreateWebhookInput {
 }
 
 export class WebhookError extends Error {
-  code: "invalid_input" | "not_found" | "tenant_mismatch";
-  constructor(code: "invalid_input" | "not_found" | "tenant_mismatch", message: string) {
+  code: "invalid_input" | "invalid_config" | "not_found" | "tenant_mismatch";
+  constructor(code: "invalid_input" | "invalid_config" | "not_found" | "tenant_mismatch", message: string) {
     super(message);
     this.name = "WebhookError";
     this.code = code;
@@ -187,6 +210,8 @@ export interface WebhookDeliveryRecord {
   ok: boolean;
   statusCode?: number;
   error?: string;
+  /** K3 breaker receipt — present when dispatch was refused by an OPEN breaker (v145+). */
+  breaker?: { state: "open"; since: string; consecutiveFailures: number };
   /** K2 share-gate receipt — present on every gate-evaluated emission (v144+). */
   gate?: ShareGateReceipt;
 }
@@ -237,15 +262,31 @@ export class WebhookService {
   /** K2: the ONLY path from (registration, event) to the transport. Always present. */
   readonly gate: ShareGate;
 
-  constructor(store: WebhookStore, relayer: WebhookRelayer, deliveryLog: WebhookDeliveryLog = new InMemoryWebhookDeliveryLog(), gate?: ShareGate) {
+  constructor(
+    store: WebhookStore,
+    relayer: WebhookRelayer,
+    deliveryLog: WebhookDeliveryLog = new InMemoryWebhookDeliveryLog(),
+    gate?: ShareGate,
+    opts?: { sealer: SecretSealer; breaker?: BreakerOptions },
+  ) {
+    if (!opts?.sealer) {
+      // K3 has no off switch: a service that stores plaintext secrets is the
+      // disease this law exists to kill — refuse construction, never fall back.
+      throw new WebhookError("invalid_config", "sealer required — a WebhookService that stores plaintext secrets is not constructible (K3, no off switch)");
+    }
+    this.sealer = opts.sealer;
+    this.breaker = new ConsecutiveFailuresBreaker(opts.breaker ?? {}); // always on — no off switch
     this.store = store;
     this.relayer = relayer;
     this.deliveryLog = deliveryLog;
     this.gate = gate ?? new ShareGate(relayer); // no gate-less construction — I27 has no off switch
   }
 
-  /** Register a new webhook endpoint for a tenant (K2: the door — the gate classifies the destination FIRST). */
-  async register(input: CreateWebhookInput): Promise<WebhookRegistration> {
+  private readonly sealer: SecretSealer;
+  private readonly breaker: ConsecutiveFailuresBreaker;
+
+  /** Register a new webhook endpoint for a tenant (K2: the door — the gate classifies the destination FIRST; K3: the secret is sealed BEFORE the store sees it, and returned to the caller EXACTLY ONCE). */
+  async register(input: CreateWebhookInput): Promise<WebhookRegistrationCreated> {
     if (!input?.tenantId) throw new WebhookError("invalid_input", "tenantId required");
     if (!input.url || !input.url.startsWith("http")) {
       throw new WebhookError("invalid_input", "url must be a valid http/https URL");
@@ -263,17 +304,20 @@ export class WebhookService {
         ? input.secret
         : randomUUID().replace(/-/g, "") + randomUUID().replace(/-/g, "");
 
+    const secretSealed = this.sealer.seal(secret); // K3: the store boundary sees ciphertext only
     const reg: WebhookRegistration = {
       id: randomUUID(),
       tenantId: input.tenantId,
       url: input.url,
       events: input.events,
-      secret,
+      secretSealed,
+      secretFingerprint: secretFingerprint(secret),
       createdAt: new Date().toISOString(),
       active: true,
     };
     await this.store.put(reg);
-    return reg;
+    // K3 the-once-return: plaintext leaves exactly here, never again.
+    return { ...reg, secret };
   }
 
   async get(tenantId: string, id: string): Promise<WebhookRegistration | null> {
@@ -309,15 +353,62 @@ export class WebhookService {
         .filter((r) => r.active && r.events.includes(event.event))
         .map(async (reg) => {
           const deliveryId = randomUUID();
+          // K3 breaker law: consult BEFORE touching the gate or the transport.
+          const decision = this.breaker.canAttempt(reg.id);
+          if (!decision.allowed) {
+            try {
+              await this.deliveryLog.record({
+                id: deliveryId,
+                tenantId,
+                registrationId: reg.id,
+                event: event.event,
+                occurredAt: event.occurredAt,
+                attemptedAt: new Date().toISOString(),
+                ok: false,
+                error: `circuit_breaker_open: ${decision.consecutiveFailures ?? 0} consecutive failures (opened ${decision.since ?? "unknown"})`,
+                breaker: { state: "open", since: decision.since ?? "unknown", consecutiveFailures: decision.consecutiveFailures ?? 0 },
+              });
+            } catch { /* logging must never abort dispatch */ }
+            return;
+          }
+
           let result: DeliveryResult;
           let receipt: ShareGateReceipt | undefined;
+          // K3 seal law: unseal JUST-IN-TIME — plaintext exists only inside the
+          // sign frame (the gate signs the redacted bytes with it, then it dies).
+          let plain: string;
           try {
-            const outcome = await this.gate.emit({ reg, event, deliveryId });
+            plain = this.sealer.unseal(reg.secretSealed);
+          } catch (err: unknown) {
+            // tampered/truncated/wrong-key store row: fail loudly in the log,
+            // count it as a failure (fail-closed), emit NOTHING.
+            const msg = `secret_unseal_failed: ${err instanceof Error ? err.message : String(err)}`;
+            this.breaker.recordFailure(reg.id);
+            try {
+              await this.deliveryLog.record({
+                id: deliveryId,
+                tenantId,
+                registrationId: reg.id,
+                event: event.event,
+                occurredAt: event.occurredAt,
+                attemptedAt: new Date().toISOString(),
+                ok: false,
+                error: msg,
+              });
+            } catch { /* logging must never abort dispatch */ }
+            return;
+          }
+          try {
+            const outcome = await this.gate.emit({ reg, secret: plain, event, deliveryId });
             result = outcome.result;
             receipt = outcome.receipt;
           } catch (err: unknown) {
             result = { ok: false, error: err instanceof Error ? err.message : String(err) };
           }
+          // K3 breaker law: feed the outcome back — consecutive failures trip,
+          // any success fully resets.
+          if (result.ok) this.breaker.recordSuccess(reg.id);
+          else this.breaker.recordFailure(reg.id);
           try {
             await this.deliveryLog.record({
               id: deliveryId,

@@ -22,6 +22,7 @@ export {
   type WebhookStore,
   type WebhookRelayer,
   type WebhookRegistration,
+  type WebhookRegistrationCreated,
   type WebhookEvent,
   type WebhookDelivery,
   type DeliveryResult,
@@ -30,6 +31,19 @@ export {
   type WebhookDeliveryLog,
   type WebhookDeliveryRecord,
 } from "./webhook";
+export {
+  AesGcmSecretSealer,
+  SecretSealError,
+  secretFingerprint,
+  type SecretSealer,
+  type SealedSecret,
+} from "./webhook-secrets";
+export {
+  ConsecutiveFailuresBreaker,
+  type BreakerState,
+  type BreakerDecision,
+  type BreakerOptions,
+} from "./webhook-breaker";
 export { HttpWebhookRelayer, type HttpWebhookRelayerConfig } from "./http-webhook-relayer";
 export {
   ShareGate,

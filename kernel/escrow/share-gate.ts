@@ -318,8 +318,12 @@ export class ShareGate {
    * The single emission path: re-check the destination (the wire), redact the
    * event, sign the REDACTED bytes, build the delivery, hand it to the dumb
    * transport. On refusal: nothing is emitted, the receipt says exactly why.
+   * K3 (v145): the secret arrives as an EXPLICIT argument — the unseal happens
+   * in the service's sign frame; the gate never pulls key material out of a
+   * bag. Type-level seal: the registration carried in here has no secret field
+   * at all (the store shape lacks it).
    */
-  async emit(args: { reg: WebhookRegistration; event: WebhookEvent; deliveryId?: string }): Promise<ShareGateOutcome> {
+  async emit(args: { reg: WebhookRegistration; secret: string; event: WebhookEvent; deliveryId?: string }): Promise<ShareGateOutcome> {
     const refuse = (reasons: string[]): ShareGateOutcome => ({
       result: { ok: false, error: `share_gate_refused: ${reasons.join("; ")}` },
       receipt: { verdict: "refuse", reasons, redactedKeys: [], truncated: false },
@@ -330,7 +334,7 @@ export class ShareGate {
 
     const red = redactEvent(args.event);
     const payload = JSON.stringify(red.event);
-    const signature = signPayload(args.reg.secret, payload);
+    const signature = signPayload(args.secret, payload);
     const delivery: WebhookDelivery = {
       registrationId: args.reg.id,
       url: args.reg.url,
