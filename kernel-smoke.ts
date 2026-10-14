@@ -56,6 +56,18 @@
  *      the window), revoked keys refuse always while retiring keys still
  *      verify (rotation overlap), provisioning derives kid from material and
  *      refuses broken PEM loudly.
+ *  13. C-2b anchor seam (v148) — the lesson K5's own commit left behind: the
+ *      bridge POST (the seam file the SAOS chain picks up) was a state-creating
+ *      write with NO gate — C-2 named the gate "money" and the name was too
+ *      narrow. Now: the gate is gateStateRoute (one gate truth for ALL
+ *      state-creating writes), the bridge POST passes it BEFORE seed and
+ *      kernel, and the WIRING IS LAW (born live from the C-2b miss): the smoke
+ *      walks every src/app/api route file and refuses any POST export that is
+ *      neither gated nor explicitly allowlisted as pure verification — the
+ *      NEXT seam cannot ship silently. The law is proven at the bridge door:
+ *      anonymous refused (named), body-bound signature (tamper refused), a
+ *      winning signature burns itself (no double-anchor), valid operator
+ *      anchors, and the bridge GET stays open (pure read, machine-checked).
  * Runs: bun run kernel-smoke  (exit 1 + SMOKE-FAIL on any violated invariant).
  */
 import { generateKeyPairSync, randomBytes, sign as edSign } from "node:crypto";
@@ -514,6 +526,74 @@ async function main() {
     // 12l — the window constant is the sharpened money law (5 minutes, two-sided)
     assert(ROUTE_AUTH_REPLAY_WINDOW_MS === 300_000, "replay window is exactly 5 minutes (measured constant, not folklore)");
     console.log("12) K5 route-auth gate ✓ · anonymous refused (named) · unknown/revoked refused · format=law on time · two-sided ±5min window · body-bound signatures · replay burns itself · retiring verifies · kid derived from material · env-noise cannot fork the kid");
+  }
+
+  // ── 13) C-2b — the anchor seam gets the same door + the wiring is law (v148) ─
+  {
+    const { readdirSync, readFileSync, statSync } = await import("node:fs");
+    const { join: pjoin } = await import("node:path");
+    const apiDir = pjoin(import.meta.dir, "src", "app", "api");
+    // 13a — THE WIRING LAW (born live from C-2b): walk every route file; any POST
+    // export must go through the gate OR be explicitly allowlisted pure-verification.
+    // An unlisted ungated POST is RED — the next seam cannot ship silently.
+    const OPEN_POST_ALLOWLIST = ["passports/verify"]; // pure verification, measured open in K5 (400-not-401, no state)
+    const ungated: string[] = [];
+    const walk = (dir: string): void => {
+      for (const e of readdirSync(dir)) {
+        const full = pjoin(dir, e);
+        if (statSync(full).isDirectory()) {
+          walk(full);
+        } else if (e === "route.ts") {
+          const text = readFileSync(full, "utf8");
+          if (!text.includes("export async function POST")) continue;
+          const rel = full.slice(apiDir.length + 1, -"/route.ts".length);
+          if (OPEN_POST_ALLOWLIST.includes(rel)) continue;
+          if (!text.includes("gateStateRoute(")) ungated.push(rel);
+        }
+      }
+    };
+    walk(apiDir);
+    assert(ungated.length === 0, `every state-creating POST goes through the gate (ungated: ${ungated.join(", ") || "none"})`);
+    // 13a' — the allowlist cannot become a mute-anything hole: an allowlisted POST
+    // must NOT import the gate (pure verification stays pure — both facts held).
+    for (const rel of OPEN_POST_ALLOWLIST) {
+      const src = readFileSync(pjoin(apiDir, rel, "route.ts"), "utf8");
+      assert(!src.includes("gateStateRoute("), `allowlisted POST ${rel} stays pure verification (no gate smuggled inside)`);
+    }
+    // 13b — the route-auth law AT THE BRIDGE DOOR (the anchor path, not just mint):
+    const ring13 = new KeyRing();
+    const replay13 = new InMemoryReplayCache();
+    const now13 = 2_100_000_000_000;
+    const URL13 = "http://roshpina.test/api/bridge/saos";
+    const kp13 = generateKeyPairSync("ed25519");
+    const pem13 = kp13.publicKey.export({ type: "spki", format: "pem" }).toString().replace(/\r\n/g, "\n").trim();
+    const kid13 = computeKid("ed25519", pem13);
+    ring13.register({ kid: kid13, algorithm: "ed25519", publicKey: pem13, status: "active", createdAt: new Date(now13).toISOString() });
+    const sign13 = (priv: { type: "private" }, kid: string, ts: string, body: string) =>
+      edSign(null, Buffer.from(canonicalRoutePayload(kid, "POST", "/api/bridge/saos", ts, sha256Hex(body)), "utf8"), priv as never).toString("base64");
+    const deny13 = async (req: Request) => {
+      const r = await requireOperatorSignature(req, ring13, replay13, { now: now13 });
+      return r.ok ? null : r;
+    };
+    const ts13 = new Date(now13).toISOString();
+    const sig13 = sign13(kp13.privateKey, kid13, ts13, ""); // anchor POST carries no body — the law binds sha256("") all the same
+    // 13b-i — anonymous: the seam has a door and it names what is missing
+    const d13a = await deny13(new Request(URL13, { method: "POST" }));
+    assert(d13a !== null && d13a.status === 401 && d13a.code === "missing_headers", "anonymous anchor POST refused with the missing set named (the seam has a door)");
+    // 13b-ii — tampered body: signature over "", request carries a body
+    const d13b = await deny13(new Request(URL13, { method: "POST", body: "x", headers: { "x-roshpina-kid": kid13, "x-roshpina-timestamp": ts13, "x-roshpina-signature": sig13 } }));
+    assert(d13b !== null && d13b.status === 401 && d13b.code === "bad_signature", "tampered anchor body refused — the signature binds sha256(body) at the seam too");
+    // 13b-iii — the honest path: a valid operator signature passes
+    const pass13 = await requireOperatorSignature(new Request(URL13, { method: "POST", headers: { "x-roshpina-kid": kid13, "x-roshpina-timestamp": ts13, "x-roshpina-signature": sig13 } }), ring13, replay13, { now: now13 });
+    assert(pass13.ok === true, "valid operator signature anchors — the honest path passes at the seam");
+    // 13b-iv — exact replay of the winning tuple burns itself (no double-anchor)
+    const d13c = await deny13(new Request(URL13, { method: "POST", headers: { "x-roshpina-kid": kid13, "x-roshpina-timestamp": ts13, "x-roshpina-signature": sig13 } }));
+    assert(d13c !== null && d13c.status === 401 && d13c.code === "replay_detected", "winning anchor signature burns itself — no double-anchor through the window");
+    // 13c — the read surface stays open, machine-checked: the bridge GET has no gate
+    const bridgeSrc = readFileSync(pjoin(apiDir, "bridge", "saos", "route.ts"), "utf8");
+    const getBody = bridgeSrc.split("export async function GET")[1]?.split("export async function POST")[0] ?? "";
+    assert(getBody.length > 0 && !getBody.includes("gateStateRoute("), "bridge GET stays open (pure read) while POST is gated — both facts machine-checked");
+    console.log("13) C-2b anchor seam ✓ · POST gated gate-before-seed · wiring law: every POST gated or allowlisted (walk enforced) · anchor signatures body-bound · replay burns · GET stays open");
   }
   console.log("SMOKE-OK · all invariants proven against the live ledger — אין טענות, יש הוכחות");
 }

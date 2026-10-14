@@ -1,11 +1,15 @@
 /**
- * route-gate.ts — התיל של K5 (C-2): הדלת ששלושת-נתיבי-הכסף עוברים דרכה.
+ * route-gate.ts — התיל של K5 (C-2) + C-2b: הדלת שכל-כתיבה-יוצרת-מצב בקצה-הנשא
+ * עוברת דרכה. השיעור-שנמדד ב-C-2b: קראנו לשער "שער-נתיבי-הכסף" והפרשת-העיגון
+ * (bridge/saos POST — התפר ששרשרת-SAOS קוטפת) נשארה פתוחה — השם-היה-צר-מדי.
+ * החוק אחד ואחת-אמת-שער: כל POST שיוצר-מצב (מטבע, העברה, escrow-action, עיגון-גשר)
+ * עובר באותה-דלת; POST טהור-אימות (passports/verify) נשאר פתוח-לפי-חוק-ומדוד.
  *
  * מחבר את החוק-הטהור (route-auth.ts) אל הקרנל-החי:
  *   • אספקת-עוגנים פעם-אחת-פר-טבעת (WeakMap מפתח=מופע-KeyRing — שורד-HMR בדיוק
  *     כמו הקרנל-עצמו; קרנל-חדש = טבעת-חדשה = אספקה-חדשה, אין-מצב-ישן-שנדבק).
  *   • טעות-אספקה נזכרת ומוחזרת כ-503 צועק בכל-בקשה — לא משתיקים תקלת-קונפיגורציה.
- *   • אפס-עוגנים = כל-נתיבי-הכסף סגורים (503 operator_not_provisioned) — אין
+ *   • אפס-עוגנים = כל-נתיבי-הכתיבה סגורים (503 operator_not_provisioned) — אין
  *     מתג-כיבוי לחוק, יש רק עוגן או סירוב.
  *   • מטמון-השחזור חי-פר-טבעת (InMemoryReplayCache — Known-limit: תהליך-יחיד).
  */
@@ -41,10 +45,12 @@ export function parseJsonOrNull(s: string): unknown {
 }
 
 /**
- * שער-נתיבי-הכסף: סירוב מובנה (status/code/detail — הנתיב עוטף-לתשובה) או עבירה
- * עם rawBody. חובה כהצהרה-הראשונה ב-POST handler — השער-קודם-לפריסה-ולמשטח.
+ * שער-הכתיבה (C-2 + C-2b): סירוב מובנה (status/code/detail — הנתיב עוטף-לתשובה)
+ * או עבירה עם rawBody. חובה כהצהרה-הראשונה ב-POST handler — השער-קודם-לפריסה,
+ * לזריעה ולמשטח. kernel-smoke סעיף-13 אוכף את-חוק-התיל: כל POST חייב שער או
+ * רישום-מפורש ברשימת-האימות-הטהור — אין POST שקט.
  */
-export async function gateMoneyRoute(req: Request): Promise<RouteAuthResult> {
+export async function gateStateRoute(req: Request): Promise<RouteAuthResult> {
   const k = getKernel();
   const st = stateFor(k.keyRing);
 
@@ -67,7 +73,7 @@ export async function gateMoneyRoute(req: Request): Promise<RouteAuthResult> {
       ok: false,
       status: 503,
       code: "operator_not_provisioned",
-      detail: "אין עוגן-אמון: נתיבי-הכסף סגורים עד-הצבת ROSHPINA_OPERATOR_PUBLIC_KEY (מפתח-ציבור SPKI PEM) בסביבת-הפריסה",
+      detail: "אין עוגן-אמון: כל-נתיבי-הכתיבה סגורים עד-הצבת ROSHPINA_OPERATOR_PUBLIC_KEY (מפתח-ציבור SPKI PEM) בסביבת-הפריסה",
     };
   }
 

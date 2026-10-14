@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getKernel, TENANT } from "@/lib/kernel";
-import { gateMoneyRoute, parseJsonOrNull } from "@/lib/route-gate";
+import { gateStateRoute, parseJsonOrNull } from "@/lib/route-gate";
 import { money } from "@/lib/serialize";
 import { formatMc } from "@/lib/format";
 import { ensureSeed } from "@/lib/seed";
@@ -24,7 +24,7 @@ const TransferSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const gate = await gateMoneyRoute(req);
+  const gate = await gateStateRoute(req);
   if (!gate.ok) {
     return NextResponse.json({ ok: false as const, error: gate.code, reason: gate.detail }, { status: gate.status });
   }

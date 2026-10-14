@@ -3,15 +3,21 @@
  *
  * GET  — מצב-הגשר: ראש-שרשרת-הביקורת { tenantId, headHash, height }, שלמות,
  *        ומונה-העיגונים הממתינים ב-.bridge/pending-anchors.jsonl.
+ *        קריאה-טהורה — נשארת פתוחה (חוק-קריאה, נמדד ב-K5).
  * POST — בניית מטען saos:anchor/v1 על ראש-השרשרת הנוכחי וצירופו (append-only)
  *        לקובץ-העיגונים הממתינים. זהו התפר: שרשרת SAOS החוצה קוטפת את הקובץ.
  *        כאן לא משדרים כלום — ההפצה באחריות-השרשרת החוצה.
+ * C-2b (v148): ה-POST יוצר-מצב בקצה-הנשא — עוגן-מזויף אנונימי היה נכתב לקובץ
+ *        שהשרשרת-החוצה קוטפת. עכשיו: חתימת-מפעיל Ed25519 חובה (route-gate),
+ *        השער-קודם-לזריעה-ולקרנל — אותה-דלת של נתיבי-הכסף, אמת-שער אחת.
+ *        kernel-smoke סעיף-13 אוכף את-חוק-התיל: POST בלי-שער = אדום.
  */
 
 import { NextResponse } from "next/server";
 import { mkdir, readFile, appendFile } from "node:fs/promises";
 import { join } from "node:path";
 import { getKernel, TENANT } from "@/lib/kernel";
+import { gateStateRoute } from "@/lib/route-gate";
 import { ensureSeed } from "@/lib/seed";
 import type { BridgeAnchorPayload, BridgeStatusResponse, BridgeAnchorResponse } from "@/lib/api-types";
 
@@ -64,7 +70,13 @@ export async function GET() {
   return NextResponse.json(body);
 }
 
-export async function POST() {
+export async function POST(req: Request) {
+  // C-2b: השער-קודם-לכל — לפני-הזריעה והקרנל (חוק-K5: הדלת-קודמת-למשטח).
+  const gate = await gateStateRoute(req);
+  if (!gate.ok) {
+    return NextResponse.json({ ok: false as const, error: gate.code, reason: gate.detail }, { status: gate.status });
+  }
+
   await ensureSeed();
   const k = getKernel();
   const head = auditHead(k);
