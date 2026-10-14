@@ -4,22 +4,36 @@
  * Design:
  *   • Each tenant registers ≥1 webhook endpoints (url + events + secret).
  *   • When a settlement state changes, WebhookService.dispatch() is called.
- *   • Dispatch HMAC-SHA256-signs the canonical JSON payload with the registration
- *     secret and hands the delivery off to the injected WebhookRelayer.
- *   • Consumers verify the signature offline: sha256=<base64-HMAC-SHA256(secret, payload)>.
+ *   • Dispatch routes every emission through the ShareGate (K2, v144): the gate
+ *     re-checks the destination, REDACTS credential-bearing values, signs the
+ *     REDACTED bytes (one HMAC truth: webhook-crypto.ts) and hands the delivery
+ *     to the injected WebhookRelayer — a dumb transport BEHIND the gate.
+ *   • Consumers verify the signature offline: sha256=<base64-HMAC-SHA256(secret, redactedPayload)>.
  *   • The relayer is an injectable adapter: InMemoryWebhookRelayer (tests/dev),
- *     HttpWebhookRelayer (production). Never inline HTTP calls.
+ *     HttpWebhookRelayer (production). Never inline HTTP calls; never construct
+ *     a WebhookService that can reach the relayer without its gate (the
+ *     constructor installs a default ShareGate when none is passed — I27 has
+ *     no off switch).
  *
  * Invariants:
  *   • Tenant isolation: registrations scoped by tenantId; cross-tenant = null/empty.
  *   • fail-closed on missing tenantId, empty url, or empty secret.
+ *   • K2 destination law: register refuses non-HTTPS/internal/metadata/private
+ *     destinations (share_gate_refused) and dispatch re-checks EVERY emission —
+ *     tampered/stale store rows cannot smuggle a destination in.
+ *   • K2 payload law: outbound payloads are redacted (credential families →
+ *     "[REDACTED]", depth-capped) BEFORE signing — receivers verify the exact
+ *     bytes that left; the applied redaction-set lands in the delivery log.
  *   • BigInt amounts in event payloads serialized as strings.
  *   • Dispatch errors are swallowed — a failed delivery must not abort the settlement.
  *   • Signature header: x-tfa-signature: sha256=<base64>
  *   • Event timestamp: x-tfa-event and x-tfa-timestamp headers on every delivery.
  */
 
-import { createHmac, timingSafeEqual, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
+import { ShareGate } from "./share-gate";
+import { signPayload as hmacSign, verifySignature as hmacVerify } from "./webhook-crypto";
+import type { ShareGateReceipt } from "./share-gate";
 
 // ─── Event types ──────────────────────────────────────────────────────────────
 
@@ -173,6 +187,8 @@ export interface WebhookDeliveryRecord {
   ok: boolean;
   statusCode?: number;
   error?: string;
+  /** K2 share-gate receipt — present on every gate-evaluated emission (v144+). */
+  gate?: ShareGateReceipt;
 }
 
 export interface WebhookDeliveryLog {
@@ -218,14 +234,17 @@ export class WebhookService {
   private readonly store: WebhookStore;
   private readonly relayer: WebhookRelayer;
   private readonly deliveryLog: WebhookDeliveryLog;
+  /** K2: the ONLY path from (registration, event) to the transport. Always present. */
+  readonly gate: ShareGate;
 
-  constructor(store: WebhookStore, relayer: WebhookRelayer, deliveryLog: WebhookDeliveryLog = new InMemoryWebhookDeliveryLog()) {
+  constructor(store: WebhookStore, relayer: WebhookRelayer, deliveryLog: WebhookDeliveryLog = new InMemoryWebhookDeliveryLog(), gate?: ShareGate) {
     this.store = store;
     this.relayer = relayer;
     this.deliveryLog = deliveryLog;
+    this.gate = gate ?? new ShareGate(relayer); // no gate-less construction — I27 has no off switch
   }
 
-  /** Register a new webhook endpoint for a tenant. */
+  /** Register a new webhook endpoint for a tenant (K2: the door — the gate classifies the destination FIRST). */
   async register(input: CreateWebhookInput): Promise<WebhookRegistration> {
     if (!input?.tenantId) throw new WebhookError("invalid_input", "tenantId required");
     if (!input.url || !input.url.startsWith("http")) {
@@ -233,6 +252,10 @@ export class WebhookService {
     }
     if (!Array.isArray(input.events) || input.events.length === 0) {
       throw new WebhookError("invalid_input", "events must be a non-empty array");
+    }
+    const dest = await this.gate.checkDestination(input.url);
+    if (!dest.ok) {
+      throw new WebhookError("invalid_input", `share_gate_refused: ${dest.reasons.join("; ")}`);
     }
 
     const secret =
@@ -270,53 +293,43 @@ export class WebhookService {
 
   /**
    * Dispatch a webhook event to all active registered endpoints for this tenant + event type.
-   * Errors from individual deliveries are swallowed — a failed delivery must not abort callers.
+   * K2 (v144): every per-registration emission routes through this.gate — the gate
+   * re-checks the destination (the wire), redacts, signs the redacted bytes, and
+   * only then touches the transport. Refusals emit NOTHING and are recorded with
+   * their receipt — never silent. Errors are swallowed — a failed delivery must
+   * not abort callers.
    */
   async dispatch(tenantId: string, event: WebhookEvent): Promise<void> {
     if (!tenantId || !event?.event) return;
     let regs: WebhookRegistration[];
     try { regs = await this.store.list(tenantId); } catch { return; }
 
-    const payload = JSON.stringify(event);
-    const ts = event.occurredAt;
-
     await Promise.all(
       regs
         .filter((r) => r.active && r.events.includes(event.event))
         .map(async (reg) => {
-          const sig = WebhookService.signPayload(reg.secret, payload);
-          const delivery: WebhookDelivery = {
-            registrationId: reg.id,
-            url: reg.url,
-            payload,
-            signature: sig,
-            headers: {
-              "content-type": "application/json",
-              "x-tfa-signature": sig,
-              "x-tfa-event": event.event,
-              "x-tfa-timestamp": ts,
-              "x-tfa-delivery-id": randomUUID(),
-            },
-            tenantId,
-            event: event.event,
-          };
+          const deliveryId = randomUUID();
           let result: DeliveryResult;
+          let receipt: ShareGateReceipt | undefined;
           try {
-            result = await this.relayer.deliver(delivery);
+            const outcome = await this.gate.emit({ reg, event, deliveryId });
+            result = outcome.result;
+            receipt = outcome.receipt;
           } catch (err: unknown) {
             result = { ok: false, error: err instanceof Error ? err.message : String(err) };
           }
           try {
             await this.deliveryLog.record({
-              id: delivery.headers["x-tfa-delivery-id"],
+              id: deliveryId,
               tenantId,
               registrationId: reg.id,
               event: event.event,
-              occurredAt: ts,
+              occurredAt: event.occurredAt,
               attemptedAt: new Date().toISOString(),
               ok: result.ok,
               statusCode: result.statusCode,
               error: result.error,
+              ...(receipt ? { gate: receipt } : {}),
             });
           } catch { /* logging must never abort dispatch */ }
         }),
@@ -336,26 +349,16 @@ export class WebhookService {
 
   /**
    * Sign a payload string with the registration secret using HMAC-SHA256.
-   * Returns: "sha256=<base64>"
+   * Returns: "sha256=<base64>" (delegates to the one crypto truth, webhook-crypto.ts).
    */
   static signPayload(secret: string, payload: string): string {
-    const mac = createHmac("sha256", Buffer.from(secret, "utf8"))
-      .update(payload, "utf8")
-      .digest("base64");
-    return `sha256=${mac}`;
+    return hmacSign(secret, payload);
   }
 
   /**
    * Verify a signature produced by signPayload (timing-safe).
    */
   static verifySignature(secret: string, payload: string, signature: string): boolean {
-    try {
-      const expected = Buffer.from(WebhookService.signPayload(secret, payload));
-      const actual = Buffer.from(signature);
-      if (expected.length !== actual.length) return false;
-      return timingSafeEqual(expected, actual);
-    } catch {
-      return false;
-    }
+    return hmacVerify(secret, payload, signature);
   }
 }

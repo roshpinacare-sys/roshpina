@@ -32,9 +32,22 @@ export {
 } from "./webhook";
 export { HttpWebhookRelayer, type HttpWebhookRelayerConfig } from "./http-webhook-relayer";
 export {
+  ShareGate,
+  MAX_REDACT_DEPTH,
+  redactEvent,
+  type ShareGatePolicy,
+  type ShareGateVerdict,
+  type ShareGateReceipt,
+  type ShareGateOutcome,
+  type ResolveFn,
+} from "./share-gate";
+export {
   generateThresholdApproval,
+  generateThresholdApprovalForKey,
   validateAndConsumeApproval,
   validateMultiPartyApprovals,
+  validateQuorumApproval,
+  byzantineQuorum,
   ThresholdApprovalError,
   MultiPartyThresholdError,
   InMemoryThresholdApprovalStore,
@@ -42,5 +55,7 @@ export {
   type ThresholdApproval,
   type ThresholdApprovalStore,
   type MultiPartyThresholdConfig,
+  type QuorumConfig,
+  type ApprovalVote,
 } from "./threshold-approval";
 

@@ -18,6 +18,14 @@
  *      forged identity refused, one deny vetoes (I21), 2f+1 distinct approvals pass,
  *      consumed tokens replay-refused. Before v143 this was a doc claim with ZERO
  *      enforcement (the H-3 disease); now it is wired and proven.
+ *   9. K2 share-gate (v144, I27; DNA: Nimbus I27 × AgentKit action-abstraction) —
+ *      outbound webhook bytes leave ONLY through the gate: loopback/metadata/
+ *      insecure destinations refused at the door AND re-checked on the wire
+ *      (rogue store-row refused), DNS-rebind refused via resolver, credentials
+ *      redacted BEFORE signing (signature verifies over the redacted bytes),
+ *      redaction-set recorded in the delivery log. Before v144 the webhook
+ *      surface shipped a free fetch(): any url, any bytes, anyone holding the
+ *      relayer.
  * Runs: bun run kernel-smoke  (exit 1 + SMOKE-FAIL on any violated invariant).
  */
 import { generateKeyPairSync } from "node:crypto";
@@ -27,6 +35,8 @@ import { TfaOrchestrator as Orchestrator } from "./kernel/orchestrator/orchestra
 import { EscrowService, InMemoryEscrowStore } from "./kernel/escrow/escrow";
 import { SettlementService } from "./kernel/escrow/settlement";
 import { generateThresholdApprovalForKey, InMemoryThresholdApprovalStore, byzantineQuorum } from "./kernel/escrow/threshold-approval";
+import { WebhookService, InMemoryWebhookRelayer, InMemoryWebhookStore, InMemoryWebhookDeliveryLog } from "./kernel/escrow/webhook";
+import { ShareGate } from "./kernel/escrow/share-gate";
 import { InMemoryAuditStore } from "./kernel/orchestrator/audit";
 import { Ed25519Signer } from "./kernel/orchestrator/signer";
 import { canonicalJson } from "./kernel/common/canonical-json";
@@ -200,6 +210,56 @@ async function main() {
   const replayed = await settlQ.release(T, qagr2.id, "operator", okTokens).then(() => false, (e: { code?: string }) => e?.code === "approval_denied");
   assert(replayed === true, "consumed tokens replay-refused on a second agreement");
   console.log("8) K1 quorum ✓ · 0-tokens refused · Sybil refused · single-deny veto · 3-of-4 releases · replay refused");
+
+  // ── 9) K2 — share-gate (I27: outbound bytes leave ONLY through the gate) ───
+  const inner = new InMemoryWebhookRelayer();
+  const whStore = new InMemoryWebhookStore();
+  const whLog = new InMemoryWebhookDeliveryLog();
+  let rebindPrivate = false;
+  const gate = new ShareGate(inner, { resolveOnDispatch: true }, {
+    resolve: async (host: string) =>
+      host === "rebind.public.example" && rebindPrivate
+        ? [{ address: "10.0.0.5", family: 4 }]
+        : [{ address: "93.184.216.34", family: 4 }],
+  });
+  const wh = new WebhookService(whStore, inner, whLog, gate);
+  const whEvent = (id: string, event: string, data: Record<string, unknown>) => ({ id, event, tenantId: T, occurredAt: new Date().toISOString(), data });
+  // 9a — the door: loopback refused at register
+  const doorLoopback = await wh.register({ tenantId: T, url: "https://127.0.0.1/hook", events: ["settlement.released"] }).then(() => false, (e: { code?: string; message?: string }) => e?.code === "invalid_input" && String(e?.message).startsWith("share_gate_refused"));
+  assert(doorLoopback === true, "register loopback refused at the door (share_gate_refused)");
+  // 9b — the door: cloud metadata endpoint refused (the credential-steal classic)
+  const doorMetadata = await wh.register({ tenantId: T, url: "https://169.254.169.254/latest/meta-data/iam/security-credentials/", events: ["settlement.released"] }).then(() => false, (e: { message?: string }) => String(e?.message).includes("non_public_ip_literal"));
+  assert(doorMetadata === true, "register metadata endpoint refused (169.254/16)");
+  // 9c — the door: plain http refused (https-only default)
+  const doorHttp = await wh.register({ tenantId: T, url: "http://hooks.public.example/hook", events: ["settlement.released"] }).then(() => false, (e: { message?: string }) => String(e?.message).includes("insecure_scheme_http"));
+  assert(doorHttp === true, "register plain-http refused (insecure scheme)");
+  // 9d — the wire: valid https destination delivers REDACTED bytes, signature over the redacted bytes
+  const whSecret = "whsec-0123456789abcdef-0123456789abcdef";
+  const regOk = await wh.register({ tenantId: T, url: "https://hooks.public.example/hook", events: ["settlement.released"], secret: whSecret });
+  await wh.dispatch(T, whEvent("evt-1", "settlement.released", { agreementId: "agr-x", amount: "1000", apiKey: "sk-live-STEAL-ME", nested: { dbPassword: "hunter2" } }));
+  assert(inner.deliveries.length === 1, "exactly one delivery reached the transport");
+  const sent = inner.deliveries[0]!.delivery;
+  assert(sent.payload.includes("[REDACTED]") && !sent.payload.includes("sk-live-STEAL-ME") && !sent.payload.includes("hunter2"), "credentials never leave: redacted before signing");
+  assert(WebhookService.verifySignature(whSecret, sent.payload, sent.signature) === true, "receiver verifies the signature over exactly the redacted bytes");
+  const logOk = (await whLog.list(T)).find((r) => r.registrationId === regOk.id)!;
+  assert(logOk.ok === true && logOk.gate?.verdict === "allow" && logOk.gate.redactedKeys.includes("data.apiKey") && logOk.gate.redactedKeys.includes("data.nested.dbPassword"), "delivery log carries the applied redaction-set receipt");
+  // 9e — the wire re-check: a rogue store-row (tampered/stale registration) cannot smuggle a destination in
+  await whStore.put({ id: "rogue", tenantId: T, url: "https://10.0.0.9/hook", events: ["settlement.disputed"], secret: "r".repeat(32), createdAt: new Date().toISOString(), active: true });
+  await wh.dispatch(T, whEvent("evt-2", "settlement.disputed", { agreementId: "agr-x" }));
+  assert(inner.deliveries.length === 1, "rogue destination emitted NOTHING (wire re-check)");
+  const logRogue = (await whLog.list(T)).find((r) => r.registrationId === "rogue")!;
+  assert(logRogue.ok === false && String(logRogue.error).startsWith("share_gate_refused") && logRogue.gate?.verdict === "refuse", "rogue refusal recorded honestly in the delivery log");
+  // 9f — DNS-rebinding killed at the wire: registered public, resolves private at dispatch
+  await wh.register({ tenantId: T, url: "https://rebind.public.example/hook", events: ["settlement.reversed"], secret: "b".repeat(32) });
+  rebindPrivate = true;
+  await wh.dispatch(T, whEvent("evt-3", "settlement.reversed", { agreementId: "agr-x" }));
+  assert(inner.deliveries.length === 1, "DNS-rebind (public at door, private at wire) emitted NOTHING");
+  const logRebind = (await whLog.list(T)).find((r) => r.registrationId !== "rogue" && r.event === "settlement.reversed")!;
+  assert(logRebind.ok === false && String(logRebind.error).includes("resolves_non_public"), "rebind refusal names the offending resolution");
+  // 9g — unmatched event: no emission, no noise
+  await wh.dispatch(T, whEvent("evt-4", "passport.issued", { subject: "worker-a" }));
+  assert(inner.deliveries.length === 1, "unmatched event emitted nothing");
+  console.log("9) K2 share-gate ✓ · door: loopback/metadata/http refused · wire: rogue row refused · DNS-rebind refused · credentials redacted before signing · redaction-set in the log");
   console.log("SMOKE-OK · all invariants proven against the live ledger — אין טענות, יש הוכחות");
 }
 
