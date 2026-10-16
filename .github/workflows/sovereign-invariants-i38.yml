@@ -16,8 +16,6 @@ on:
     paths:
       - ".github/workflows/**"
       - "ops/sovereign-invariants/**"
-  schedule:
-    - cron: "17 6 * * *" # budget: max=1 (I38 dogfood — המכונה מתקצבת את עצמה)
   workflow_dispatch:
 
 permissions:
