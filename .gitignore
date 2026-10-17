@@ -15,3 +15,6 @@ prod.log
 .bridge/
 agent-keys/
 *.key
+
+# P1: runtime ledger state (journal/snapshot) — never committed
+data/
