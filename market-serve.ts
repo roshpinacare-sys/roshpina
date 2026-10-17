@@ -30,6 +30,8 @@ import { MarketEngine, MarketError } from "./kernel/market/engine";
 import { BookError } from "./kernel/market/book";
 import { LedgerError } from "./kernel/ledger/in-memory-ledger";
 import { parseMicroCents, microCentsToString } from "./kernel/ledger/persistent-ledger";
+import { readFileSync, writeFileSync, renameSync } from "fs";
+import { join } from "path";
 
 const PORT = Number(process.env.ROSHPINA_PORT ?? 3180);
 const DATA_DIR = process.env.ROSHPINA_DATA_DIR;
@@ -58,6 +60,56 @@ for (const [name, pem] of Object.entries(process.env)) {
   ring.register({ kid, algorithm: "ed25519", publicKey: pem.replace(/\r\n/g, "\n").trim(), status: "active", createdAt: new Date().toISOString() });
 }
 console.log(`[market] agent principals: ${agentByKid.size} → [${[...agentByKid.values()].join(", ")}]`);
+
+// ── Self-licensing persistence — principals.json (survives restart; restored on boot) ──
+// The operator licenses a new member by signing POST /agents WITH the member's public
+// key. The key becomes a live principal of the economy and is persisted so the
+// identity survives restarts — an identity that dies with the process is not sovereign.
+const PRINCIPALS_FILE = join(DATA_DIR, "principals.json");
+type PrincipalRec = { agentId: string; kid: string; publicPem: string; registeredAt: string };
+const PRINCIPALS_CAP = 64;
+
+const normalizePem = (p: string): string => p.replace(/\r\n/g, "\n").trim();
+
+function loadPrincipals(): PrincipalRec[] {
+  try {
+    const parsed = JSON.parse(readFileSync(PRINCIPALS_FILE, "utf8")) as { agents?: PrincipalRec[] };
+    return Array.isArray(parsed.agents) ? parsed.agents.slice(0, PRINCIPALS_CAP) : [];
+  } catch {
+    return []; // missing or corrupt → honest empty start (no fabrications)
+  }
+}
+
+function savePrincipals(list: PrincipalRec[]): void {
+  const capped = list.slice(-PRINCIPALS_CAP);
+  const tmp = `${PRINCIPALS_FILE}.tmp`;
+  writeFileSync(tmp, JSON.stringify({ agents: capped }, null, 2));
+  renameSync(tmp, PRINCIPALS_FILE); // atomic — no torn state
+}
+
+/** Register a member's public key as a live principal. Fail-closed on bad PEM. */
+function registerAgentPrincipal(agentId: string, publicPem: string): { kid: string } {
+  const pem = normalizePem(publicPem);
+  if (!pem.includes("BEGIN PUBLIC KEY") || !pem.includes("END PUBLIC KEY") || pem.length > 4096) {
+    throw new MarketError("publicPem must be a PEM public key (≤4096 chars)", "BAD_PEM");
+  }
+  const kid = computeKid("ed25519", pem);
+  if (agentByKid.get(kid) === agentId) return { kid }; // idempotent re-license
+  ring.register({ kid, algorithm: "ed25519", publicKey: pem, status: "active", createdAt: new Date().toISOString() });
+  agentByKid.set(kid, agentId);
+  return { kid };
+}
+
+let restoredPrincipals = 0;
+for (const p of loadPrincipals()) {
+  try {
+    registerAgentPrincipal(p.agentId, p.publicPem);
+    restoredPrincipals++;
+  } catch (e) {
+    console.error(`[market] principal ${p.agentId} restore skipped: ${String((e as Error)?.message ?? e).slice(0, 80)}`);
+  }
+}
+if (restoredPrincipals > 0) console.log(`[market] principals restored from disk: ${restoredPrincipals}`);
 
 const replay = new InMemoryReplayCache();
 
@@ -98,7 +150,18 @@ async function handlePost(pathname: string, body: Record<string, unknown>, princ
     const saos = String(body.saos ?? "0");
     const pair = await engine.registerAgent(agentId);
     await engine.allocate(agentId, usds, saos);
-    return json(201, { agentId, accounts: pair, allocated: { usds, saos } });
+    // Self-licensing: WITH the member's publicPem the key becomes a live principal
+    // (signed actions from this key are the agent's own) — persisted to principals.json.
+    let principalKid: string | null = null;
+    const publicPem = typeof body.publicPem === "string" ? body.publicPem : "";
+    if (publicPem) {
+      const { kid } = registerAgentPrincipal(agentId, publicPem);
+      principalKid = kid;
+      const list = loadPrincipals().filter((p) => p.agentId !== agentId);
+      list.push({ agentId, kid, publicPem: normalizePem(publicPem), registeredAt: new Date().toISOString() });
+      savePrincipals(list);
+    }
+    return json(201, { agentId, accounts: pair, allocated: { usds, saos }, principal: principalKid ?? "env-only" });
   }
   if (pathname === "/market/order") {
     if (principal.kind !== "agent") return json(403, { error: "only agents place orders", code: "AGENT_ONLY" });
@@ -151,6 +214,16 @@ async function handlePost(pathname: string, body: Record<string, unknown>, princ
     const res = await engine.rewards(requireEpoch(body.epoch), toBigInt(body.rateBps, "BAD_RATE"));
     return json(201, { epoch: String(body.epoch), ...res });
   }
+  if (pathname === "/economy/correct") {
+    if (principal.kind !== "operator") return json(403, { error: "only the operator corrects", code: "OPERATOR_ONLY" });
+    const ledger = body.ledger === "saos" ? "saos" : body.ledger === "usds" ? "usds" : null;
+    if (!ledger) return json(400, { error: "ledger must be usds|saos" });
+    const accountName = typeof body.accountName === "string" ? body.accountName : "";
+    if (!/^[\w.\-:]{1,128}$/.test(accountName)) return json(400, { error: "accountName must match [\\w.\\-:]{1,128}" });
+    const correctionId = typeof body.correctionId === "string" && body.correctionId ? body.correctionId : `c-${Date.now()}`;
+    const res = await engine.correct(ledger, accountName, correctionId);
+    return json(200, { correctionId, ledger, accountName, ...res });
+  }
   return json(404, { error: "not found" });
 }
 
@@ -164,7 +237,7 @@ const server = Bun.serve({
       if (req.method === "GET") {
         if (url.pathname === "/health") {
           const st = engine.stats();
-          return json(200, { ok: true, service: "roshpina-sovereign-market", trades: st.settled, bids: st.book.bids, asks: st.book.asks, bootedAt: engine.bootedAt });
+          return json(200, { ok: true, service: "roshpina-sovereign-market", trades: st.settled, bids: st.book.bids, asks: st.book.asks, phantomsSkipped: st.phantomsSkipped, bootedAt: engine.bootedAt });
         }
         if (url.pathname === "/market/book") return json(200, engine.bookSnapshot());
         if (url.pathname === "/economy/report") return await report();

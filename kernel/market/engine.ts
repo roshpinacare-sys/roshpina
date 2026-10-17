@@ -49,7 +49,7 @@ type MarketRecord =
   | { t: "trade_done"; tradeId: string }                  // legs committed (idempotent)
   | { t: "econ"; kind: EconKind; epoch: string; agentId: string; amount: string; ref: string }; // economy ops (audit + replay of idempotency keys)
 
-type EconKind = "payroll" | "tax" | "reward" | "stake" | "unstake";
+type EconKind = "payroll" | "tax" | "reward" | "stake" | "unstake" | "correction";
 export interface EconOp { kind: EconKind; epoch: string; agentId: string; amount: string; ref: string }
 
 type SFill = {
@@ -81,6 +81,7 @@ export class MarketEngine {
   private fillsByAgent = new Map<string, number>();
   private stakeAccounts = new Map<string, string>(); // agentId → stake account id (USDS ledger)
   private epochOps: EconOp[] = [];                   // economy audit trail (rebuilt on replay)
+  private phantomsSkipped = 0;                       // residual records skipped during replay (honest ghost count)
   private paidKeys = new Set<string>();              // "kind:epoch:agentId" — epoch idempotency that survives reboot
   bootedAt = "";
 
@@ -138,6 +139,20 @@ export class MarketEngine {
           // the live book already killed — historical phantom records). Re-placing it would
           // materialize a crossing ghost — refuse-to-place is the honest reading of the journal.
           if (remaining > 0n && BigInt(r.order.locked) > 0n) {
+            // Historical journals (earlier engine versions / order-id reuse between runs) can
+            // hold residual records whose re-placement would cross the rebuilt book. place()
+            // mutates on match and would corrupt escrow attribution — so we pre-check against
+            // the best prices and skip the ghost BEFORE any mutation. The fold already
+            // accounted the money; the phantom never represents live escrow. Counted loudly.
+            const bs = this.book.stats();
+            const price = BigInt(r.order.price);
+            const wouldCross = o.side === "bid"
+              ? bs.bestAsk !== null && price >= bs.bestAsk
+              : bs.bestBid !== null && price <= bs.bestBid;
+            if (wouldCross) {
+              this.phantomsSkipped++;
+              break;
+            }
             const res = this.book.place({
               id: o.id, agentId: o.agentId, side: o.side,
               price: BigInt(r.order.price), amount: remaining,
@@ -204,7 +219,10 @@ export class MarketEngine {
     if (cached) return cached;
     const name = `stake:${agentId}:usds`;
     const existing = (await this.quote.listAccounts("sovereign")).find((a) => a.name === name);
-    const id = existing?.id ?? (await this.quote.createAccount("sovereign", "system", "asset", name)).id;
+    // owner must NEVER be "system" — system-owned accounts collide with the
+    // reserve-restore identity (equity-keyed now, but honest owners keep the
+    // account graph self-describing: stake:<id> is the accountable principal).
+    const id = existing?.id ?? (await this.quote.createAccount("sovereign", `stake:${agentId}`, "asset", name)).id;
     this.stakeAccounts.set(agentId, id);
     return id;
   }
@@ -497,8 +515,8 @@ export class MarketEngine {
     };
   }
 
-  stats(): { book: ReturnType<OrderBook["stats"]>; settled: number } {
-    return { book: this.book.stats(), settled: this.settledTrades.size };
+  stats(): { book: ReturnType<OrderBook["stats"]>; settled: number; phantomsSkipped: number } {
+    return { book: this.book.stats(), settled: this.settledTrades.size, phantomsSkipped: this.phantomsSkipped };
   }
 
   /** Real per-agent economics — computed from the live ledgers, never estimated. */
@@ -522,6 +540,34 @@ export class MarketEngine {
   /** Treasury (platform fee account) balance — the real income of the network. */
   async treasury(): Promise<{ usds: string }> {
     return { usds: (await this.feeBalance()).toString() };
+  }
+
+  /**
+   * Honest correction: bring a NEGATIVE account back to exactly zero, funded by
+   * the equity (reserve) line. Operator-signed, idempotent by correctionId
+   * (three layers: epochOps audit rebuilt on replay + ledger idem key + the
+   * ≥0 guard), journaled as kind:"correction". Fail-closed: known accounts
+   * only, never an equity account, never below zero, never a top-up.
+   */
+  async correct(ledgerName: "usds" | "saos", accountName: string, correctionId: string): Promise<{ corrected: string }> {
+    if (!/^[\w.\-:]{1,128}$/.test(correctionId)) throw new MarketError("correctionId must match [\\w.\\-:]{1,128}", "BAD_REF");
+    if (this.epochOps.some((op) => op.kind === "correction" && op.ref === correctionId)) {
+      return { corrected: "0" }; // already applied — honest no-op
+    }
+    const led = ledgerName === "usds" ? this.quote : this.base;
+    const accounts = await led.listAccounts("sovereign");
+    const target = accounts.find((a) => a.name === accountName);
+    if (!target) throw new MarketError(`unknown account ${accountName}`, "ACCOUNT_UNKNOWN");
+    if (target.type === "equity") throw new MarketError("refusing to correct an equity account", "BAD_ACCOUNT");
+    const bal = BigInt(target.balance);
+    if (bal >= 0n) return { corrected: "0" }; // nothing to correct — honest no-op
+    const reserve = accounts.find((a) => a.type === "equity");
+    if (!reserve) throw new MarketError("no equity account on this ledger", "NO_RESERVE");
+    const amount = -bal;
+    await led.transfer("sovereign", reserve.id, target.id, amount, `correction ${accountName}`, "market", `correction:${correctionId}`);
+    this.epochOps.push({ kind: "correction", epoch: "", agentId: accountName, amount: amount.toString(), ref: correctionId });
+    await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: accountName, amount: amount.toString(), ref: correctionId });
+    return { corrected: amount.toString() };
   }
 
   /** Last n economy ops from the audit trail (stake/payroll/tax/reward). */

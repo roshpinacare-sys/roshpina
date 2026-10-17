@@ -100,6 +100,7 @@ export interface StrategyState {
   tick: number;
   ownOrders: { id: string; side: "bid" | "ask"; price: string; amount: string }[];
   balances: { usdsAvailable: string; saosAvailable: string };
+  usdsStaked?: string; // own committed capital (µ¢) — sovereign agents manage it
 }
 
 export type Strategy = (view: MarketView, state: StrategyState, rnd: () => number) => Intent[];
@@ -165,3 +166,34 @@ export function farmer(view: MarketView, state: StrategyState, rnd: () => number
 
 export const STRATEGIES: Record<string, Strategy> = { marketMaker, momentum, accumulator, farmer };
 void PRICE_STEP;
+
+// ─── Sovereign capital — agents manage their OWN committed capital ──────────
+// Policy: keep ~20% of own equity (free + staked USDS) committed in stake.
+// Hysteresis band = 1% of equity (floor 1M µ¢) prevents churn; inside the band
+// the honest answer is "no action" — a truthful no-op is evidence too.
+// The agent stakes its OWN money, signed, per-tick, before trading.
+
+export interface CapitalIntent {
+  action: "stake" | "unstake";
+  stakeAmount: bigint;
+}
+
+export function capitalIntents(state: StrategyState): CapitalIntent[] {
+  const free = BigInt(state.balances.usdsAvailable);
+  const staked = BigInt(state.usdsStaked ?? "0");
+  const equity = free + staked;
+  if (equity <= 0n) return [];
+  const target = equity / 5n; // 20% of own equity
+  const raw = equity / 100n;
+  const band = raw > 1_000_000n ? raw : 1_000_000n;
+  if (staked + band < target) {
+    const want = target - staked;
+    const amount = want <= free ? want : free; // never overcommit free money
+    return amount > 0n ? [{ action: "stake", stakeAmount: amount }] : [];
+  }
+  if (staked - band > target) {
+    const amount = staked - target;
+    return amount > 0n ? [{ action: "unstake", stakeAmount: amount }] : [];
+  }
+  return [];
+}
