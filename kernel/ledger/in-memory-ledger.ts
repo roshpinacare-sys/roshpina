@@ -101,7 +101,12 @@ export class InMemoryLedger implements PaymentProvider {
         throw new LedgerError(`restore: duplicate account ${account.id}`, "RESTORE_DUPLICATE");
       }
       led.accounts.set(account.id, account);
-      if (account.ownerId === "system") {
+      // The reserve is the EQUITY account — not merely any system-owned one.
+      // Economy ops (staking, Task 11) create system-owned *asset* accounts too;
+      // keying on ownerId alone let the LAST system account hijack the reserve
+      // slot on restart → the next mint would debit a stranger's stake account
+      // (latent corruption, first-wins + type-keyed is the honest identity).
+      if (account.type === "equity" && !led.reserveAccounts.has(account.tenantId)) {
         led.reserveAccounts.set(account.tenantId, account.id);
       }
     }
