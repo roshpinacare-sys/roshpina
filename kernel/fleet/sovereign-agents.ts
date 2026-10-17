@@ -136,8 +136,10 @@ export function accumulator(view: MarketView, state: StrategyState, rnd: () => n
   const midB = BigInt(Math.round(mid));
   const intents: Intent[] = [];
   for (const o of state.ownOrders) {
-    // re-anchor only if mid moved far
-    if (BigInt(Math.abs(Number(BigInt(o.price)) - mid)) > 20_000) intents.push({ action: "cancel", orderId: o.id });
+    // re-anchor only if mid moved far — pure BigInt drift (a fractional mid must never reach BigInt())
+    const priceB = BigInt(o.price);
+    const drift = priceB > midB ? priceB - midB : midB - priceB;
+    if (drift > 20_000n) intents.push({ action: "cancel", orderId: o.id });
   }
   if (state.ownOrders.filter((o) => o.side === "bid").length < 2) {
     intents.push({ action: "place", side: "bid", price: midB - 15_000n - BigInt(Math.floor(rnd() * 10_000)), amount: 2_000_000n, type: "limit" });
@@ -151,7 +153,9 @@ export function farmer(view: MarketView, state: StrategyState, rnd: () => number
   const midB = BigInt(Math.round(mid));
   const intents: Intent[] = [];
   for (const o of state.ownOrders) {
-    if (BigInt(Math.abs(Number(BigInt(o.price)) - mid)) > 25_000) intents.push({ action: "cancel", orderId: o.id });
+    const priceB = BigInt(o.price);
+    const drift = priceB > midB ? priceB - midB : midB - priceB;
+    if (drift > 25_000n) intents.push({ action: "cancel", orderId: o.id });
   }
   if (state.ownOrders.filter((o) => o.side === "ask").length < 2) {
     intents.push({ action: "place", side: "ask", price: midB + 18_000n + BigInt(Math.floor(rnd() * 12_000)), amount: 2_500_000n, type: "limit" });
