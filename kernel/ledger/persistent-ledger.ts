@@ -98,19 +98,19 @@ type OpRecord = {
 
 type JournalRecord = OpRecord;
 
-interface Envelope {
+export interface Envelope<REC = unknown> {
   seq: number;
   prevHash: string;
   hash: string;
   ts: string;
-  rec: JournalRecord;
+  rec: REC;
 }
 
 const GENESIS = "GENESIS";
 
 // ─── The journal: append + verify ────────────────────────────────────────────
 
-export class Journal {
+export class Journal<REC = unknown> {
   readonly dir: string;
   private readonly journalPath: string;
   private readonly snapshotPath: string;
@@ -132,7 +132,7 @@ export class Journal {
   }
 
   /** Open (create if absent) and verify the FULL hash chain. Fail-closed. */
-  open(): { records: Envelope[] } {
+  open(): { records: Envelope<REC>[] } {
     fs.mkdirSync(this.dir, { recursive: true });
     const records: Envelope[] = [];
     if (fs.existsSync(this.journalPath)) {
@@ -178,16 +178,16 @@ export class Journal {
     return { records };
   }
 
-  static hashOf(env: Omit<Envelope, "hash">): string {
+  static hashOf(env: { seq: number; prevHash: string; ts: string; rec: unknown }): string {
     return createHash("sha256")
       .update(canonicalJson({ seq: env.seq, prevHash: env.prevHash, ts: env.ts, rec: env.rec }))
       .digest("hex");
   }
 
-  /** Append one op atomically (single line) and fsync. */
-  append(rec: JournalRecord): Envelope {
+  /** Append one record atomically (single line) and fsync. */
+  append(rec: REC): Envelope<REC> {
     if (this.fd === null) throw new JournalError("journal not open", "JOURNAL_CLOSED");
-    const env: Omit<Envelope, "hash"> = {
+    const env: { seq: number; prevHash: string; ts: string; rec: REC } = {
       seq: this.seq + 1,
       prevHash: this.head,
       ts: new Date().toISOString(),
@@ -244,7 +244,7 @@ export interface FoldedState {
   transactions: LedgerTransaction[];
 }
 
-export function fold(records: Envelope[]): FoldedState {
+export function fold(records: Envelope<JournalRecord>[]): FoldedState {
   const accounts = new Map<string, Account>();
   const entries: JournalEntry[] = [];
   const transactions: LedgerTransaction[] = [];
@@ -315,7 +315,7 @@ export interface OpenOptions {
 
 export class PersistentLedger implements PaymentProvider {
   private inner: InMemoryLedger;
-  private journal: Journal;
+  private journal: Journal<JournalRecord>;
   private idem = new Map<string, IdemHit>();
   private knownAccounts = new Set<string>();
   private opsSinceSnapshot = 0;
@@ -332,7 +332,7 @@ export class PersistentLedger implements PaymentProvider {
 
   /** Boot: open journal → verify chain → snapshot/tail/full-fold → restore. */
   static async open(dir: string, opts: OpenOptions = {}): Promise<PersistentLedger> {
-    const journal = new Journal(dir);
+    const journal = new Journal<JournalRecord>(dir);
     const { records } = journal.open(); // throws on any chain/tamper issue
 
     let inner: InMemoryLedger;
