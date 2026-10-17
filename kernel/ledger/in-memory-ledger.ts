@@ -81,6 +81,60 @@ export class InMemoryLedger implements PaymentProvider {
   // counterparty for mint/withdraw operations.
   private readonly reserveAccounts = new Map<string, string>(); // tenantId → accountId
 
+  /**
+   * P1-RESTORE (2026-10-17, agent4/p1-ledger-persistence): trusted-state factory.
+   * Builds a live ledger from data that the CALLER has already verified
+   * (journal hash-chain + per-tx conservation checks run before this is
+   * invoked — see persistent-ledger.ts). No guards are re-run here by design:
+   * this is the recovery path, not a user-input path. All downstream behaviour
+   * (getAccount/transfer/proofOfSolvency/…) is the proven live code — zero
+   * duplicated state handling.
+   */
+  static restore(state: {
+    accounts: Account[];
+    entries: JournalEntry[]; // flat; grouped by accountId internally
+    transactions: LedgerTransaction[]; // flat; grouped by tenantId internally
+  }): InMemoryLedger {
+    const led = new InMemoryLedger();
+    for (const account of state.accounts) {
+      if (led.accounts.has(account.id)) {
+        throw new LedgerError(`restore: duplicate account ${account.id}`, "RESTORE_DUPLICATE");
+      }
+      led.accounts.set(account.id, account);
+      if (account.ownerId === "system") {
+        led.reserveAccounts.set(account.tenantId, account.id);
+      }
+    }
+    for (const entry of state.entries) {
+      const list = led.entries.get(entry.accountId) ?? [];
+      list.push(entry);
+      led.entries.set(entry.accountId, list);
+    }
+    for (const tx of state.transactions) {
+      const list = led.transactions.get(tx.tenantId) ?? [];
+      list.push(tx);
+      led.transactions.set(tx.tenantId, list);
+    }
+    return led;
+  }
+
+  /**
+   * P1-EXPORT: trusted-state export (the mirror of restore). The caller is
+   * responsible for journaling/verifying what it exports — used by the
+   * persistence layer for snapshots and journal folds.
+   */
+  exportState(): {
+    accounts: Account[];
+    entries: JournalEntry[];
+    transactions: LedgerTransaction[];
+  } {
+    const entries: JournalEntry[] = [];
+    for (const list of this.entries.values()) entries.push(...list);
+    const transactions: LedgerTransaction[] = [];
+    for (const list of this.transactions.values()) transactions.push(...list);
+    return { accounts: [...this.accounts.values()], entries, transactions };
+  }
+
   // ─── Bootstrap ─────────────────────────────────────────────────────────────
 
   /** Ensure a system reserve account exists for the tenant. Returns its id. */
