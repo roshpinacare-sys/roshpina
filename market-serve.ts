@@ -64,6 +64,22 @@ const replay = new InMemoryReplayCache();
 const json = (status: number, body: unknown): Response =>
   new Response(JSON.stringify(body, null, 2), { status, headers: { "content-type": "application/json" } });
 
+/** Fail-closed BigInt parsing for request bodies — garbage in, 400 out (never a 500). */
+function toBigInt(v: unknown, code: string): bigint {
+  try {
+    const b = BigInt(String(v));
+    return b;
+  } catch {
+    throw new MarketError(`expected an integer, got: ${String(v).slice(0, 40)}`, code);
+  }
+}
+
+function requireEpoch(v: unknown): string {
+  const s = typeof v === "string" ? v.trim() : "";
+  if (!s || s.length > 64) throw new MarketError("epoch is required (non-empty, ≤64 chars)", "BAD_EPOCH");
+  return s;
+}
+
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
 async function report(): Promise<Response> {
@@ -71,7 +87,7 @@ async function report(): Promise<Response> {
   const st = engine.stats();
   const agents = await engine.economyReport();
   const book = { ...st.book, bestBid: st.book.bestBid?.toString() ?? null, bestAsk: st.book.bestAsk?.toString() ?? null };
-  return json(200, { conservation: cons, book, settledTrades: st.settled, agents });
+  return json(200, { conservation: cons, book, settledTrades: st.settled, agents, treasury: await engine.treasury(), epochOps: engine.epochReport(50) });
 }
 
 async function handlePost(pathname: string, body: Record<string, unknown>, principal: { kind: "operator" } | { kind: "agent"; agentId: string }): Promise<Response> {
@@ -107,6 +123,33 @@ async function handlePost(pathname: string, body: Record<string, unknown>, princ
     if (principal.kind !== "agent") return json(403, { error: "only agents cancel orders", code: "AGENT_ONLY" });
     const res = await engine.cancelOrder(principal.agentId, String(body.orderId ?? ""));
     return json(200, { canceled: String(body.orderId), released: res.released });
+  }
+  if (pathname === "/economy/stake") {
+    if (principal.kind !== "agent") return json(403, { error: "only agents stake", code: "AGENT_ONLY" });
+    const stakeId = typeof body.stakeId === "string" && body.stakeId ? body.stakeId : `s-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+    const res = await engine.stake(principal.agentId, toBigInt(body.amount, "BAD_AMOUNT"), stakeId);
+    return json(201, { agentId: principal.agentId, stakeId, staked: res.staked });
+  }
+  if (pathname === "/economy/unstake") {
+    if (principal.kind !== "agent") return json(403, { error: "only agents unstake", code: "AGENT_ONLY" });
+    const stakeId = typeof body.stakeId === "string" && body.stakeId ? body.stakeId : `u-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+    const res = await engine.unstake(principal.agentId, toBigInt(body.amount, "BAD_AMOUNT"), stakeId);
+    return json(200, { agentId: principal.agentId, stakeId, staked: res.staked });
+  }
+  if (pathname === "/economy/payroll") {
+    if (principal.kind !== "operator") return json(403, { error: "only the operator runs payroll", code: "OPERATOR_ONLY" });
+    const res = await engine.payroll(requireEpoch(body.epoch), toBigInt(body.wage, "BAD_AMOUNT"));
+    return json(201, { epoch: String(body.epoch), ...res });
+  }
+  if (pathname === "/economy/tax") {
+    if (principal.kind !== "operator") return json(403, { error: "only the operator levies taxes", code: "OPERATOR_ONLY" });
+    const res = await engine.tax(requireEpoch(body.epoch), toBigInt(body.rateBps, "BAD_RATE"));
+    return json(201, { epoch: String(body.epoch), ...res });
+  }
+  if (pathname === "/economy/rewards") {
+    if (principal.kind !== "operator") return json(403, { error: "only the operator distributes rewards", code: "OPERATOR_ONLY" });
+    const res = await engine.rewards(requireEpoch(body.epoch), toBigInt(body.rateBps, "BAD_RATE"));
+    return json(201, { epoch: String(body.epoch), ...res });
   }
   return json(404, { error: "not found" });
 }
