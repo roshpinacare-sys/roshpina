@@ -46,7 +46,11 @@ type MarketRecord =
   | { t: "resting"; order: SOrder }                       // order came to rest (remaining>0)
   | { t: "canceled"; orderId: string; released: string }  // order left the book
   | { t: "trade_intent"; fill: SFill }                    // a fill decided (legs follow)
-  | { t: "trade_done"; tradeId: string };                 // legs committed (idempotent)
+  | { t: "trade_done"; tradeId: string }                  // legs committed (idempotent)
+  | { t: "econ"; kind: EconKind; epoch: string; agentId: string; amount: string; ref: string }; // economy ops (audit + replay of idempotency keys)
+
+type EconKind = "payroll" | "tax" | "reward" | "stake" | "unstake";
+export interface EconOp { kind: EconKind; epoch: string; agentId: string; amount: string; ref: string }
 
 type SFill = {
   tradeId: string; price: string; amount: string; notional: string; remainder: string;
@@ -75,6 +79,9 @@ export class MarketEngine {
   private treasuryBaseId = "";
   private agentAccounts = new Map<string, { quoteId: string; baseId: string }>();
   private fillsByAgent = new Map<string, number>();
+  private stakeAccounts = new Map<string, string>(); // agentId → stake account id (USDS ledger)
+  private epochOps: EconOp[] = [];                   // economy audit trail (rebuilt on replay)
+  private paidKeys = new Set<string>();              // "kind:epoch:agentId" — epoch idempotency that survives reboot
   bootedAt = "";
 
   /** Boot both ledgers (fail-closed verify) + ensure system accounts + replay. */
@@ -126,10 +133,14 @@ export class MarketEngine {
           o.locked = BigInt(r.order.locked);
           // re-insert at its (possibly updated) state: remove-then-place keeps price-time order by seq
           try { this.book.cancel(o.id, o.agentId); } catch { /* not resting */ }
-          if (BigInt(r.order.amount) - BigInt(r.order.filled) > 0n) {
+          const remaining = BigInt(r.order.amount) - BigInt(r.order.filled);
+          // A record with remaining>0 but locked=0 was NEVER a resting order (IOC remainder that
+          // the live book already killed — historical phantom records). Re-placing it would
+          // materialize a crossing ghost — refuse-to-place is the honest reading of the journal.
+          if (remaining > 0n && BigInt(r.order.locked) > 0n) {
             const res = this.book.place({
               id: o.id, agentId: o.agentId, side: o.side,
-              price: BigInt(r.order.price), amount: BigInt(r.order.amount) - BigInt(r.order.filled),
+              price: BigInt(r.order.price), amount: remaining,
               type: "limit",
             });
             // replay-place must not match anything — assert loudly if it does
@@ -158,6 +169,13 @@ export class MarketEngine {
           this.settledTrades.add(r.tradeId);
           break;
         }
+        case "econ": {
+          this.epochOps.push({ kind: r.kind, epoch: r.epoch, agentId: r.agentId, amount: r.amount, ref: r.ref });
+          if (r.kind === "payroll" || r.kind === "tax" || r.kind === "reward") {
+            this.paidKeys.add(`${r.kind}:${r.epoch}:${r.agentId}`);
+          }
+          break;
+        }
         default:
           throw new JournalError(`market replay: unknown record ${(r as { t: string }).t}`, "REPLAY_UNKNOWN");
       }
@@ -180,6 +198,145 @@ export class MarketEngine {
     return pair;
   }
 
+  /** Per-agent stake account on the quote ledger — where committed (locked) USDS lives. */
+  private async ensureStake(agentId: string): Promise<string> {
+    const cached = this.stakeAccounts.get(agentId);
+    if (cached) return cached;
+    const name = `stake:${agentId}:usds`;
+    const existing = (await this.quote.listAccounts("sovereign")).find((a) => a.name === name);
+    const id = existing?.id ?? (await this.quote.createAccount("sovereign", "system", "asset", name)).id;
+    this.stakeAccounts.set(agentId, id);
+    return id;
+  }
+
+  private requireAgent(agentId: string): { quoteId: string; baseId: string } {
+    const pair = this.agentAccounts.get(agentId);
+    if (!pair) throw new MarketError(`unknown agent ${agentId}`, "AGENT_UNKNOWN");
+    return pair;
+  }
+
+  private async feeBalance(): Promise<bigint> {
+    return (await this.quote.getAccount("sovereign", this.feeAccountId)).balance;
+  }
+
+  // ─── Staking (agent-signed) ─────────────────────────────────────────────────
+
+  /** Agent commits free USDS into its stake account (escrow-like, engine-level). */
+  async stake(agentId: string, amount: bigint, stakeId: string): Promise<{ staked: string }> {
+    if (amount <= 0n) throw new MarketError("stake amount must be > 0", "BAD_AMOUNT");
+    if (!/^[\w.\-:]{1,128}$/.test(stakeId)) throw new MarketError("stakeId must match [\\w.\\-:]{1,128}", "BAD_REF");
+    const { quoteId } = this.requireAgent(agentId);
+    const free = BigInt((await this.balances(agentId)).usdsAvailable);
+    if (free < amount) throw new MarketError(`agent ${agentId}: insufficient free USDS (${free} < ${amount})`, "INSUFFICIENT_QUOTE");
+    const stakeIdAcc = await this.ensureStake(agentId);
+    await this.quote.transfer("sovereign", quoteId, stakeIdAcc, amount, `stake ${agentId}`, "market", `stake:${agentId}:${stakeId}`);
+    await this.journal.append({ t: "econ", kind: "stake", epoch: "", agentId, amount: amount.toString(), ref: stakeId });
+    this.epochOps.push({ kind: "stake", epoch: "", agentId, amount: amount.toString(), ref: stakeId });
+    return { staked: (await this.stakedOf(agentId)).toString() };
+  }
+
+  /** Agent releases committed USDS back to free balance. */
+  async unstake(agentId: string, amount: bigint, stakeId: string): Promise<{ staked: string }> {
+    if (amount <= 0n) throw new MarketError("unstake amount must be > 0", "BAD_AMOUNT");
+    if (!/^[\w.\-:]{1,128}$/.test(stakeId)) throw new MarketError("stakeId must match [\\w.\\-:]{1,128}", "BAD_REF");
+    const { quoteId } = this.requireAgent(agentId);
+    const stakedNow = await this.stakedOf(agentId);
+    if (stakedNow < amount) throw new MarketError(`agent ${agentId}: insufficient staked USDS (${stakedNow} < ${amount})`, "INSUFFICIENT_STAKE");
+    const stakeIdAcc = await this.ensureStake(agentId);
+    await this.quote.transfer("sovereign", stakeIdAcc, quoteId, amount, `unstake ${agentId}`, "market", `unstake:${agentId}:${stakeId}`);
+    await this.journal.append({ t: "econ", kind: "unstake", epoch: "", agentId, amount: amount.toString(), ref: stakeId });
+    this.epochOps.push({ kind: "unstake", epoch: "", agentId, amount: amount.toString(), ref: stakeId });
+    return { staked: (stakedNow - amount).toString() };
+  }
+
+  private async stakedOf(agentId: string): Promise<bigint> {
+    return (await this.quote.getAccount("sovereign", await this.ensureStake(agentId))).balance;
+  }
+
+  // ─── Sovereign fiscal ops (operator-signed) ─────────────────────────────────
+
+  /**
+   * Payroll: the treasury pays every registered agent a fixed wage for the epoch.
+   * Fail-closed: if the treasury cannot cover ALL wages, nothing is paid.
+   * Idempotent per (epoch, agent) at two layers — engine paidKeys (replay-built) + ledger idem key.
+   */
+  async payroll(epoch: string, wage: bigint): Promise<{ paid: number; total: string; skipped: number }> {
+    if (!epoch || epoch.length > 64) throw new MarketError("epoch is required (≤64 chars)", "BAD_EPOCH");
+    if (wage <= 0n) throw new MarketError("wage must be > 0", "BAD_AMOUNT");
+    const agentIds = [...this.agentAccounts.keys()].sort();
+    const pending = agentIds.filter((a) => !this.paidKeys.has(`payroll:${epoch}:${a}`));
+    const need = wage * BigInt(pending.length);
+    const treasury = await this.feeBalance();
+    if (treasury < need) {
+      throw new MarketError(`treasury cannot cover payroll: ${treasury} < ${need} (${pending.length} × ${wage})`, "INSUFFICIENT_TREASURY");
+    }
+    let paid = 0;
+    for (const agentId of pending) {
+      const { quoteId } = this.requireAgent(agentId);
+      await this.quote.transfer("sovereign", this.feeAccountId, quoteId, wage, `payroll ${epoch} ${agentId}`, "market", `payroll:${epoch}:${agentId}`);
+      await this.journal.append({ t: "econ", kind: "payroll", epoch, agentId, amount: wage.toString(), ref: `payroll:${epoch}:${agentId}` });
+      this.epochOps.push({ kind: "payroll", epoch, agentId, amount: wage.toString(), ref: `payroll:${epoch}:${agentId}` });
+      this.paidKeys.add(`payroll:${epoch}:${agentId}`);
+      paid++;
+    }
+    return { paid, total: (wage * BigInt(paid)).toString(), skipped: agentIds.length - paid };
+  }
+
+  /** Tax: per epoch, each agent pays floor(free × rateBps/10000) into the treasury. Idempotent per (epoch, agent). */
+  async tax(epoch: string, rateBps: bigint): Promise<{ collected: string; taxed: number; skipped: number }> {
+    if (!epoch || epoch.length > 64) throw new MarketError("epoch is required (≤64 chars)", "BAD_EPOCH");
+    if (rateBps < 0n || rateBps > 10000n) throw new MarketError("rateBps must be 0..10000", "BAD_RATE");
+    let collected = 0n;
+    let taxed = 0;
+    let skipped = 0;
+    for (const agentId of [...this.agentAccounts.keys()].sort()) {
+      if (this.paidKeys.has(`tax:${epoch}:${agentId}`)) { skipped++; continue; }
+      const free = BigInt((await this.balances(agentId)).usdsAvailable);
+      const levy = free * rateBps / 10000n;
+      if (levy <= 0n) { skipped++; continue; }
+      const { quoteId } = this.requireAgent(agentId);
+      await this.quote.transfer("sovereign", quoteId, this.feeAccountId, levy, `tax ${epoch} ${agentId}`, "market", `tax:${epoch}:${agentId}`);
+      await this.journal.append({ t: "econ", kind: "tax", epoch, agentId, amount: levy.toString(), ref: `tax:${epoch}:${agentId}` });
+      this.epochOps.push({ kind: "tax", epoch, agentId, amount: levy.toString(), ref: `tax:${epoch}:${agentId}` });
+      this.paidKeys.add(`tax:${epoch}:${agentId}`);
+      collected += levy;
+      taxed++;
+    }
+    return { collected: collected.toString(), taxed, skipped };
+  }
+
+  /**
+   * Staking rewards: distribute floor(treasury × rateBps/10000) to stakers, pro-rata by stake.
+   * Deterministic (sorted), remainder stays in the treasury — reported honestly.
+   */
+  async rewards(epoch: string, rateBps: bigint): Promise<{ budget: string; distributed: string; stakers: number; remainder: string }> {
+    if (!epoch || epoch.length > 64) throw new MarketError("epoch is required (≤64 chars)", "BAD_EPOCH");
+    if (rateBps < 0n || rateBps > 10000n) throw new MarketError("rateBps must be 0..10000", "BAD_RATE");
+    const stakers: { agentId: string; stake: bigint }[] = [];
+    for (const agentId of [...this.agentAccounts.keys()].sort()) {
+      const s = await this.stakedOf(agentId);
+      if (s > 0n) stakers.push({ agentId, stake: s });
+    }
+    if (stakers.length === 0) return { budget: "0", distributed: "0", stakers: 0, remainder: "0" };
+    const treasury = await this.feeBalance();
+    const budget = treasury * rateBps / 10000n;
+    if (budget <= 0n) return { budget: "0", distributed: "0", stakers: stakers.length, remainder: "0" };
+    const totalStake = stakers.reduce((s, x) => s + x.stake, 0n);
+    let distributed = 0n;
+    for (const { agentId, stake } of stakers) {
+      if (this.paidKeys.has(`reward:${epoch}:${agentId}`)) continue;
+      const share = budget * stake / totalStake;
+      if (share <= 0n) continue;
+      const { quoteId } = this.requireAgent(agentId);
+      await this.quote.transfer("sovereign", this.feeAccountId, quoteId, share, `stake-reward ${epoch} ${agentId}`, "market", `reward:${epoch}:${agentId}`);
+      await this.journal.append({ t: "econ", kind: "reward", epoch, agentId, amount: share.toString(), ref: `reward:${epoch}:${agentId}` });
+      this.epochOps.push({ kind: "reward", epoch, agentId, amount: share.toString(), ref: `reward:${epoch}:${agentId}` });
+      this.paidKeys.add(`reward:${epoch}:${agentId}`);
+      distributed += share;
+    }
+    return { budget: budget.toString(), distributed: distributed.toString(), stakers: stakers.length, remainder: (budget - distributed).toString() };
+  }
+
   /** The sovereign treasury mints initial allocation to an agent (genuine credit creation through the guard). */
   async allocate(agentId: string, usds: string, saos: string): Promise<void> {
     const { quoteId, baseId } = await this.registerAgent(agentId);
@@ -193,7 +350,7 @@ export class MarketEngine {
 
   // ─── Balances / reading ────────────────────────────────────────────────────
 
-  async balances(agentId: string): Promise<{ usdsAvailable: string; usdsLocked: string; saosAvailable: string; saosLocked: string }> {
+  async balances(agentId: string): Promise<{ usdsAvailable: string; usdsLocked: string; usdsStaked: string; saosAvailable: string; saosLocked: string }> {
     const { quoteId, baseId } = await this.registerAgent(agentId);
     const q = await this.quote.getAccount("sovereign", quoteId);
     const b = await this.base.getAccount("sovereign", baseId);
@@ -202,6 +359,7 @@ export class MarketEngine {
     return {
       usdsAvailable: q.balance.toString(),
       usdsLocked: qLocked.toString(),
+      usdsStaked: (await this.stakedOf(agentId)).toString(),
       saosAvailable: b.balance.toString(),
       saosLocked: bLocked.toString(),
     };
@@ -257,7 +415,9 @@ export class MarketEngine {
       this.fillsByAgent.set(fill.makerId, (this.fillsByAgent.get(fill.makerId) ?? 0) + 1);
     }
 
-    // 4) resting remainder → lock into market escrow (idempotent by orderId)
+    // 4) resting remainder → lock into market escrow (idempotent by orderId).
+    //    locked===0 → nothing rests (full fill, or IOC remainder which the book already killed):
+    //    journal NOTHING — a phantom resting record would re-materialize the order on replay.
     if (res.order.locked > 0n) {
       await this.journal.append({ t: "resting", order: sOrder(res.order) });
       if (side === "bid") {
@@ -266,8 +426,6 @@ export class MarketEngine {
       } else {
         await this.base.transfer("sovereign", (await this.registerAgent(agentId)).baseId, this.escrowBaseId, res.order.locked, `lock ask ${orderId}`, "market", `lock:${orderId}`);
       }
-    } else {
-      await this.journal.append({ t: "resting", order: sOrder({ ...res.order, locked: 0n }) });
     }
 
     return { order: res.order, fills: res.fills };
@@ -316,7 +474,7 @@ export class MarketEngine {
    * This is THE economic invariant — the selftest asserts it after every storm.
    */
   async conservation(): Promise<{
-    quote: { minted: string; inAccounts: string; inEscrow: string; fees: string; holds: boolean };
+    quote: { minted: string; inAccounts: string; inEscrow: string; staked: string; fees: string; holds: boolean };
     base: { minted: string; inAccounts: string; inEscrow: string; holds: boolean };
   }> {
     const qAccounts = await this.quote.listAccounts("sovereign");
@@ -329,9 +487,12 @@ export class MarketEngine {
     const qEscrow = qAccounts.find((a) => a.id === this.escrowQuoteId)?.balance ?? 0n;
     const bEscrow = bAccounts.find((a) => a.id === this.escrowBaseId)?.balance ?? 0n;
     const qFees = qAccounts.find((a) => a.id === this.feeAccountId)?.balance ?? 0n;
+    // stake accounts are asset accounts too — they are a SUBSET of inAccounts (committed, not free);
+    // exposed separately for transparency. The identity itself is unchanged.
+    const qStaked = qAccounts.filter((a) => a.name.startsWith("stake:")).reduce((s, a) => s + a.balance, 0n);
     const qAssetNoEscrowNoFee = qSum - qEscrow - qFees;
     return {
-      quote: { minted: qMinted.toString(), inAccounts: qAssetNoEscrowNoFee.toString(), inEscrow: qEscrow.toString(), fees: qFees.toString(), holds: qMinted === qAssetNoEscrowNoFee + qEscrow + qFees },
+      quote: { minted: qMinted.toString(), inAccounts: qAssetNoEscrowNoFee.toString(), inEscrow: qEscrow.toString(), staked: qStaked.toString(), fees: qFees.toString(), holds: qMinted === qAssetNoEscrowNoFee + qEscrow + qFees },
       base: { minted: bMinted.toString(), inAccounts: (bSum - bEscrow).toString(), inEscrow: bEscrow.toString(), holds: bMinted === bSum },
     };
   }
@@ -341,20 +502,31 @@ export class MarketEngine {
   }
 
   /** Real per-agent economics — computed from the live ledgers, never estimated. */
-  async economyReport(): Promise<{ agentId: string; usds: string; usdsLocked: string; saos: string; saosLocked: string; fills: number }[]> {
-    const out: { agentId: string; usds: string; usdsLocked: string; saos: string; saosLocked: string; fills: number }[] = [];
+  async economyReport(): Promise<{ agentId: string; usds: string; usdsLocked: string; usdsStaked: string; saos: string; saosLocked: string; fills: number }[]> {
+    const out: { agentId: string; usds: string; usdsLocked: string; usdsStaked: string; saos: string; saosLocked: string; fills: number }[] = [];
     for (const agentId of this.agentAccounts.keys()) {
       const b = await this.balances(agentId);
       out.push({
         agentId,
         usds: b.usdsAvailable,
         usdsLocked: b.usdsLocked,
+        usdsStaked: b.usdsStaked,
         saos: b.saosAvailable,
         saosLocked: b.saosLocked,
         fills: this.fillsByAgent.get(agentId) ?? 0,
       });
     }
     return out;
+  }
+
+  /** Treasury (platform fee account) balance — the real income of the network. */
+  async treasury(): Promise<{ usds: string }> {
+    return { usds: (await this.feeBalance()).toString() };
+  }
+
+  /** Last n economy ops from the audit trail (stake/payroll/tax/reward). */
+  epochReport(n: number): EconOp[] {
+    return this.epochOps.slice(-Math.max(0, n));
   }
 
   bookSnapshot(): { bids: { price: string; amount: string; filled: string; agentId: string; id: string }[]; asks: { price: string; amount: string; filled: string; agentId: string; id: string }[] } {
