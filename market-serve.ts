@@ -199,6 +199,24 @@ async function handlePost(pathname: string, body: Record<string, unknown>, princ
     const res = await engine.unstake(principal.agentId, toBigInt(body.amount, "BAD_AMOUNT"), stakeId);
     return json(200, { agentId: principal.agentId, stakeId, staked: res.staked });
   }
+  if (pathname === "/economy/allocate") {
+    if (principal.kind !== "operator") return json(403, { error: "only the operator re-allocates", code: "OPERATOR_ONLY" });
+    const agentId = String(body.agentId ?? "");
+    if (!agentId) return json(400, { error: "agentId is required" });
+    const usds = String(body.usds ?? "0");
+    const saos = String(body.saos ?? "0");
+    const ref = String(body.ref ?? "");
+    if (!ref) return json(400, { error: "ref is required (idempotency scope of this re-allocation decision)" });
+    const idems = await engine.realloc(agentId, usds, saos, ref);
+    return json(201, { agentId, usds, saos, ref, ...idems });
+  }
+  if (pathname === "/internal/quiesce") {
+    if (principal.kind !== "operator") return json(403, { error: "only the operator quiesces", code: "OPERATOR_ONLY" });
+    const on = body.on === true;
+    engine.quiesce(on);
+    console.warn(`arket] quiesce ${on ? "ON — mutations refused until resume (consistent backup in flight)" : "OFF — market live again"}`);
+    return json(200, { quiesced: on });
+  }
   if (pathname === "/economy/payroll") {
     if (principal.kind !== "operator") return json(403, { error: "only the operator runs payroll", code: "OPERATOR_ONLY" });
     const res = await engine.payroll(requireEpoch(body.epoch), toBigInt(body.wage, "BAD_AMOUNT"));
@@ -237,7 +255,7 @@ const server = Bun.serve({
       if (req.method === "GET") {
         if (url.pathname === "/health") {
           const st = engine.stats();
-          return json(200, { ok: true, service: "roshpina-sovereign-market", trades: st.settled, bids: st.book.bids, asks: st.book.asks, phantomsSkipped: st.phantomsSkipped, bootedAt: engine.bootedAt, escrowOrphanQuote: engine.escrowOrphanQuote.toString(), escrowOrphanBase: engine.escrowOrphanBase.toString() });
+          return json(200, { ok: true, service: "roshpina-sovereign-market", trades: st.settled, bids: st.book.bids, asks: st.book.asks, phantomsSkipped: st.phantomsSkipped, bootedAt: engine.bootedAt, escrowOrphanQuote: engine.escrowOrphanQuote.toString(), escrowOrphanBase: engine.escrowOrphanBase.toString(), ghostsBootQuote: st.ghostsBootQuote, ghostsBootQuoteAmount: st.ghostsBootQuoteAmount, ghostsBootBase: st.ghostsBootBase, ghostsBootBaseAmount: st.ghostsBootBaseAmount, quiesced: st.quiesced });
         }
         if (url.pathname === "/market/book") return json(200, engine.bookSnapshot());
         if (url.pathname === "/economy/report") return await report();
