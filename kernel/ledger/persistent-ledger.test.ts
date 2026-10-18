@@ -273,3 +273,83 @@ describe("parseMicroCents — the float wall", () => {
     }
   });
 });
+
+// ─── Self-healing: the data dir can vanish under a running process ──────────
+// (sandbox resets deleted data/ mid-flight: snapshots ENOENT'd and journal
+//  appends disappeared into a vanished inode. The ledger now heals honestly.)
+
+describe("PersistentLedger — self-healing after mid-run deletion", () => {
+  test("dir deleted under the running process: ops continue, restart restores full state, chain continues", async () => {
+    const l1 = await PersistentLedger.open(dir);
+    const s = await seed(l1); // 4 ops: create×2, mint, transfer
+    const seqBefore = l1.stats().seq; // 4
+    expect(seqBefore).toBe(4);
+
+    fs.rmSync(dir, { recursive: true, force: true }); // the sandbox did exactly this
+
+    // ops CONTINUE (in-memory truth), journal heals on the next append
+    await l1.transfer("t1", s.alice, s.bob, parseMicroCents("1.00"), "post-heal pay", "operator", "post-heal-1");
+    const midProof = await l1.proofOfSolvency("t1");
+    l1.close();
+
+    // reopen: meta-anchored journal + snapshot at the heal point → full state
+    const l2 = await PersistentLedger.open(dir);
+    expect(l2.stats().seq).toBe(5); // global seq continuity across the re-anchor
+    expect((await l2.getAccount("t1", s.alice)).balance).toBe(parseMicroCents("6.50"));
+    expect((await l2.getAccount("t1", s.bob)).balance).toBe(parseMicroCents("3.50"));
+    expect((await l2.proofOfSolvency("t1")).balanceHash).toBe(midProof.balanceHash);
+
+    // the chain keeps growing past the re-anchor…
+    await l2.transfer("t1", s.bob, s.alice, parseMicroCents("0.25"), "tail pay", "operator", "post-heal-2");
+    l2.close();
+
+    // …and a SECOND restart still boots (tail replay on the re-anchored chain)
+    const l3 = await PersistentLedger.open(dir);
+    expect(l3.stats().seq).toBe(6);
+    expect((await l3.getAccount("t1", s.alice)).balance).toBe(parseMicroCents("6.75"));
+    expect((await l3.getAccount("t1", s.bob)).balance).toBe(parseMicroCents("3.25"));
+    l3.close();
+  });
+
+  test("empty journal + valid snapshot boots anchored and keeps counting", async () => {
+    const l1 = await PersistentLedger.open(dir, { snapshotEvery: 1 });
+    const s = await seed(l1);
+    const preHash = (await l1.proofOfSolvency("t1")).balanceHash;
+    l1.close();
+
+    fs.rmSync(path.join(dir, "journal.jsonl")); // only the journal vanished
+
+    const l2 = await PersistentLedger.open(dir); // snapshot-anchored restart
+    expect(l2.stats().seq).toBe(4); // state restored at the snapshot's global seq
+    expect((await l2.proofOfSolvency("t1")).balanceHash).toBe(preHash);
+
+    await l2.guardMint("t1", s.alice, parseMicroCents("1.00"), "anchored mint", "operator", "anchored-mint-1");
+    expect(l2.stats().seq).toBe(5); // appends continue the global sequence
+    l2.close();
+
+    const l3 = await PersistentLedger.open(dir);
+    expect(l3.stats().seq).toBe(5);
+    expect((await l3.getAccount("t1", s.alice)).balance).toBe(parseMicroCents("8.50"));
+    l3.close();
+  });
+
+  test("re-anchored journal without any snapshot refuses to boot (fail-closed)", async () => {
+    const l1 = await PersistentLedger.open(dir);
+    const s = await seed(l1);
+    l1.close();
+
+    // forge a re-anchored state manually: empty journal + meta, no snapshot
+    fs.rmSync(path.join(dir, "journal.jsonl"));
+    fs.rmSync(path.join(dir, "snapshot.json"), { force: true });
+    fs.writeFileSync(path.join(dir, "journal.meta.json"), JSON.stringify({ baseSeq: 4, rebasedAt: new Date().toISOString() }));
+
+    let refused = false;
+    try {
+      await PersistentLedger.open(dir);
+    } catch (e) {
+      refused = e instanceof JournalError && e.code === "BOOT_UNANCHORED";
+    }
+    expect(refused).toBe(true);
+    void s;
+  });
+});
