@@ -237,7 +237,7 @@ const server = Bun.serve({
       if (req.method === "GET") {
         if (url.pathname === "/health") {
           const st = engine.stats();
-          return json(200, { ok: true, service: "roshpina-sovereign-market", trades: st.settled, bids: st.book.bids, asks: st.book.asks, phantomsSkipped: st.phantomsSkipped, bootedAt: engine.bootedAt });
+          return json(200, { ok: true, service: "roshpina-sovereign-market", trades: st.settled, bids: st.book.bids, asks: st.book.asks, phantomsSkipped: st.phantomsSkipped, bootedAt: engine.bootedAt, escrowOrphanQuote: engine.escrowOrphanQuote.toString(), escrowOrphanBase: engine.escrowOrphanBase.toString() });
         }
         if (url.pathname === "/market/book") return json(200, engine.bookSnapshot());
         if (url.pathname === "/economy/report") return await report();
@@ -282,4 +282,16 @@ const server = Bun.serve({
 });
 
 console.log(`[market] LISTENING ${server.port}`);
+
+// Disk watchdog: external actors delete data files in this sandbox. The kernel
+// heals on the next append, but a deletion during an append-gap used to go
+// unnoticed until boot. Verify every 10s — heal + snapshot within seconds.
+setInterval(() => {
+  try {
+    if (engine.diskMaintenance()) console.warn("[market] disk watchdog: journal vanished — healed + snapshot regenerated");
+  } catch (e) {
+    console.error("[market] disk watchdog failed:", String((e as Error)?.message ?? e).slice(0, 120));
+  }
+}, 10_000).unref();
+
 export { server, engine, microCentsToString, parseMicroCents };
