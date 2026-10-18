@@ -91,6 +91,7 @@ async function handleGet(url: URL): Promise<Response> {
       accounts: st.accounts,
       bootAt: st.bootAt,
       fullFold: st.fullFold,
+      baseSeq: st.baseSeq,
       operatorKeys: provisioned.registered.length,
     });
   }
@@ -204,4 +205,18 @@ const server = Bun.serve({
 });
 
 console.log(`[roshpina] LISTENING ${server.port}`);
+
+// Disk watchdog: external actors delete data files in this sandbox (three live
+// incidents on 2026-10-17/18). The kernel heals on the next append, but a
+// deletion during an append-gap used to go unnoticed until boot — silently
+// reverting the ledger to its last snapshot. Verify every 10s: heal (re-anchor)
+// + snapshot within seconds, so the disk always holds near-current truth.
+setInterval(() => {
+  try {
+    if (ledger.diskMaintenance()) console.warn("[roshpina] disk watchdog: journal vanished — healed + snapshot regenerated");
+  } catch (e) {
+    console.error("[roshpina] disk watchdog failed:", String((e as Error)?.message ?? e).slice(0, 120));
+  }
+}, 10_000).unref();
+
 export { server };

@@ -280,6 +280,16 @@ export class Journal<REC = unknown> {
     );
   }
 
+  /** Public disk verification — call periodically (external actors delete data
+   *  dirs in this sandbox; a deletion during an append-gap used to go unnoticed
+   *  until boot, silently reverting the ledger to its last snapshot). Returns
+   *  true if a heal happened. */
+  diskCheck(): boolean {
+    if (fs.existsSync(this.journalPath)) return false;
+    this.healIfVanished();
+    return true;
+  }
+
   /** Snapshot-anchored restart: the journal file is empty but a verified
    *  snapshot carries the state. The new chain segment continues AFTER the
    *  snapshot's global seq (recorded in meta so future boots verify it). */
@@ -608,6 +618,16 @@ export class PersistentLedger implements PaymentProvider {
   /** Trusted-state export (backup / verification / tests). */
   exportState(): { accounts: Account[]; entries: JournalEntry[]; transactions: LedgerTransaction[] } {
     return this.inner.exportState();
+  }
+
+  /** Periodic disk maintenance: if the journal file vanished under the running
+   *  process, heal now (re-anchor) and snapshot immediately — the loss window
+   *  shrinks from "until the next append" to the maintenance interval.
+   *  Returns true if a heal happened. */
+  diskMaintenance(): boolean {
+    const healed = this.journal.diskCheck();
+    if (healed) this.writeSnapshotNow();
+    return healed;
   }
 
   // ─── PaymentProvider (delegate → journal → return) ─────────────────────────
