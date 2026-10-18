@@ -83,6 +83,9 @@ export class MarketEngine {
   private epochOps: EconOp[] = [];                   // economy audit trail (rebuilt on replay)
   private phantomsSkipped = 0;                       // residual records skipped during replay (honest ghost count)
   private paidKeys = new Set<string>();              // "kind:epoch:agentId" — epoch idempotency that survives reboot
+  /** Orphaned escrow detected at boot (after salvage: 0; negative = locks>escrow, degraded). */
+  escrowOrphanQuote = 0n;
+  escrowOrphanBase = 0n;
   bootedAt = "";
 
   /** Boot both ledgers (fail-closed verify) + ensure system accounts + replay. */
@@ -104,7 +107,63 @@ export class MarketEngine {
       if (m) await eng.registerAgent(m[1]);
     }
     eng.replay(records);
+    await eng.reconcileEscrow();
     return eng;
+  }
+
+  /** Boot-time escrow reconciliation. The rebuilt book's locks MUST equal the
+   *  escrow balances — any orphaned difference (orders that died with a lost
+   *  journal; the live bug of 2026-10-18: restart found an empty market journal
+   *  while 14.86M µ¢ sat in escrow with no owner) is swept to the treasury
+   *  with loud, signed correction records. Conservation preserved; nothing
+   *  sits in limbo; the fiscal loop redistributes through legitimate channels.
+   *  Idempotent per boot (idem keys carry bootedAt). A NEGATIVE difference
+   *  (locks > escrow) is never fabricated away — it is reported loudly and
+   *  surfaced in health, but boot proceeds (degraded, not dead). */
+  private async reconcileEscrow(): Promise<void> {
+    const orders = this.book.allOrders();
+    const lockQuote = orders.filter((o) => o.side === "bid").reduce((a, o) => a + o.locked, 0n);
+    const lockBase = orders.filter((o) => o.side === "ask").reduce((a, o) => a + o.locked, 0n);
+    const escQ = BigInt((await this.quote.getAccount("sovereign", this.escrowQuoteId)).balance);
+    const escB = BigInt((await this.base.getAccount("sovereign", this.escrowBaseId)).balance);
+    const orphanQ = escQ - lockQuote;
+    const orphanB = escB - lockBase;
+    this.escrowOrphanQuote = 0n;
+    this.escrowOrphanBase = 0n;
+    if (orphanQ > 0n) {
+      await this.quote.transfer(
+        "sovereign", this.escrowQuoteId, this.treasuryQuoteId, orphanQ,
+        `escrow-orphan salvage @boot ${this.bootedAt}`, "market", `escrow-reconcile:${this.bootedAt}:q`,
+      );
+      await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: "market-escrow", amount: (-orphanQ).toString(), ref: `escrow-reconcile:${this.bootedAt}:q` });
+      console.warn(`[market-engine] escrow reconcile: swept ORPHANED ${orphanQ} µ¢ (USDS) to treasury (book locks=${lockQuote}, escrow=${escQ})`);
+      this.escrowOrphanQuote = orphanQ;
+    }
+    if (orphanB > 0n) {
+      await this.base.transfer(
+        "sovereign", this.escrowBaseId, this.treasuryBaseId, orphanB,
+        `escrow-orphan salvage @boot ${this.bootedAt}`, "market", `escrow-reconcile:${this.bootedAt}:b`,
+      );
+      await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: "market-escrow", amount: (-orphanB).toString(), ref: `escrow-reconcile:${this.bootedAt}:b` });
+      console.warn(`[market-engine] escrow reconcile: swept ORPHANED ${orphanB} µ-SAOS (SAOS) to treasury (book locks=${lockBase}, escrow=${escB})`);
+      this.escrowOrphanBase = orphanB;
+    }
+    if (orphanQ < 0n || orphanB < 0n) {
+      console.error(`[market-engine] escrow reconcile: NEGATIVE orphan (locks exceed escrow) — q=${orphanQ} b=${orphanB} — NOT fabricating; surfaced in health`);
+      this.escrowOrphanQuote = orphanQ;
+      this.escrowOrphanBase = orphanB;
+    }
+  }
+
+  /** Periodic disk maintenance across all three journals (usds/saos/market):
+   *  heals vanished files within seconds instead of at the next append/boot.
+   *  Returns true if anything was healed. */
+  diskMaintenance(): boolean {
+    let healed = false;
+    try { if (this.quote.diskMaintenance()) healed = true; } catch { /* next tick retries */ }
+    try { if (this.base.diskMaintenance()) healed = true; } catch { /* next tick retries */ }
+    try { if (this.journal.diskCheck()) healed = true; } catch { /* next tick retries */ }
+    return healed;
   }
 
   private async ensureAccount(led: PersistentLedger, name: string): Promise<string> {
