@@ -1,0 +1,18 @@
+{
+  "vault": "roshpina-sealed-vault",
+  "version": 1,
+  "algorithm": "aes-256-cbc+pbkdf2(200k)",
+  "passphraseHolder": "operator — upload/vault.passphrase (local-only, gitignored)",
+  "createdAt": "2026-10-18T00:33:47.586Z",
+  "updatedAt": "2026-10-18T00:33:47.586Z",
+  "entries": [
+    {
+      "name": "nim-api.env",
+      "algorithm": "aes-256-cbc+pbkdf2(200k)",
+      "sha256": "c6d086fda6a5794fc4dde98edfa746a032898a1f7c798f126265e7dd6c827a7a",
+      "sealedSha256": "0b49cd8a1dbbe19b8bca1e48fb1f98f3624e0b4a70a53738c200f11d370b9f01",
+      "sizeBytes": 261,
+      "sealedAt": "2026-10-18T00:33:47.586Z"
+    }
+  ]
+}
