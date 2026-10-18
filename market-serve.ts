@@ -242,6 +242,16 @@ async function handlePost(pathname: string, body: Record<string, unknown>, princ
     const res = await engine.correct(ledger, accountName, correctionId);
     return json(200, { correctionId, ledger, accountName, ...res });
   }
+  if (pathname === "/economy/admit-legacy-credit") {
+    if (principal.kind !== "operator") return json(403, { error: "only the operator admits legacy credit", code: "OPERATOR_ONLY" });
+    const ledger = body.ledger === "saos" ? "saos" : body.ledger === "usds" ? "usds" : null;
+    if (!ledger) return json(400, { error: "ledger must be usds|saos" });
+    const accountName = typeof body.accountName === "string" ? body.accountName : "";
+    if (!/^[\w.\-:]{1,128}$/.test(accountName)) return json(400, { error: "accountName must match [\\w.\\-:]{1,128}" });
+    const correctionId = typeof body.correctionId === "string" && body.correctionId ? body.correctionId : `alc-${Date.now()}`;
+    const res = await engine.admitLegacyCredit(ledger, accountName, correctionId);
+    return json(200, { correctionId, ledger, accountName, ...res });
+  }
   return json(404, { error: "not found" });
 }
 
