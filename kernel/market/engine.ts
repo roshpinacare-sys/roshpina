@@ -726,6 +726,37 @@ export class MarketEngine {
     return { corrected: amount.toString() };
   }
 
+  /**
+   * admitLegacyCredit — the honest path for a NEGATIVE asset account whose hole
+   * predates the current hash-chain window (wipe-era artifact that transfer,
+   * the designed balance-checked path, can never repair: the reserve lacks the
+   * funds). This admits the legacy credit as what it actually is — issued
+   * equity — through guardMint, the ONLY designed chokepoint for credit
+   * creation. Operator-signed, journaled (kind:"correction"), idempotent by
+   * correctionId. Fail-closed: known accounts only, never an equity account,
+   * never a positive account, never a top-up of wealth — only zeroing a hole
+   * so the books tell the truth instead of hiding it in a negative asset.
+   */
+  async admitLegacyCredit(ledgerName: "usds" | "saos", accountName: string, correctionId: string): Promise<{ admitted: string }> {
+    this.guardLive();
+    if (!/^[\w.\-:]{1,128}$/.test(correctionId)) throw new MarketError("correctionId must match [\\w.\\-:]{1,128}", "BAD_REF");
+    if (this.epochOps.some((op) => (op.kind === "correction") && op.ref === `admit:${correctionId}`)) {
+      return { admitted: "0" }; // already applied — honest no-op
+    }
+    const led = ledgerName === "usds" ? this.quote : this.base;
+    const accounts = await led.listAccounts("sovereign");
+    const target = accounts.find((a) => a.name === accountName);
+    if (!target) throw new MarketError(`unknown account ${accountName}`, "ACCOUNT_UNKNOWN");
+    if (target.type === "equity") throw new MarketError("refusing to admit credit onto an equity account", "BAD_ACCOUNT");
+    const bal = BigInt(target.balance);
+    if (bal >= 0n) return { admitted: "0" }; // nothing to admit — honest no-op
+    const amount = -bal;
+    await led.guardMint("sovereign", target.id, amount, `legacy credit admission ${accountName} (${correctionId})`, "treasury", `admit:${correctionId}`);
+    this.epochOps.push({ kind: "correction", epoch: "", agentId: accountName, amount: amount.toString(), ref: `admit:${correctionId}` });
+    await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: accountName, amount: amount.toString(), ref: `admit:${correctionId}` });
+    return { admitted: amount.toString() };
+  }
+
   /** Last n economy ops from the audit trail (stake/payroll/tax/reward). */
   epochReport(n: number): EconOp[] {
     return this.epochOps.slice(-Math.max(0, n));
