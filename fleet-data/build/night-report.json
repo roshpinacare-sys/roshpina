@@ -1,0 +1,97 @@
+{
+  "builtAt": "2026-10-18T14:57:30.992Z",
+  "cycle": 15,
+  "live": {
+    "market": {
+      "trades": 56,
+      "bids": 31,
+      "asks": 11
+    },
+    "ledger": {
+      "seq": 707,
+      "accounts": 19
+    },
+    "runner": {
+      "jobs": 1503,
+      "schedules": "6/12 ירוקים",
+      "ticks": 14973,
+      "heals": 1
+    },
+    "economy": {
+      "agents": 7,
+      "treasury": "3487.03",
+      "staked": "460960.58",
+      "conservation": "מוחזק"
+    }
+  },
+  "stats": {
+    "trades": 56,
+    "ledgerSeq": 707,
+    "agents": 7,
+    "jobsTotal": 1503,
+    "schedulesGreen": 6,
+    "schedulesEnabled": 12
+  },
+  "whatWasBuilt": [
+    "market-report: 718 ריצות-מוצלחות ב-24h (55 כישלונות-כנים)",
+    "ledger-sync: 132 ריצות-מוצלחות ב-24h (25 כישלונות-כנים)",
+    "economy-run: 115 ריצות-מוצלחות ב-24h (28 כישלונות-כנים)",
+    "economy-cycle: 61 ריצות-מוצלחות ב-24h (13 כישלונות-כנים)",
+    "state-backup: 40 ריצות-מוצלחות ב-24h (8 כישלונות-כנים)",
+    "plan-executor: 21 ריצות-מוצלחות ב-24h",
+    "ai-sentinel: 17 ריצות-מוצלחות ב-24h",
+    "site-builder: 14 ריצות-מוצלחות ב-24h",
+    "הנדסה אמיתית שנדחפה לגיט (roshpina): 2b247b5 agent-lab: ledger-sync-failures.ts — the network's third self-written module",
+    "מטוס-הבקרה מגובה: c59fdc7 4bab54f0-70ca-462e-95d0-94004183de90"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-18T13:47:11.607Z",
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "mission": "לשפר את השקיפות והאמינות של הרשת על ידי תיעוד כשלים עדכניים ופירסום שידור-רשת עם המלצות לשיפור.",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "ניתוח כשלי ledger-sync ו‑control-plane-backup",
+        "why": "הכשלים החוזרים בלוחיות אלו מופיעים בהיסטוריית הכשלים האחרונים ומצביעים על צורך בבדיקת תדירות וניסיונות חוזרים.",
+        "action": "insight"
+      },
+      {
+        "id": "t2",
+        "title": "תיעוד כשלים אחרונים עם timestamps",
+        "why": "תיעוד מדויק של הזמנים מאפשר זיהוי דפוסים ומאפשר לתזמן משימות תחזוקה בצורה מושכלת.",
+        "action": "note"
+      },
+      {
+        "id": "t3",
+        "title": "פרסום שידור-רשת באתר על כשלים והמלצות",
+        "why": "יש חדשות אמיתיות (כשלים חוזרים) שדורשות עדכון מיידי של ערוץ השידורים באתר כדי לשקף את מצב הרשת ולספק הנחיות לשיפור.",
+        "action": "code"
+      },
+      {
+        "id": "t4",
+        "title": "המלצה לחיזוק ניטור ai-sentinel ו‑ai-architect",
+        "why": "למרות שהכשלים האחרונים לא נוגעים ללוחות ה‑AI, יש שני כשלים ב‑ai-architect בעבר, ולכן כדאי לחזק את הפיקוח כדי למנוע הידרדרות.",
+        "action": "insight"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-18T14:27:12.003Z",
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "text": "הערכה: הרשת מציגה פעילות מסחר מתונה עם 43 עסקאות ומאזן טוקניזציה מפוזר בין הסוכנים, אך אוצר הכספים נמוך מאוד (≈0.003 USDS) וכמה לוחות זמנים קריטיים מציגים שיעורי כשל ודילוג גבוהים.  \nסיכונים: 1) אוצר הכספים הנמוך עלול להגביל יכולת הרשת לכסות עמלות ופרסומים. 2) שיעורי כשל גבוהים בלוחות economy-run, ledger-sync ו-economy-cycle עלולים לפגוע בסינכרון נתונים ובחישוב כלכלי. 3) שיעורי דילוג גבוהים בלוחות code-executor, plan-executor, site-builder ו-ai-sentinel מצביעים על עומס מתנגש או הגדרה שגויה שעלולה לגרום להפסקות בשירותים חיוניים.  \nאנומליות: לוח code-executor לא הריץ אף פעם (7 runs, 7 skipped); סוכן delta מחזיק יתרה גדולה של SAOS אך ללא USDS, ללא סטייק וללא מילויים (fills=0).  \nהמלצות: 1) לעדכן את זמני ההפעלה של הלוחות כדי למנוע התנגשויות ולהקצות משאבים נוספים (או להפחית תדירות) ללוחות עם שיעורי דילוג גבוהים. 2) לבדוק ולהגדיל את מקור האוצר – למשל על ידי אגירת עמלות מסחר או תמריץ סטייקינג – כדי להגביר את רזרבת ה‑USDS. 3) לבדוק את סוכן delta ולהפעיל אותו מחדש (או להעביר את נכסיו) כדי לשפר נזילות ולהפחית ריכוז נכסים לא פעילים."
+  },
+  "commits": {
+    "roshpina": [
+      "2b247b5 agent-lab: ledger-sync-failures.ts — the network's third self-written module (quiesce-collision monitor, gate-passed) (2 hours ago)",
+      "6c525da agent-lab: economy-retry.ts — the network's second self-written module (retry with backoff, gate-passed) (7 hours ago)",
+      "4b2e8f4 agent-lab: the network writes its own code — first accepted module (8 hours ago)",
+      "4ed230a resilience(P1): boot ghosting + era-restore realloc + quiesce gate — the 06:06 reboot bug class (8 hours ago)"
+    ],
+    "control": [
+      "c59fdc7 4bab54f0-70ca-462e-95d0-94004183de90 (55 minutes ago)",
+      "824672c estate-vault: durability lane (Task 23) — money-state + evidence + DB pushed off-site to agent4/estate-vault (dual-ref, sha256-manifested, restore-drilled); preset #22 registered; honest state-backup comment fix (57 minutes ago)",
+      "1279607 53934208-9cb1-464f-8d3f-444905ea0e33 (2 hours ago)",
+      "35d2156 worklog: Task 22 — quiesce-collision class closed with forced live proof; third self-written module (2 hours ago)"
+    ]
+  }
+}
