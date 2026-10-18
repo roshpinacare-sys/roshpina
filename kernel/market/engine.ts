@@ -45,6 +45,7 @@ type SOrder = {
 type MarketRecord =
   | { t: "resting"; order: SOrder }                       // order came to rest (remaining>0)
   | { t: "canceled"; orderId: string; released: string }  // order left the book
+  | { t: "ghosted"; orderId: string; side: Side; agentId: string; unbacked: string; ref: string } // boot ghost: unbacked lock removed, nothing released
   | { t: "trade_intent"; fill: SFill }                    // a fill decided (legs follow)
   | { t: "trade_done"; tradeId: string }                  // legs committed (idempotent)
   | { t: "econ"; kind: EconKind; epoch: string; agentId: string; amount: string; ref: string }; // economy ops (audit + replay of idempotency keys)
@@ -86,6 +87,10 @@ export class MarketEngine {
   /** Orphaned escrow detected at boot (after salvage: 0; negative = locks>escrow, degraded). */
   escrowOrphanQuote = 0n;
   escrowOrphanBase = 0n;
+  /** Orders ghosted at boot (unbacked locks — torn backup / lost-journal era). */
+  ghostsBoot = { quote: { count: 0, amount: 0n }, base: { count: 0, amount: 0n } };
+  /** Quiesce flag — mutations refused while a consistent backup is taken. */
+  private quiesced = false;
   bootedAt = "";
 
   /** Boot both ledgers (fail-closed verify) + ensure system accounts + replay. */
@@ -117,19 +122,48 @@ export class MarketEngine {
    *  while 14.86M µ¢ sat in escrow with no owner) is swept to the treasury
    *  with loud, signed correction records. Conservation preserved; nothing
    *  sits in limbo; the fiscal loop redistributes through legitimate channels.
-   *  Idempotent per boot (idem keys carry bootedAt). A NEGATIVE difference
-   *  (locks > escrow) is never fabricated away — it is reported loudly and
-   *  surfaced in health, but boot proceeds (degraded, not dead). */
+   *  Idempotent per boot (idem keys carry bootedAt).
+   *  A NEGATIVE difference (locks > escrow) — the live bug of the 06:06 reboot:
+   *  a torn backup resurrected orders whose escrow backing was already swept —
+   *  is converged honestly: the newest unbacked orders are GHOSTED (removed
+   *  from the book with a loud journal record each, FIFO by seq so the escrow
+   *  keeps covering the oldest deposits first), never fabricated away and
+   *  never left degrading the book. The money itself was never destroyed — it
+   *  sits in the treasury and the fiscal loop redistributes it. */
   private async reconcileEscrow(): Promise<void> {
+    this.escrowOrphanQuote = 0n;
+    this.escrowOrphanBase = 0n;
+    this.ghostsBoot = { quote: { count: 0, amount: 0n }, base: { count: 0, amount: 0n } };
+    const escQ = BigInt((await this.quote.getAccount("sovereign", this.escrowQuoteId)).balance);
+    const escB = BigInt((await this.base.getAccount("sovereign", this.escrowBaseId)).balance);
+    // ── degraded branch first: ghost unbacked locks until locks ≤ escrow ──
+    const ghostSide = async (side: "bid" | "ask", esc: bigint): Promise<void> => {
+      const orders = this.book.allOrders().filter((o) => o.side === side).sort((a, b) => a.seq - b.seq);
+      let covered = orders.reduce((a, o) => a + o.locked, 0n);
+      if (covered <= esc) return; // fully backed — nothing to ghost
+      const deficit = covered - esc;
+      let ghosted = 0n;
+      let count = 0;
+      // ghost from the NEWEST backwards until the remaining locks fit the escrow
+      for (let i = orders.length - 1; i >= 0 && covered - ghosted > esc; i--) {
+        const o = orders[i];
+        ghosted += o.locked;
+        count++;
+        try { this.book.cancel(o.id, o.agentId); } catch { /* already gone */ }
+        await this.journal.append({ t: "ghosted", orderId: o.id, side, agentId: o.agentId, unbacked: o.locked.toString(), ref: `boot-ghost:${this.bootedAt}` });
+      }
+      if (side === "bid") this.ghostsBoot.quote = { count, amount: ghosted };
+      else this.ghostsBoot.base = { count, amount: ghosted };
+      // escrowOrphan stays 0 — the book now converges with the escrow; ghostsBoot tells the story.
+      console.error(`arket-engine] escrow reconcile: GHOSTED ${count} ${side}(s), ${ghosted} µ-units of unbacked locks (deficit=${deficit}) — journal-recorded, treasury holds the funds`);
+    };
+    await ghostSide("bid", escQ);
+    await ghostSide("ask", escB);
     const orders = this.book.allOrders();
     const lockQuote = orders.filter((o) => o.side === "bid").reduce((a, o) => a + o.locked, 0n);
     const lockBase = orders.filter((o) => o.side === "ask").reduce((a, o) => a + o.locked, 0n);
-    const escQ = BigInt((await this.quote.getAccount("sovereign", this.escrowQuoteId)).balance);
-    const escB = BigInt((await this.base.getAccount("sovereign", this.escrowBaseId)).balance);
     const orphanQ = escQ - lockQuote;
     const orphanB = escB - lockBase;
-    this.escrowOrphanQuote = 0n;
-    this.escrowOrphanBase = 0n;
     if (orphanQ > 0n) {
       await this.quote.transfer(
         "sovereign", this.escrowQuoteId, this.treasuryQuoteId, orphanQ,
@@ -149,10 +183,26 @@ export class MarketEngine {
       this.escrowOrphanBase = orphanB;
     }
     if (orphanQ < 0n || orphanB < 0n) {
-      console.error(`[market-engine] escrow reconcile: NEGATIVE orphan (locks exceed escrow) — q=${orphanQ} b=${orphanB} — NOT fabricating; surfaced in health`);
+      // Can only happen if ghosting could not fully cover the deficit — still never fabricated.
+      console.error(`[market-engine] escrow reconcile: NEGATIVE orphan after ghosting — q=${orphanQ} b=${orphanB} — NOT fabricating; surfaced in health`);
       this.escrowOrphanQuote = orphanQ;
       this.escrowOrphanBase = orphanB;
     }
+  }
+
+  /** Quiesce control: while ON, every money mutation refuses (fail-closed).
+   *  Used by the backup capsule to take a tear-free snapshot of all state
+   *  dirs — the live bug of the 06:06 reboot was a tar taken mid-trade. */
+  quiesce(on: boolean): void {
+    this.quiesced = on;
+  }
+
+  isQuiesced(): boolean {
+    return this.quiesced;
+  }
+
+  private guardLive(): void {
+    if (this.quiesced) throw new MarketError("market is quiesced for a consistent backup — retry shortly", "MARKET_QUIESCED");
   }
 
   /** Periodic disk maintenance across all three journals (usds/saos/market):
@@ -223,6 +273,13 @@ export class MarketEngine {
           break;
         }
         case "canceled": {
+          try { this.book.cancel(r.orderId, this.book.getOrder(r.orderId)?.agentId ?? "?"); } catch { /* already gone */ }
+          break;
+        }
+        case "ghosted": {
+          // Boot ghosting (torn-backup / lost-journal convergence): the order's
+          // escrow backing no longer exists — remove from the book WITHOUT any
+          // release (nothing to release; the funds sit in the treasury).
           try { this.book.cancel(r.orderId, this.book.getOrder(r.orderId)?.agentId ?? "?"); } catch { /* already gone */ }
           break;
         }
@@ -300,6 +357,7 @@ export class MarketEngine {
 
   /** Agent commits free USDS into its stake account (escrow-like, engine-level). */
   async stake(agentId: string, amount: bigint, stakeId: string): Promise<{ staked: string }> {
+    this.guardLive();
     if (amount <= 0n) throw new MarketError("stake amount must be > 0", "BAD_AMOUNT");
     if (!/^[\w.\-:]{1,128}$/.test(stakeId)) throw new MarketError("stakeId must match [\\w.\\-:]{1,128}", "BAD_REF");
     const { quoteId } = this.requireAgent(agentId);
@@ -314,6 +372,7 @@ export class MarketEngine {
 
   /** Agent releases committed USDS back to free balance. */
   async unstake(agentId: string, amount: bigint, stakeId: string): Promise<{ staked: string }> {
+    this.guardLive();
     if (amount <= 0n) throw new MarketError("unstake amount must be > 0", "BAD_AMOUNT");
     if (!/^[\w.\-:]{1,128}$/.test(stakeId)) throw new MarketError("stakeId must match [\\w.\\-:]{1,128}", "BAD_REF");
     const { quoteId } = this.requireAgent(agentId);
@@ -338,6 +397,7 @@ export class MarketEngine {
    * Idempotent per (epoch, agent) at two layers — engine paidKeys (replay-built) + ledger idem key.
    */
   async payroll(epoch: string, wage: bigint): Promise<{ paid: number; total: string; skipped: number }> {
+    this.guardLive();
     if (!epoch || epoch.length > 64) throw new MarketError("epoch is required (≤64 chars)", "BAD_EPOCH");
     if (wage <= 0n) throw new MarketError("wage must be > 0", "BAD_AMOUNT");
     const agentIds = [...this.agentAccounts.keys()].sort();
@@ -361,6 +421,7 @@ export class MarketEngine {
 
   /** Tax: per epoch, each agent pays floor(free × rateBps/10000) into the treasury. Idempotent per (epoch, agent). */
   async tax(epoch: string, rateBps: bigint): Promise<{ collected: string; taxed: number; skipped: number }> {
+    this.guardLive();
     if (!epoch || epoch.length > 64) throw new MarketError("epoch is required (≤64 chars)", "BAD_EPOCH");
     if (rateBps < 0n || rateBps > 10000n) throw new MarketError("rateBps must be 0..10000", "BAD_RATE");
     let collected = 0n;
@@ -387,6 +448,7 @@ export class MarketEngine {
    * Deterministic (sorted), remainder stays in the treasury — reported honestly.
    */
   async rewards(epoch: string, rateBps: bigint): Promise<{ budget: string; distributed: string; stakers: number; remainder: string }> {
+    this.guardLive();
     if (!epoch || epoch.length > 64) throw new MarketError("epoch is required (≤64 chars)", "BAD_EPOCH");
     if (rateBps < 0n || rateBps > 10000n) throw new MarketError("rateBps must be 0..10000", "BAD_RATE");
     const stakers: { agentId: string; stake: bigint }[] = [];
@@ -416,6 +478,7 @@ export class MarketEngine {
 
   /** The sovereign treasury mints initial allocation to an agent (genuine credit creation through the guard). */
   async allocate(agentId: string, usds: string, saos: string): Promise<void> {
+    this.guardLive();
     const { quoteId, baseId } = await this.registerAgent(agentId);
     if (parseMicroCents(usds) > 0n) {
       await this.quote.guardMint("sovereign", quoteId, parseMicroCents(usds), `genesis allocation ${agentId}`, "treasury", `alloc:${agentId}:usds`);
@@ -423,6 +486,28 @@ export class MarketEngine {
     if (BigInt(saos) > 0n) {
       await this.base.guardMint("sovereign", baseId, BigInt(saos), `genesis allocation ${agentId}`, "treasury", `alloc:${agentId}:saos`);
     }
+  }
+
+  /** Re-allocation: honest liquidity restoration for an EXISTING agent whose
+   *  allocation was lost to an era accident (e.g. the SAOS supply wiped with a
+   *  sandbox reboot — the live bug of 2026-10-18: the whole economy held USDS
+   *  but zero SAOS, so no ask could ever rest and every economy-run was
+   *  INCONCLUSIVE). Ref-scoped idempotency: the same ref never double-mints;
+   *  a new ref is a new, signed, journaled decision. Genuine credit creation
+   *  through the guard, audited as econ/correction records. */
+  async realloc(agentId: string, usds: string, saos: string, ref: string): Promise<{ usdsIdem: string; saosIdem: string }> {
+    this.guardLive();
+    if (!/^[\w.\-:]{1,128}$/.test(ref)) throw new MarketError("ref must match [\\w.\\-:]{1,128}", "BAD_REF");
+    const { quoteId, baseId } = await this.registerAgent(agentId);
+    if (parseMicroCents(usds) > 0n) {
+      await this.quote.guardMint("sovereign", quoteId, parseMicroCents(usds), `re-allocation ${agentId} (${ref})`, "treasury", `alloc:${agentId}:usds:${ref}`);
+      await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId, amount: usds, ref: `realloc:${ref}:${agentId}:usds` });
+    }
+    if (BigInt(saos) > 0n) {
+      await this.base.guardMint("sovereign", baseId, BigInt(saos), `re-allocation ${agentId} (${ref})`, "treasury", `alloc:${agentId}:saos:${ref}`);
+      await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId, amount: saos, ref: `realloc:${ref}:${agentId}:saos` });
+    }
+    return { usdsIdem: `alloc:${agentId}:usds:${ref}`, saosIdem: `alloc:${agentId}:saos:${ref}` };
   }
 
   // ─── Balances / reading ────────────────────────────────────────────────────
@@ -466,6 +551,7 @@ export class MarketEngine {
   async placeOrder(params: {
     agentId: string; orderId: string; side: Side; price: bigint; amount: bigint; type?: "limit" | "postOnly" | "ioc";
   }): Promise<{ order: Order; fills: Fill[] }> {
+    this.guardLive();
     const { agentId, orderId, side, price, amount } = params;
     const type = params.type ?? "limit";
     if (this.book.getOrder(orderId)) throw new BookError(`order ${orderId} already on book`, "DUPLICATE_ORDER_ID");
@@ -510,6 +596,7 @@ export class MarketEngine {
 
   /** Cancel: release the escrow lock (idempotent), remove from book, journal. */
   async cancelOrder(agentId: string, orderId: string): Promise<{ released: string }> {
+    this.guardLive();
     const res = this.book.cancel(orderId, agentId);
     await this.journal.append({ t: "canceled", orderId, released: res.release.amount.toString() });
     if (res.release.amount > 0n) {
@@ -575,7 +662,16 @@ export class MarketEngine {
   }
 
   stats(): { book: ReturnType<OrderBook["stats"]>; settled: number; phantomsSkipped: number } {
-    return { book: this.book.stats(), settled: this.settledTrades.size, phantomsSkipped: this.phantomsSkipped };
+    return {
+      book: this.book.stats(),
+      settled: this.settledTrades.size,
+      phantomsSkipped: this.phantomsSkipped,
+      ghostsBootQuote: this.ghostsBoot.quote.count,
+      ghostsBootQuoteAmount: this.ghostsBoot.quote.amount.toString(),
+      ghostsBootBase: this.ghostsBoot.base.count,
+      ghostsBootBaseAmount: this.ghostsBoot.base.amount.toString(),
+      quiesced: this.quiesced,
+    };
   }
 
   /** Real per-agent economics — computed from the live ledgers, never estimated. */
@@ -609,6 +705,7 @@ export class MarketEngine {
    * only, never an equity account, never below zero, never a top-up.
    */
   async correct(ledgerName: "usds" | "saos", accountName: string, correctionId: string): Promise<{ corrected: string }> {
+    this.guardLive();
     if (!/^[\w.\-:]{1,128}$/.test(correctionId)) throw new MarketError("correctionId must match [\\w.\\-:]{1,128}", "BAD_REF");
     if (this.epochOps.some((op) => op.kind === "correction" && op.ref === correctionId)) {
       return { corrected: "0" }; // already applied — honest no-op

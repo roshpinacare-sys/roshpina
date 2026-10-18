@@ -41,6 +41,8 @@ const DATA_DIR = process.env.ROSHPINA_DATA_DIR ?? "./data/ledger";
 // ─── Boot: verify-then-serve (a tampered journal refuses to come up) ────────
 
 const ledger = await PersistentLedger.open(DATA_DIR, { verify: "full" });
+/** Quiesce flag — writes refused while the backup capsule takes a tear-free tar. */
+let quiesced = false;
 const boot = ledger.stats();
 console.log(`[roshpina] ledger boot: seq=${boot.seq} accounts=${boot.accounts} fullFold=${boot.fullFold} head=${boot.head.slice(0, 12)}…`);
 
@@ -114,6 +116,14 @@ async function handlePost(pathname: string, body: Body): Promise<Response> {
   const idem = typeof body.idem === "string" ? body.idem : undefined;
   if (idem !== undefined && !IDEM_KEY_RE.test(idem)) {
     return json(400, { error: "idem key must match [\\w.\\-:]{1,128}" });
+  }
+  if (pathname === "/internal/quiesce") {
+    quiesced = body.on === true;
+    console.warn(`[roshpina] quiesce ${quiesced ? "ON — writes refused until resume (consistent backup in flight)" : "OFF — writes live again"}`);
+    return json(200, { quiesced });
+  }
+  if (quiesced && pathname !== "/internal/quiesce") {
+    return json(503, { error: "ledger is quiesced for a consistent backup — retry shortly", code: "LEDGER_QUIESCED" });
   }
 
   switch (pathname) {
