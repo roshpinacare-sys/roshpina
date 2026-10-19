@@ -377,10 +377,18 @@ export class MarketEngine {
         case "trade_intent": {
           this.fillsByAgent.set(r.fill.takerId, (this.fillsByAgent.get(r.fill.takerId) ?? 0) + 1);
           this.fillsByAgent.set(r.fill.makerId, (this.fillsByAgent.get(r.fill.makerId) ?? 0) + 1);
-          // maker consumed on the book
+          // maker consumed on the book — AND ITS LOCK FOLLOWS THE DELIVERY
+          // (mirrors book.place(): asks pay µ-SAOS direct; bids pay exact
+          // notional+remainder µ¢). Skipping this inflated the replayed locks
+          // over the real escrow — the phantom boot deficit behind live bug 13.
           const maker = this.book.getOrder(r.fill.makerOrderId);
           if (maker) {
-            maker.filled += BigInt(r.fill.amount);
+            const fillAmt = BigInt(r.fill.amount);
+            maker.filled += fillAmt;
+            maker.locked -= maker.side === "ask"
+              ? fillAmt
+              : BigInt(r.fill.notional) + BigInt(r.fill.remainder);
+            if (maker.locked < 0n) maker.locked = 0n; // replay tolerance for pre-fix journals (loud ghost trail already recorded)
             if (maker.filled === maker.amount) {
               try { this.book.cancel(maker.id, maker.agentId); } catch { /* race-free by construction */ }
             }

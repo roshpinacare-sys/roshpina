@@ -216,6 +216,14 @@ export class OrderBook {
 
         best.filled += tradeAmount;
         remaining -= tradeAmount;
+        // THE MAKER'S LOCK FOLLOWS THE DELIVERY: a partial fill paid out of the
+        // maker's escrow (asks: µ-SAOS direct; bids: exact notional+remainder µ¢).
+        // Not reducing locked here inflated Σ book locks over the real escrow —
+        // a phantom deficit that ghosted healthy market-makers at EVERY boot
+        // (the deepest root of live bug 13; the replay mirrors this exactly).
+        if (best.side === "ask") best.locked -= tradeAmount;
+        else best.locked -= notional + remainder;
+        if (best.locked < 0n) throw new BookError(`maker ${best.id} locked underflow — escrow law broken`, "LOCK_UNDERFLOW");
         this.tradeCounter += 1;
         fills.push({
           tradeId: `trade-${this.tradeCounter}`,
