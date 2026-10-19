@@ -70,7 +70,7 @@ export interface EnginePaths {
 export class MarketEngine {
   private quote!: PersistentLedger;  // USDS µ¢
   private base!: PersistentLedger;   // SAOS µ-SAOS
-  private book = new OrderBook();
+  book = new OrderBook(); // book + trade sequencer are boot-restored from the journal (live bug 17)
   private journal!: Journal<MarketRecord>;
   private settledTrades = new Set<string>();
   private escrowQuoteId = "";  // market escrow on the USDS ledger
@@ -123,13 +123,24 @@ export class MarketEngine {
     // legitimately) — excluded from boot orphan attribution so a fully-filled
     // order is never mistaken for an unattributed deposit.
     const filledOrderIds = new Set<string>();
+    // LIVE BUG 17: the trade sequencer must CONTINUE the journaled history —
+    // a process restart used to reset it to 0, so post-boot trades collided
+    // with pre-boot tradeIds and every settlement idem replayed an OLD trade's
+    // transfer: the journal recorded trades while the ledgers moved no money.
+    let maxTradeSeq = 0;
     for (const env of records) {
       const r = env.rec;
       if (r.t === "trade_intent") {
         filledOrderIds.add(r.fill.makerOrderId);
         filledOrderIds.add(r.fill.takerOrderId);
+        const m = /^trade-(\d+)$/.exec(r.fill.tradeId ?? "");
+        if (m) {
+          const n = Number(m[1]);
+          if (n > maxTradeSeq) maxTradeSeq = n;
+        }
       }
     }
+    eng.book.restoreTradeCounter(maxTradeSeq);
     await eng.reconcileEscrow(filledOrderIds);
     return eng;
   }
