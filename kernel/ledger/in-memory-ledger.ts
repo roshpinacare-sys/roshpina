@@ -23,6 +23,7 @@ import type {
   MicroCents,
   PaymentProvider,
   SolvencyProof,
+  TenantModel,
   TransactionKind,
 } from "./types";
 
@@ -80,6 +81,11 @@ export class InMemoryLedger implements PaymentProvider {
   // Each tenant gets a system "reserve" account (type=equity) used as the
   // counterparty for mint/withdraw operations.
   private readonly reserveAccounts = new Map<string, string>(); // tenantId → accountId
+
+  // Tenant accounting model ("custodial" default; "mirror" = settlement
+  // mirror of another book — see TenantModel docs in types.ts). Declared by
+  // the service wiring at boot (operator acknowledgment), never inferred.
+  private readonly tenantModels = new Map<string, TenantModel>();
 
   /**
    * P1-RESTORE (2026-10-17, agent4/p1-ledger-persistence): trusted-state factory.
@@ -441,31 +447,65 @@ export class InMemoryLedger implements PaymentProvider {
   }
 
   /**
+   * Declare the accounting model of a tenant (operator/boot acknowledgment —
+   * the default is "custodial"). Mirror tenants (settlement mirrors of the
+   * live market) are judged by the mirror law in proofOfSolvency.
+   */
+  declareTenantModel(tenantId: string, model: TenantModel): void {
+    guardNonEmpty(tenantId, "tenantId");
+    if (model !== "custodial" && model !== "mirror") {
+      throw new LedgerError(`unknown tenant model ${String(model)}`, "INVALID_TENANT_MODEL");
+    }
+    this.tenantModels.set(tenantId, model);
+  }
+
+  tenantModel(tenantId: string): TenantModel {
+    return this.tenantModels.get(tenantId) ?? "custodial";
+  }
+
+  /**
    * proofOfSolvency — periodic integrity check.
-   * Verifies: sum(assets) >= sum(liabilities) for all tenant accounts.
+   * Custodial tenants: verifies sum(assets) >= sum(liabilities).
+   * Mirror tenants: verifies zero-sum integrity + no negative claims/backing.
    * Produces a tamper-evident SHA-256 fingerprint of all current balances.
    */
   async proofOfSolvency(tenantId: string): Promise<SolvencyProof> {
     guardNonEmpty(tenantId, "tenantId");
 
+    const model = this.tenantModel(tenantId);
     const balanceLines: string[] = [];
     let totalAssets = 0n;
     let totalLiabilities = 0n;
+    let sumAll = 0n;
+    let negativeLiability = false;
+    let negativeAsset = false;
 
     // Single pass: filter, build lines, accumulate totals.
     // Sort only the string lines (cheaper than sorting Account objects).
     for (const acc of this.accounts.values()) {
       if (acc.tenantId !== tenantId) continue;
       balanceLines.push(`${acc.id}:${acc.type}:${acc.balance}`);
-      if (acc.type === "asset") totalAssets += acc.balance;
-      else if (acc.type === "liability") totalLiabilities += acc.balance;
-      // equity/revenue/expense contribute to net worth but not the basic solvency check
+      if (acc.type === "asset") {
+        totalAssets += acc.balance;
+        if (acc.balance < 0n) negativeAsset = true;
+      } else if (acc.type === "liability") {
+        totalLiabilities += acc.balance;
+        if (acc.balance < 0n) negativeLiability = true;
+      }
+      // equity/revenue/expense carry the plug and signed era history — they
+      // count toward zero-sum integrity, not toward the custodial law.
+      sumAll += acc.balance;
     }
 
     balanceLines.sort((a, b) => a.localeCompare(b));
 
     const netEquity = totalAssets - totalLiabilities;
-    const isSolvent = netEquity >= 0n;
+    // Custodial law: can the vault pay its depositors.
+    // Mirror law: zero-sum integrity + no negative claims + no invented backing.
+    const isSolvent =
+      model === "mirror"
+        ? sumAll === 0n && !negativeLiability && !negativeAsset
+        : netEquity >= 0n;
 
     const balanceHash = createHash("sha256")
       .update(balanceLines.join("\n"))
@@ -473,10 +513,12 @@ export class InMemoryLedger implements PaymentProvider {
 
     return {
       tenantId,
+      model,
       generatedAt: now(),
       totalAssets,
       totalLiabilities,
       netEquity,
+      sumAll,
       accountCount: balanceLines.length,
       balanceHash,
       isSolvent,

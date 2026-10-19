@@ -41,6 +41,14 @@ const DATA_DIR = process.env.ROSHPINA_DATA_DIR ?? "./data/ledger";
 // ─── Boot: verify-then-serve (a tampered journal refuses to come up) ────────
 
 const ledger = await PersistentLedger.open(DATA_DIR, { verify: "full" });
+// Tenant accounting model (operator/boot acknowledgment, Task 31): the
+// "market" tenant is the signed settlement MIRROR of the live economy on
+// :3033 — ledger-sync converges its mirrors to the live truth and era
+// corrections (journal seq 329 + 1086) proved the dead-era pools were the
+// phantom side and wrote them down. The mirror law (zero-sum integrity +
+// no negative claims/backing) applies, NOT the custodial assets>=liabilities
+// law — that law would alarm forever on the designed end-state (pool=0).
+ledger.declareTenantModel("market", "mirror");
 /** Quiesce flag — writes refused while the backup capsule takes a tear-free tar. */
 let quiesced = false;
 const boot = ledger.stats();
@@ -106,7 +114,14 @@ async function handleGet(url: URL): Promise<Response> {
     return json(200, {
       tenantId,
       accounts: accounts.map((a) => ({ ...a, balance: a.balance.toString(), balanceDecimal: dec(a.balance) })),
-      solvency: { ...solvency, totalAssets: solvency.totalAssets.toString(), totalLiabilities: solvency.totalLiabilities.toString(), netEquity: solvency.netEquity.toString() },
+      solvency: {
+        ...solvency,
+        model: solvency.model,
+        totalAssets: solvency.totalAssets.toString(),
+        totalLiabilities: solvency.totalLiabilities.toString(),
+        netEquity: solvency.netEquity.toString(),
+        sumAll: solvency.sumAll.toString(),
+      },
     });
   }
   return json(404, { error: "not found" });

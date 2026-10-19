@@ -86,15 +86,38 @@ export interface LedgerTransaction {
 
 // ─── Solvency proof ───────────────────────────────────────────────────────────
 
+/**
+ * Tenant accounting model — decides which solvency law applies.
+ *
+ *  - "custodial": the tenant HOLDS money for others (deposits/stakes live here).
+ *    Law: totalAssets >= totalLiabilities (can the vault pay its depositors).
+ *
+ *  - "mirror": the tenant is the signed settlement MIRROR of another book
+ *    (the live market). Its liabilities are the live economy's real claims,
+ *    kept converged by ledger-sync; its pools are era-corrected to ~0 BY
+ *    DESIGN (sync law 3: "pool=0 — every unit of backing held as a real
+ *    mirror"). Demanding assets>=liabilities here would alarm forever on the
+ *    correct end-state (measured live: era corrections seq 329 + 1086 proved
+ *    the dead-era pools were the phantom side). The falsifiable mirror law:
+ *    zero-sum integrity (Σ ALL account balances === 0 — any debit/credit
+ *    asymmetry breaks it) + no negative liability mirror (a claim the book
+ *    cannot honor) + no negative asset account (invented backing).
+ */
+export type TenantModel = "custodial" | "mirror";
+
 export interface SolvencyProof {
   tenantId: string;
   generatedAt: ISOTimestamp;
+  /** Which solvency law was applied */
+  model: TenantModel;
   /** Sum of all asset account balances */
   totalAssets: MicroCents;
   /** Sum of all liability account balances */
   totalLiabilities: MicroCents;
-  /** totalAssets - totalLiabilities — must be >= 0 for solvency */
+  /** totalAssets - totalLiabilities (informational for mirror tenants) */
   netEquity: MicroCents;
+  /** Sum of ALL account balances, every type — must be exactly 0 (double-entry integrity) */
+  sumAll: MicroCents;
   /** Number of accounts checked */
   accountCount: number;
   /** SHA-256 fingerprint of all balances, for tamper-evidence */
