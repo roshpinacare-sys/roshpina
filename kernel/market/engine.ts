@@ -24,6 +24,8 @@ import { OrderBook, BookError, MICRO, notionalOf, exactCeilMicro } from "./book"
 import type { Fill, Order, Side } from "./book";
 import { PersistentLedger, Journal, JournalError, parseMicroCents } from "../ledger/persistent-ledger";
 import type { Envelope } from "../ledger/persistent-ledger";
+import { computeHistoricalRepairPlan } from "./repair-plan";
+import type { RepairPlan } from "./repair-plan";
 
 export const FEE_BPS = 10n; // 0.10% — עמלת-פלטפורמה אמיתית, נכנסת לחשבון-הכנסה
 
@@ -104,6 +106,7 @@ export class MarketEngine {
   static async open(dataDir: string): Promise<MarketEngine> {
     const eng = new MarketEngine();
     eng.bootedAt = new Date().toISOString();
+    eng.dataDir = dataDir; // Task 30: was never assigned (latent) — the repair plan reads it
     eng.quote = await PersistentLedger.open(`${dataDir}/usds`, { verify: "full" });
     eng.base = await PersistentLedger.open(`${dataDir}/saos`, { verify: "full" });
     eng.journal = new Journal<MarketRecord>(`${dataDir}/market`);
@@ -974,6 +977,106 @@ export class MarketEngine {
     this.epochOps.push({ kind: "correction", epoch: "", agentId: accountName, amount: amount.toString(), ref: `admit:${correctionId}` });
     await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: accountName, amount: amount.toString(), ref: `admit:${correctionId}` });
     return { admitted: amount.toString() };
+  }
+
+  // ─── Task 30: historical-damage repair (evidence-based, operator-approved) ──
+  //
+  // The plan is ALWAYS recomputed here from this engine's own journals + live
+  // balances — the request body never carries amounts (fail-closed). The
+  // operator approves one exact plan version by its sha256; a mismatch refuses
+  // with the current plan hash so approval can never drift from reality.
+
+  /** Fresh repair plan from the journals + live balances (read-only). */
+  async historicalRepairPlan(): Promise<RepairPlan> {
+    const usdsAccounts = (await this.quote.listAccounts("sovereign")).map((a) => ({ id: a.id, name: a.name, balance: a.balance.toString() }));
+    const saosAccounts = (await this.base.listAccounts("sovereign")).map((a) => ({ id: a.id, name: a.name, balance: a.balance.toString() }));
+    return computeHistoricalRepairPlan({ dataDir: this.dataDir, usdsAccounts, saosAccounts });
+  }
+
+  /** Plan account name → live ledger account id (fail-closed). */
+  private async repairResolve(ledger: "usds" | "saos", name: string): Promise<string> {
+    const special = ledger === "usds"
+      ? { "platform-fee": this.feeAccountId, "market-escrow-quote": this.escrowQuoteId, treasury: this.treasuryQuoteId }
+      : { "market-escrow-base": this.escrowBaseId, treasury: this.treasuryBaseId };
+    if (special[name]) return special[name];
+    const m = /^agent:([a-z0-9\-]+):(usds|saos)$/.exec(name);
+    if (m && m[2] === ledger) {
+      const pair = await this.registerAgent(m[1]);
+      return ledger === "usds" ? pair.quoteId : pair.baseId;
+    }
+    const led = ledger === "usds" ? this.quote : this.base;
+    const found = (await led.listAccounts("sovereign")).find((a) => a.name === name);
+    if (found) return found.id;
+    throw new MarketError(`repair: unknown account ${name} on ${ledger}`, "ACCOUNT_UNKNOWN");
+  }
+
+  /**
+   * Execute an operator-approved repair plan.
+   *  • sha must match a fresh recompute (approval can never drift from reality)
+   *  • quiesces the market for the whole execution (balances frozen → the
+   *    plan's serial feasibility simulation holds exactly)
+   *  • every leg is idempotent (repair:<kind>:<ref>) — replays are honest no-ops
+   *  • a leg whose debit balance cannot cover it is recorded as a documented
+   *    shortfall (the residual debt stays visible, nothing is fabricated)
+   */
+  async executeHistoricalRepair(approvedSha: string): Promise<{
+    planSha256: string; executed: number; zero: number; shortfall: number;
+    movedUsds: string; movedSaos: string;
+    results: { kind: string; ref: string; idem: string; status: string; payable: string; shortfall: string }[];
+    conservation: Awaited<ReturnType<MarketEngine["conservation"]>>;
+  }> {
+    if (!/^[0-9a-f]{64}$/.test(approvedSha)) throw new MarketError("approved plan sha must be 64 hex chars", "BAD_SHA");
+    // NOTE: no guardLive() here — the operator may deliberately quiesce before
+    // executing (consistency window). We keep an externally-set quiesce ON.
+    const wasQuiesced = this.quiesced;
+    const plan = await this.historicalRepairPlan();
+    if (plan.planSha256 !== approvedSha) {
+      throw new MarketError(
+        `plan sha mismatch — the plan changed since approval (approved ${approvedSha.slice(0, 12)}…, current ${plan.planSha256.slice(0, 12)}…); re-approve the current plan`,
+        "PLAN_SHA_MISMATCH",
+      );
+    }
+    this.quiesce(true);
+    const results: { kind: string; ref: string; idem: string; status: string; payable: string; shortfall: string }[] = [];
+    let executed = 0, zero = 0, shortfall = 0;
+    let movedUsds = 0n, movedSaos = 0n;
+    try {
+      for (const act of plan.actions) {
+        const owed = BigInt(act.owed); const pay = BigInt(act.payable);
+        if (pay <= 0n) {
+          if (owed > 0n) { shortfall++; results.push({ kind: act.kind, ref: act.ref, idem: act.idem, status: "shortfall", payable: act.payable, shortfall: act.shortfall }); }
+          else { zero++; results.push({ kind: act.kind, ref: act.ref, idem: act.idem, status: "zero", payable: act.payable, shortfall: act.shortfall }); }
+          continue;
+        }
+        try {
+          const debitId = await this.repairResolve(act.ledger, act.debitName);
+          const creditId = await this.repairResolve(act.ledger, act.creditName);
+          const led = act.ledger === "usds" ? this.quote : this.base;
+          // Honest replay guard: an idem that already landed is a no-op — it
+          // must NOT be counted as executed nor added to the moved totals.
+          if (led.hasIdem(act.idem)) {
+            results.push({ kind: act.kind, ref: act.ref, idem: act.idem, status: "replayed", payable: act.payable, shortfall: act.shortfall });
+            continue;
+          }
+          await led.transfer("sovereign", debitId, creditId, pay, act.memo, "operator-repair", act.idem);
+          executed++;
+          if (act.ledger === "usds") movedUsds += pay; else movedSaos += pay;
+          results.push({ kind: act.kind, ref: act.ref, idem: act.idem, status: "executed", payable: act.payable, shortfall: act.shortfall });
+        } catch (e) {
+          if (e instanceof LedgerError && e.code === "INSUFFICIENT_FUNDS") {
+            shortfall++;
+            results.push({ kind: act.kind, ref: act.ref, idem: act.idem, status: "shortfall", payable: act.payable, shortfall: act.shortfall });
+          } else throw e;
+        }
+      }
+      if (executed > 0) {
+        await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: "market-repair", amount: movedUsds.toString(), ref: `repair-run:${plan.planSha256.slice(0, 16)} legs=${executed}` });
+      }
+    } finally {
+      // resume only if WE quiesced — an operator-set quiesce stays on
+      if (!wasQuiesced) this.quiesce(false);
+    }
+    return { planSha256: plan.planSha256, executed, zero, shortfall, movedUsds: movedUsds.toString(), movedSaos: movedSaos.toString(), results, conservation: await this.conservation() };
   }
 
   /** Last n economy ops from the audit trail (stake/payroll/tax/reward). */

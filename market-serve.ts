@@ -252,6 +252,22 @@ async function handlePost(pathname: string, body: Record<string, unknown>, princ
     const res = await engine.admitLegacyCredit(ledger, accountName, correctionId);
     return json(200, { correctionId, ledger, accountName, ...res });
   }
+  if (pathname === "/economy/repair-historical") {
+    // Task 30: historical-damage repair. The plan is ALWAYS recomputed from the
+    // engine's own journals — the request never carries amounts (fail-closed).
+    // dry-run returns the plan + its sha256; execution requires that exact sha
+    // (approval can never drift from reality). Operator-only.
+    if (principal.kind !== "operator") return json(403, { error: "only the operator repairs", code: "OPERATOR_ONLY" });
+    if (body.execute === true) {
+      const res = await engine.executeHistoricalRepair(String(body.planSha256 ?? ""));
+      return json(200, res);
+    }
+    const plan = await engine.historicalRepairPlan();
+    return json(200, {
+      planSha256: plan.planSha256, generatedAt: plan.generatedAt,
+      summary: plan.summary, anomalies: plan.anomalies, scope: plan.scope, actions: plan.actions,
+    });
+  }
   return json(404, { error: "not found" });
 }
 
