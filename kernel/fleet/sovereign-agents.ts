@@ -128,7 +128,12 @@ const MIN_ORDER = 100_000n; // 0.1 SAOS
 function capBid(desired: bigint, usdsAvailable: string, price: bigint): bigint | null {
   if (price <= 0n) return null;
   const usds = BigInt(usdsAvailable || "0");
-  const max = usds / price; // floor division — never spend money not held
+  // units — a bid of `amount` µ-SAOS at `price` µ¢/SAOS costs
+  // amount × price / 10⁶ µ¢ (1 SAOS = 10⁶ µ-SAOS; the engine locks exactly
+  // that — verified against `lock bid` transfers). Missing the 10⁶ here made
+  // every bid look unaffordable: even a 12.7B µ¢ balance capped below the
+  // 0.1 SAOS floor and the whole bid side went dark.
+  const max = (usds * 1_000_000n) / price; // floor division — never spend money not held
   const amt = desired > max ? max : desired;
   return amt >= MIN_ORDER ? amt : null;
 }
