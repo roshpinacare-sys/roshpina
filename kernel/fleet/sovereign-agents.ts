@@ -7,9 +7,12 @@
  *
  * אסטרטגיות (פשוטות-וכנות — המטרה היא הוכחת-המשטח, לא-אלפא):
  *   market-maker — מציב-שני-צדדים סביב-ה-mid, מבטל-פרישות-סטיות
- *   momentum     — IOC לכיוון-התנועה כשיש-נפח
+ *   momentum     — IOC לכיוון-התנועה (לקיחת-מחיר — עובד-גם-בספר-חד-צדדי)
  *   accumulator  — פוסק-בידים-מתחת-ל-mid (קונה-ירידות)
  *   farmer       — פוסק-הצעות-מעל-ה-mid (מוכר-עליות)
+ *
+ * כל-הצבה מגודלת-לפי-מלאי-מוכח (capBid/capAsk) — מוכר-מוצלח לעולם לא שותק
+ * בגלל-הצלחתו (באג-הספר-השקט 2026-10-19); מלאי-אפס = השמטה-כנה, לא-סירוב-נצחי.
  */
 
 import { generateKeyPairSync, sign as edSign } from "node:crypto";
@@ -106,29 +109,71 @@ export interface StrategyState {
 export type Strategy = (view: MarketView, state: StrategyState, rnd: () => number) => Intent[];
 
 const PRICE_STEP = 1_000n; // price tick: 0.001 µ¢/SAOS — fine-grained
-const ORDER_SAOS = 5_000_000n; // 5 SAOS per quote
+const ORDER_SAOS = 5_000_000n; // 5 SAOS per quote (desired size — capped by real inventory)
+
+/** Honest inventory floor: below this the agent is genuinely out of inventory —
+ *  the truthful action is a no-op, not an eternal refusal stream. */
+const MIN_ORDER = 100_000n; // 0.1 SAOS
+
+/** Size a BID by the µ¢ the agent provably holds (cost = amount × price).
+ *
+ *  LIVE BUG (2026-10-19, the silent ask side): every strategy placed a FIXED
+ *  size without reading the balance. A successful seller sold its inventory
+ *  DOWN below that fixed size — and from that moment the engine honestly
+ *  refused every order, every tick, forever. Success was punished with
+ *  permanent silence: the more a seller sold, the sooner it vanished from the
+ *  book. Sizing by provable inventory keeps the agent trading; null means the
+ *  agent is truly out — an honest no-op, journaled as nothing, claimed as
+ *  nothing. */
+function capBid(desired: bigint, usdsAvailable: string, price: bigint): bigint | null {
+  if (price <= 0n) return null;
+  const usds = BigInt(usdsAvailable || "0");
+  const max = usds / price; // floor division — never spend money not held
+  const amt = desired > max ? max : desired;
+  return amt >= MIN_ORDER ? amt : null;
+}
+
+/** Size an ASK by the µ-SAOS the agent provably holds (same live-bug cure). */
+function capAsk(desired: bigint, saosAvailable: string): bigint | null {
+  const saos = BigInt(saosAvailable || "0");
+  const amt = desired > saos ? saos : desired;
+  return amt >= MIN_ORDER ? amt : null;
+}
 
 export function marketMaker(view: MarketView, state: StrategyState, rnd: () => number): Intent[] {
   const mid = midOf(view);
-  if (mid === null) return [{ action: "place", side: "bid", price: 298_000n, amount: ORDER_SAOS, type: "limit" }, { action: "place", side: "ask", price: 302_000n, amount: ORDER_SAOS, type: "limit" }];
   const jitter = BigInt(Math.floor((rnd() - 0.5) * 4_000)); // ±0.4 µ¢/SAOS ≈ ±0.0004 USDS
   const spread = 3_000n + BigInt(Math.floor(rnd() * 5_000)); // 0.3–0.8 µ¢/SAOS
   const intents: Intent[] = [];
   for (const o of state.ownOrders) intents.push({ action: "cancel", orderId: o.id }); // refresh quotes every tick
-  const midB = BigInt(Math.round(mid));
-  intents.push({ action: "place", side: "bid", price: midB - spread + jitter, amount: ORDER_SAOS, type: "limit" });
-  intents.push({ action: "place", side: "ask", price: midB + spread + jitter, amount: ORDER_SAOS, type: "limit" });
+  // genesis quotes when the book is empty; otherwise quote around the mid —
+  // BOTH sides sized to provable inventory (never a fixed size over the balance)
+  const midB = mid === null ? 300_000n : BigInt(Math.round(mid));
+  const bidPrice = mid === null ? 298_000n : midB - spread + jitter;
+  const askPrice = mid === null ? 302_000n : midB + spread + jitter;
+  const bid = capBid(ORDER_SAOS, state.balances.usdsAvailable, bidPrice);
+  if (bid) intents.push({ action: "place", side: "bid", price: bidPrice, amount: bid, type: "limit" });
+  const ask = capAsk(ORDER_SAOS, state.balances.saosAvailable);
+  if (ask) intents.push({ action: "place", side: "ask", price: askPrice, amount: ask, type: "limit" });
   return intents;
 }
 
 export function momentum(view: MarketView, state: StrategyState, rnd: () => number): Intent[] {
   const bestAsk = view.asks[0] ? BigInt(view.asks[0].price) : null;
   const bestBid = view.bids[0] ? BigInt(view.bids[0].price) : null;
-  if (!bestAsk || !bestBid) return [];
-  if (rnd() < 0.5) {
-    return [{ action: "place", side: "bid", price: bestAsk, amount: 1_000_000n + BigInt(Math.floor(rnd() * 2_000_000)), type: "ioc" }];
+  if (!bestAsk && !bestBid) return []; // no market at all — honest no-op
+  if (rnd() < 0.5 && bestAsk) {
+    const amt = capBid(1_000_000n + BigInt(Math.floor(rnd() * 2_000_000)), state.balances.usdsAvailable, bestAsk);
+    if (!amt) return [];
+    return [{ action: "place", side: "bid", price: bestAsk, amount: amt, type: "ioc" }];
   }
-  return [{ action: "place", side: "ask", price: bestBid, amount: 1_000_000n + BigInt(Math.floor(rnd() * 1_500_000)), type: "ioc" }];
+  // sell into the bid — works even when the offer side is empty (price-taking,
+  // not fabrication): the OLD guard required a bestAsk to exist, so momentum
+  // went fully dark exactly when the ask side died (a self-reinforcing loop).
+  const price = bestBid ?? bestAsk!;
+  const amt = capAsk(1_000_000n + BigInt(Math.floor(rnd() * 1_500_000)), state.balances.saosAvailable);
+  if (!amt) return [];
+  return [{ action: "place", side: "ask", price, amount: amt, type: "ioc" }];
 }
 
 export function accumulator(view: MarketView, state: StrategyState, rnd: () => number): Intent[] {
@@ -143,7 +188,9 @@ export function accumulator(view: MarketView, state: StrategyState, rnd: () => n
     if (drift > 20_000n) intents.push({ action: "cancel", orderId: o.id });
   }
   if (state.ownOrders.filter((o) => o.side === "bid").length < 2) {
-    intents.push({ action: "place", side: "bid", price: midB - 15_000n - BigInt(Math.floor(rnd() * 10_000)), amount: 2_000_000n, type: "limit" });
+    const price = midB - 15_000n - BigInt(Math.floor(rnd() * 10_000));
+    const amt = capBid(2_000_000n, state.balances.usdsAvailable, price);
+    if (amt) intents.push({ action: "place", side: "bid", price, amount: amt, type: "limit" });
   }
   return intents;
 }
@@ -159,7 +206,9 @@ export function farmer(view: MarketView, state: StrategyState, rnd: () => number
     if (drift > 25_000n) intents.push({ action: "cancel", orderId: o.id });
   }
   if (state.ownOrders.filter((o) => o.side === "ask").length < 2) {
-    intents.push({ action: "place", side: "ask", price: midB + 18_000n + BigInt(Math.floor(rnd() * 12_000)), amount: 2_500_000n, type: "limit" });
+    const price = midB + 18_000n + BigInt(Math.floor(rnd() * 12_000));
+    const amt = capAsk(2_500_000n, state.balances.saosAvailable);
+    if (amt) intents.push({ action: "place", side: "ask", price, amount: amt, type: "limit" });
   }
   return intents;
 }
