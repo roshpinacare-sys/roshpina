@@ -118,6 +118,18 @@ export class OrderBook {
     this.policy = { ...DEFAULT_POLICY, ...policy };
   }
 
+  /** Restore the trade sequencer from the journaled history (LIVE BUG 17,
+   *  2026-10-19: the counter used to restart at 0 on every new process, so
+   *  post-boot trades collided with pre-boot tradeIds — every settlement idem
+   *  (`${tradeId}:fee|q|b`) then replayed the OLD transaction and NO money
+   *  moved while the journal recorded trades: sellers sold real inventory and
+   *  received nothing, silently. The sequencer must continue the journal's
+   *  history, never restart beneath it. Same-tradeId retries keep their
+   *  crash-safety idem replay; cross-boot collisions become impossible. */
+  restoreTradeCounter(maxSeen: number): void {
+    if (maxSeen > this.tradeCounter) this.tradeCounter = maxSeen;
+  }
+
   stats(): { bids: number; asks: number; bestBid: bigint | null; bestAsk: bigint | null; trades: number } {
     return {
       bids: this.bids.length,
