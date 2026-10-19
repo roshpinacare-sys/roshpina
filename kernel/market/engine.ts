@@ -20,7 +20,7 @@
  * מריץ-match מחדש (deterministic).
  */
 
-import { OrderBook, BookError, MICRO, notionalOf } from "./book";
+import { OrderBook, BookError, MICRO, notionalOf, exactCeilMicro } from "./book";
 import type { Fill, Order, Side } from "./book";
 import { PersistentLedger, Journal, JournalError, parseMicroCents } from "../ledger/persistent-ledger";
 import type { Envelope } from "../ledger/persistent-ledger";
@@ -119,10 +119,20 @@ export class MarketEngine {
       if (m) await eng.registerAgent(m[1]);
     }
     eng.replay(records);
-    // Orders whose escrowed deposits were consumed by fills (each leg delivered
-    // legitimately) — excluded from boot orphan attribution so a fully-filled
-    // order is never mistaken for an unattributed deposit.
+    // Orders whose escrowed deposits were consumed by SETTLED fills — excluded
+    // from boot orphan attribution so a filled order is never mistaken for an
+    // unattributed deposit. Gated on trade_done: a trade_intent whose settle
+    // threw (money never moved) must NOT exclude its maker's lock from the
+    // evidence refunds — that money is still in escrow and still the maker's.
+    // fillPaid* caps the refund of partially-filled ghosts by what their fills
+    // already delivered (LIVE BUG 19 fix bookkeeping).
+    const doneTrades = new Set<string>();
+    for (const env of records) {
+      if (env.rec.t === "trade_done") doneTrades.add(env.rec.tradeId);
+    }
     const filledOrderIds = new Set<string>();
+    const fillPaidQuote = new Map<string, bigint>(); // maker-buyers: µ¢ paid out of their locks
+    const fillPaidBase = new Map<string, bigint>();  // maker-sellers: µ-SAOS delivered from their locks
     // LIVE BUG 17: the trade sequencer must CONTINUE the journaled history —
     // a process restart used to reset it to 0, so post-boot trades collided
     // with pre-boot tradeIds and every settlement idem replayed an OLD trade's
@@ -131,8 +141,19 @@ export class MarketEngine {
     for (const env of records) {
       const r = env.rec;
       if (r.t === "trade_intent") {
-        filledOrderIds.add(r.fill.makerOrderId);
-        filledOrderIds.add(r.fill.takerOrderId);
+        if (doneTrades.has(r.fill.tradeId)) {
+          filledOrderIds.add(r.fill.makerOrderId);
+          filledOrderIds.add(r.fill.takerOrderId);
+          if (r.fill.side === "ask") {
+            // taker sold → the maker bought → the maker's µ¢ lock paid the taker
+            // (by the law the LEDGER actually settled with: exact ceil µ¢)
+            const paid = BigInt(r.fill.notional) + (BigInt(r.fill.remainder) > 0n ? 1n : 0n);
+            fillPaidQuote.set(r.fill.makerOrderId, (fillPaidQuote.get(r.fill.makerOrderId) ?? 0n) + paid);
+          } else {
+            // taker bought → the maker sold → the maker's µ-SAOS lock was delivered
+            fillPaidBase.set(r.fill.makerOrderId, (fillPaidBase.get(r.fill.makerOrderId) ?? 0n) + BigInt(r.fill.amount));
+          }
+        }
         const m = /^trade-(\d+)$/.exec(r.fill.tradeId ?? "");
         if (m) {
           const n = Number(m[1]);
@@ -141,7 +162,7 @@ export class MarketEngine {
       }
     }
     eng.book.restoreTradeCounter(maxTradeSeq);
-    await eng.reconcileEscrow(filledOrderIds);
+    await eng.reconcileEscrow(filledOrderIds, fillPaidQuote, fillPaidBase);
     return eng;
   }
 
@@ -172,15 +193,30 @@ export class MarketEngine {
    *  correction record. The fiscal loop still redistributes — but through
    *  legitimate channels, to the right owners first. Idempotent per boot
    *  (idem keys carry bootedAt). */
-  private async reconcileEscrow(filledOrderIds: Set<string>): Promise<void> {
+  private async reconcileEscrow(
+    filledOrderIds: Set<string>,
+    fillPaidQuote: Map<string, bigint>,
+    fillPaidBase: Map<string, bigint>,
+  ): Promise<void> {
     this.escrowOrphanQuote = 0n;
     this.escrowOrphanBase = 0n;
     this.ghostsBoot = { quote: { count: 0, amount: 0n }, base: { count: 0, amount: 0n } };
     const escQ = BigInt((await this.quote.getAccount("sovereign", this.escrowQuoteId)).balance);
     const escB = BigInt((await this.base.getAccount("sovereign", this.escrowBaseId)).balance);
+    // LIVE BUG 19d (the units law): `Order.locked` counts µ-SAOS for asks and
+    // µ-SAOS-units for bids alike; a bid's MONEY coverage is the exact ceil µ¢
+    // of those units (notional+remainder) — precisely what was transferred at
+    // placement. The old reconcile compared bid UNITS against the µ¢ escrow
+    // (≈4× phantom overlock at 0.258 USDS/SAOS): every boot "found" a bid
+    // deficit that never existed and the FIFO fallback ate healthy bids.
+    const coverOf = (o: Order): bigint => {
+      if (o.side === "ask") return o.locked;
+      const n = notionalOf(o.price, o.locked);
+      return n.notional + n.remainder;
+    };
     const ghostSide = async (side: "bid" | "ask", esc: bigint, ledger: PersistentLedger): Promise<void> => {
       const orders = this.book.allOrders().filter((o) => o.side === side).sort((a, b) => a.seq - b.seq);
-      const covered = orders.reduce((a, o) => a + o.locked, 0n);
+      const covered = orders.reduce((a, o) => a + coverOf(o), 0n);
       if (covered <= esc) return; // fully backed — nothing to ghost
       let ghosted = 0n;
       let count = 0;
@@ -214,46 +250,60 @@ export class MarketEngine {
     await ghostSide("bid", escQ, this.quote);
     await ghostSide("ask", escB, this.base);
     const orders = this.book.allOrders();
-    const lockQuote = orders.filter((o) => o.side === "bid").reduce((a, o) => a + o.locked, 0n);
+    const lockQuote = orders.filter((o) => o.side === "bid").reduce((a, o) => a + coverOf(o), 0n);
     const lockBase = orders.filter((o) => o.side === "ask").reduce((a, o) => a + o.locked, 0n);
     const orphanQ = escQ - lockQuote;
     const orphanB = escB - lockBase;
     // ORPHAN ATTRIBUTION — refund provable deposits of book-less, never-released
     // orders to the account that paid them (oldest first, capped per deposit).
+    // Prior refunds — legacy keys carry a bootedAt segment
+    // (`escrow-refund:<bootedAt>:<orderId>` — LIVE BUG 18: the key changed
+    // every boot, so the same claim was re-refunded forever; gamma-5-0 was
+    // paid its 512,124 µ¢ deposit TWICE). The new key is the bare
+    // `escrow-refund:<orderId>` — forever-idempotent. BOTH forms are counted
+    // so a refunded claim can never be paid a third time.
     const attributeOrphans = async (
       ledger: PersistentLedger,
       escrowAccountId: string,
       orphan: bigint,
+      fills: Map<string, bigint>,
     ): Promise<{ refunded: bigint; toTreasury: bigint }> => {
       if (orphan <= 0n) return { refunded: 0n, toTreasury: 0n };
       const bookIds = new Set(this.book.allOrders().map((o) => o.id));
+      const priorRefunds = new Map<string, bigint>();
+      for (const { key, tx } of ledger.idemTransactions("escrow-refund:")) {
+        const orderId = key.slice("escrow-refund:".length).split(":").pop() ?? "";
+        priorRefunds.set(orderId, (priorRefunds.get(orderId) ?? 0n) + BigInt(tx.amount));
+      }
       type Cand = { orderId: string; amount: bigint; payeeAccountId: string; createdAt: string };
       const cands: Cand[] = [];
       for (const { key, tx } of ledger.idemTransactions("lock:")) {
         const orderId = key.slice("lock:".length);
         if (bookIds.has(orderId)) continue;                 // live order — its lock is counted
         if (ledger.hasIdem(`rel:${orderId}`)) continue;     // was released legitimately
-        if (filledOrderIds.has(orderId)) continue;          // deposit was delivered via fills
-        const amt = BigInt(tx.amount);
-        if (amt <= 0n) continue;
-        cands.push({ orderId, amount: amt, payeeAccountId: tx.debitAccountId, createdAt: tx.createdAt });
+        if (filledOrderIds.has(orderId)) continue;          // settled fill(s) consumed this order
+        const deposit = BigInt(tx.amount);
+        if (deposit <= 0n) continue;
+        const due = deposit - (fills.get(orderId) ?? 0n) - (priorRefunds.get(orderId) ?? 0n);
+        if (due <= 0n) continue;                            // consumed by fills / already returned (incl. legacy double-refunds)
+        cands.push({ orderId, amount: due, payeeAccountId: tx.debitAccountId, createdAt: tx.createdAt });
       }
       cands.sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0));
       let refunded = 0n;
       let pool = orphan;
       for (const c of cands) {
         if (pool <= 0n) break;
-        const pay = c.amount < pool ? c.amount : pool;
-        await ledger.transfer("sovereign", escrowAccountId, c.payeeAccountId, pay,
-          `orphan-deposit refund @boot ${this.bootedAt} (order ${c.orderId})`, "market", `escrow-refund:${this.bootedAt}:${c.orderId}`);
-        await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: "market-escrow", amount: pay.toString(), ref: `escrow-refund:${this.bootedAt}:${c.orderId}` });
-        pool -= pay;
-        refunded += pay;
+        if (c.amount > pool) continue; // full-dues-only: never partial-refund a claim (fail-closed, stays documented)
+        await ledger.transfer("sovereign", escrowAccountId, c.payeeAccountId, c.amount,
+          `orphan-deposit refund @boot ${this.bootedAt} (order ${c.orderId})`, "market", `escrow-refund:${c.orderId}`);
+        await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: "market-escrow", amount: c.amount.toString(), ref: `escrow-refund:${c.orderId}` });
+        pool -= c.amount;
+        refunded += c.amount;
       }
       return { refunded, toTreasury: pool };
     };
     if (orphanQ > 0n) {
-      const { refunded, toTreasury } = await attributeOrphans(this.quote, this.escrowQuoteId, orphanQ);
+      const { refunded, toTreasury } = await attributeOrphans(this.quote, this.escrowQuoteId, orphanQ, fillPaidQuote);
       if (toTreasury > 0n) {
         await this.quote.transfer(
           "sovereign", this.escrowQuoteId, this.treasuryQuoteId, toTreasury,
@@ -267,7 +317,7 @@ export class MarketEngine {
       }
     }
     if (orphanB > 0n) {
-      const { refunded, toTreasury } = await attributeOrphans(this.base, this.escrowBaseId, orphanB);
+      const { refunded, toTreasury } = await attributeOrphans(this.base, this.escrowBaseId, orphanB, fillPaidBase);
       if (toTreasury > 0n) {
         await this.base.transfer(
           "sovereign", this.escrowBaseId, this.treasuryBaseId, toTreasury,
@@ -388,17 +438,18 @@ export class MarketEngine {
         case "trade_intent": {
           this.fillsByAgent.set(r.fill.takerId, (this.fillsByAgent.get(r.fill.takerId) ?? 0) + 1);
           this.fillsByAgent.set(r.fill.makerId, (this.fillsByAgent.get(r.fill.makerId) ?? 0) + 1);
-          // maker consumed on the book — AND ITS LOCK FOLLOWS THE DELIVERY
-          // (mirrors book.place(): asks pay µ-SAOS direct; bids pay exact
-          // notional+remainder µ¢). Skipping this inflated the replayed locks
-          // over the real escrow — the phantom boot deficit behind live bug 13.
+          // maker consumed on the book — AND ITS LOCK FOLLOWS THE DELIVERY.
+          // LIVE BUG 19d (units law): `locked` counts TRADED UNITS (µ-SAOS)
+          // for BOTH sides; the bid's money-leg conversion happens only at
+          // the ledger boundary (placement lock / cancel release / settle).
+          // The old replay subtracted µ¢ notional from a units counter —
+          // corrupting every partially-filled bid's book lock and feeding
+          // the phantom boot deficits.
           const maker = this.book.getOrder(r.fill.makerOrderId);
           if (maker) {
             const fillAmt = BigInt(r.fill.amount);
             maker.filled += fillAmt;
-            maker.locked -= maker.side === "ask"
-              ? fillAmt
-              : BigInt(r.fill.notional) + BigInt(r.fill.remainder);
+            maker.locked -= fillAmt;
             if (maker.locked < 0n) maker.locked = 0n; // replay tolerance for pre-fix journals (loud ghost trail already recorded)
             if (maker.filled === maker.amount) {
               try { this.book.cancel(maker.id, maker.agentId); } catch { /* race-free by construction */ }
@@ -688,9 +739,12 @@ export class MarketEngine {
     if (this.book.getOrder(orderId)) throw new BookError(`order ${orderId} already on book`, "DUPLICATE_ORDER_ID");
 
     // 1) capacity pre-check on the locking asset (fail-closed BEFORE any mutation)
+    // LIVE BUG 19d: bids pre-check their EXACT ceil µ¢ cost (notional+remainder)
+    // — the same amount the escrow lock will demand, so a dust-short balance
+    // can never pass the check and then die mid-lock (after fills executed).
     const bal = await this.balances(agentId);
     if (side === "bid") {
-      const need = amount * price / MICRO;
+      const need = exactCeilMicro(price, amount); // LIVE BUG 19d/20: the exact µ¢ the escrow lock will demand
       if (BigInt(bal.usdsAvailable) < need) throw new MarketError(`agent ${agentId}: insufficient USDS (${bal.usdsAvailable} < ${need})`, "INSUFFICIENT_QUOTE");
     } else {
       if (BigInt(bal.saosAvailable) < amount) throw new MarketError(`agent ${agentId}: insufficient SAOS (${bal.saosAvailable} < ${amount})`, "INSUFFICIENT_BASE");
@@ -714,12 +768,17 @@ export class MarketEngine {
     // 4) resting remainder → lock into market escrow (idempotent by orderId).
     //    locked===0 → nothing rests (full fill, or IOC remainder which the book already killed):
     //    journal NOTHING — a phantom resting record would re-materialize the order on replay.
+    //    LIVE BUG 19d: bids lock their EXACT ceil µ¢ (notional+remainder) —
+    //    the old floor-lock underfunded every bid by its rounding dust while
+    //    settlement paid ceil — µ-dust leak per fill, forever.
     if (res.order.locked > 0n) {
       await this.journal.append({ t: "resting", order: sOrder(res.order) });
       this.usedOrderIds.add(orderId);
       if (side === "bid") {
-        const need = res.order.locked * price / MICRO;
-        await this.quote.transfer("sovereign", (await this.registerAgent(agentId)).quoteId, this.escrowQuoteId, need, `lock bid ${orderId}`, "market", `lock:${orderId}`);
+        // LIVE BUG 19d/20: the lock is the EXACT ceil µ¢ of the resting units
+        // (the same law settle pays by) — the old floor-lock underfunded every
+        // bid by its rounding dust while settlement paid more.
+        await this.quote.transfer("sovereign", (await this.registerAgent(agentId)).quoteId, this.escrowQuoteId, exactCeilMicro(price, res.order.locked), `lock bid ${orderId}`, "market", `lock:${orderId}`);
       } else {
         await this.base.transfer("sovereign", (await this.registerAgent(agentId)).baseId, this.escrowBaseId, res.order.locked, `lock ask ${orderId}`, "market", `lock:${orderId}`);
       }
@@ -735,8 +794,10 @@ export class MarketEngine {
     await this.journal.append({ t: "canceled", orderId, released: res.release.amount.toString() });
     if (res.release.amount > 0n) {
       if (res.release.asset === "quote") {
-        const need = res.release.amount * res.order.price / MICRO; // release in µ¢
-        await this.quote.transfer("sovereign", this.escrowQuoteId, (await this.registerAgent(agentId)).quoteId, need, `release bid ${orderId}`, "market", `rel:${orderId}`);
+        // LIVE BUG 19d/20: release.amount is remaining UNITS — release their
+        // exact ceil µ¢ (the same law the placement lock used; never floor,
+        // never remainder-as-µ¢).
+        await this.quote.transfer("sovereign", this.escrowQuoteId, (await this.registerAgent(agentId)).quoteId, exactCeilMicro(res.order.price, res.release.amount), `release bid ${orderId}`, "market", `rel:${orderId}`);
       } else {
         await this.base.transfer("sovereign", this.escrowBaseId, (await this.registerAgent(agentId)).baseId, res.release.amount, `release ask ${orderId}`, "market", `rel:${orderId}`);
       }
@@ -744,10 +805,27 @@ export class MarketEngine {
     return { released: res.release.amount.toString() };
   }
 
-  /** Settle one fill: quote leg + base leg, each idempotent by tradeId. */
+  /** Settle one fill: quote leg + base leg, each idempotent by tradeId.
+   *
+   *  LIVE BUG 19 (root-fixed): the maker's escrowed lock IS the settlement
+   *  float, and a taker pays/delivers from their OWN balances —
+   *   • taker buys  (maker sells): unchanged — the maker's µ-SAOS lock
+   *     delivers escrow→taker; the taker pays fee+price from their own
+   *     quote balance.
+   *   • taker sells (maker buys): the TAKER delivers from their OWN base
+   *     balance (the old code paid the buyer out of the SHARED escrow pool
+   *     while the taker never deposited — draining other makers' backing
+   *     until the whole delivery side collapsed: 856 undelivered base legs),
+   *     and the maker's escrowed µ¢ lock pays fee+price to the taker (the
+   *     old code paid from the maker's available balance while their lock
+   *     sat stuck in escrow — the phantom surplus behind the boot refunds).
+   *  BASE leg first on the taker-sell path: if the taker cannot deliver,
+   *  nothing else moves (fail-closed, no partial settlement). */
   private async settleFill(f: Fill): Promise<void> {
-    // exact buyer cost = notional + remainder (no dust lost)
-    const buyerPays = f.notional + f.remainder;
+    // exact buyer cost = ceil µ¢ of the traded value (LIVE BUG 20 root-fix:
+    // the old `notional + remainder` charged the sub-µ¢ remainder as WHOLE µ¢
+    // — up to ~1 USDS of phantom cost per fill, trade-657 paid 76% over).
+    const buyerPays = f.notional + (f.remainder > 0n ? 1n : 0n);
     const fee = f.notional * FEE_BPS / 10000n;
     const makerReceives = buyerPays - fee;
     const takerIsBid = f.side === "bid";
@@ -757,12 +835,19 @@ export class MarketEngine {
     const sellerBaseId = (await this.registerAgent(takerIsBid ? f.makerId : f.takerId)).baseId;
     const buyerBaseId = (await this.registerAgent(takerIsBid ? f.takerId : f.makerId)).baseId;
 
-    // QUOTE leg: buyer → fee + seller (from the buyer's available balance)
-    await this.quote.transfer("sovereign", buyerQuoteId, this.feeAccountId, fee, `fee ${f.tradeId}`, "market", `${f.tradeId}:fee`);
-    await this.quote.transfer("sovereign", buyerQuoteId, sellerQuoteId, makerReceives, `settle ${f.tradeId}`, "market", `${f.tradeId}:q`);
-
-    // BASE leg: market escrow → buyer (the seller locked it at placement)
-    await this.base.transfer("sovereign", this.escrowBaseId, buyerBaseId, f.amount, `deliver ${f.tradeId}`, "market", `${f.tradeId}:b`);
+    if (takerIsBid) {
+      // QUOTE leg: buyer(taker) → fee + seller, from the taker's own balance
+      await this.quote.transfer("sovereign", buyerQuoteId, this.feeAccountId, fee, `fee ${f.tradeId}`, "market", `${f.tradeId}:fee`);
+      await this.quote.transfer("sovereign", buyerQuoteId, sellerQuoteId, makerReceives, `settle ${f.tradeId}`, "market", `${f.tradeId}:q`);
+      // BASE leg: the maker's escrowed lock → buyer(taker)
+      await this.base.transfer("sovereign", this.escrowBaseId, buyerBaseId, f.amount, `deliver ${f.tradeId}`, "market", `${f.tradeId}:b`);
+    } else {
+      // BASE leg first: the taker-seller delivers from their OWN balance
+      await this.base.transfer("sovereign", sellerBaseId, buyerBaseId, f.amount, `deliver ${f.tradeId}`, "market", `${f.tradeId}:b`);
+      // QUOTE leg: the maker's escrowed bid-lock → fee + taker-seller
+      await this.quote.transfer("sovereign", this.escrowQuoteId, this.feeAccountId, fee, `fee ${f.tradeId}`, "market", `${f.tradeId}:fee`);
+      await this.quote.transfer("sovereign", this.escrowQuoteId, sellerQuoteId, makerReceives, `settle ${f.tradeId}`, "market", `${f.tradeId}:q`);
+    }
   }
 
   // ─── Proofs ────────────────────────────────────────────────────────────────
