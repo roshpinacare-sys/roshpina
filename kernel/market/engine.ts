@@ -84,6 +84,13 @@ export class MarketEngine {
   private epochOps: EconOp[] = [];                   // economy audit trail (rebuilt on replay)
   private phantomsSkipped = 0;                       // residual records skipped during replay (honest ghost count)
   private paidKeys = new Set<string>();              // "kind:epoch:agentId" — epoch idempotency that survives reboot
+  /** Every order id that EVER appeared in the market journal (resting, canceled,
+   *  ghosted, or part of a fill). Order ids are forever-unique: a reused id lets
+   *  the currency ledger's idempotency silently REPLAY an old lock transfer (no
+   *  money moves) while the book counts a fresh lock — a structural lock/escrow
+   *  divergence that ghosted real capital at every boot (live bug 13's deeper
+   *  root). placeOrder refuses reused ids fail-closed. */
+  private usedOrderIds = new Set<string>();
   /** Orphaned escrow detected at boot (after salvage: 0; negative = locks>escrow, degraded). */
   escrowOrphanQuote = 0n;
   escrowOrphanBase = 0n;
@@ -316,6 +323,10 @@ export class MarketEngine {
     };
     for (const env of records) {
       const r = env.rec;
+      // forever-unique order-id registry (see usedOrderIds doc)
+      if (r.t === "resting") this.usedOrderIds.add(r.order.id);
+      else if (r.t === "canceled" || r.t === "ghosted") this.usedOrderIds.add(r.orderId);
+      else if (r.t === "trade_intent") { this.usedOrderIds.add(r.fill.makerOrderId); this.usedOrderIds.add(r.fill.takerOrderId); }
       switch (r.t) {
         case "resting": {
           const o = ensure(r.order);
@@ -634,6 +645,12 @@ export class MarketEngine {
     this.guardLive();
     const { agentId, orderId, side, price, amount } = params;
     const type = params.type ?? "limit";
+    if (this.usedOrderIds.has(orderId)) {
+      // fail-closed: a reused id would let the currency ledger's idempotency
+      // REPLAY an old lock transfer (no money moves) while the book counts a
+      // fresh lock — the structural lock/escrow divergence behind live bug 13.
+      throw new BookError(`order id ${orderId} was already used in a previous era — order ids are forever-unique`, "DUPLICATE_ORDER_ID");
+    }
     if (this.book.getOrder(orderId)) throw new BookError(`order ${orderId} already on book`, "DUPLICATE_ORDER_ID");
 
     // 1) capacity pre-check on the locking asset (fail-closed BEFORE any mutation)
@@ -656,6 +673,8 @@ export class MarketEngine {
       this.settledTrades.add(fill.tradeId);
       this.fillsByAgent.set(fill.takerId, (this.fillsByAgent.get(fill.takerId) ?? 0) + 1);
       this.fillsByAgent.set(fill.makerId, (this.fillsByAgent.get(fill.makerId) ?? 0) + 1);
+      this.usedOrderIds.add(fill.makerOrderId);
+      this.usedOrderIds.add(fill.takerOrderId);
     }
 
     // 4) resting remainder → lock into market escrow (idempotent by orderId).
@@ -663,6 +682,7 @@ export class MarketEngine {
     //    journal NOTHING — a phantom resting record would re-materialize the order on replay.
     if (res.order.locked > 0n) {
       await this.journal.append({ t: "resting", order: sOrder(res.order) });
+      this.usedOrderIds.add(orderId);
       if (side === "bid") {
         const need = res.order.locked * price / MICRO;
         await this.quote.transfer("sovereign", (await this.registerAgent(agentId)).quoteId, this.escrowQuoteId, need, `lock bid ${orderId}`, "market", `lock:${orderId}`);
