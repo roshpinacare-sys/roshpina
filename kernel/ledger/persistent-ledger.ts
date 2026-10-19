@@ -40,6 +40,7 @@ import type {
   MicroCents,
   PaymentProvider,
   SolvencyProof,
+  TenantModel,
 } from "./types";
 
 // ─── Errors ──────────────────────────────────────────────────────────────────
@@ -747,6 +748,17 @@ export class PersistentLedger implements PaymentProvider {
 
   async proofOfSolvency(tenantId: string): Promise<SolvencyProof> {
     return this.inner.proofOfSolvency(tenantId);
+  }
+
+  /** Operator/boot acknowledgment of a tenant's accounting model — decides
+   *  which solvency law applies (see TenantModel in types.ts). Declared once
+   *  at service wiring, never inferred from data (fail-explicit). */
+  declareTenantModel(tenantId: string, model: TenantModel): void {
+    this.inner.declareTenantModel(tenantId, model);
+  }
+
+  tenantModel(tenantId: string): TenantModel {
+    return this.inner.tenantModel(tenantId);
   }
 
   /** The two entries this tx wrote (they are the tail of each account's list). */

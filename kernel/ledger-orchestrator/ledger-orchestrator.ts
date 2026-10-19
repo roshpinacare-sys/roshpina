@@ -118,8 +118,13 @@ export class LedgerOrchestrator implements ILedgerOrchestrator {
 
   /**
    * After every successful mint / withdraw / transfer, verify that the tenant
-   * remains solvent (totalAssets >= totalLiabilities).  Failure is a loud
-   * invariant violation that writes an ERROR audit record and throws.
+   * remains solvent under its DECLARED accounting model (Task 31):
+   *   custodial → totalAssets >= totalLiabilities (can pay its depositors);
+   *   mirror    → zero-sum integrity + no negative claims/backing (the
+   *               settlement mirror of a live book; its pools are era-corrected
+   *               to ~0 by design, so the custodial law would alarm forever).
+   * Failure is a loud invariant violation that writes an ERROR audit record
+   * and throws.
    */
   private async assertSolvencyInvariant(
     tenantId: string,
@@ -130,10 +135,11 @@ export class LedgerOrchestrator implements ILedgerOrchestrator {
     const proof = await this.provider.proofOfSolvency(tenantId);
     if (!proof.isSolvent) {
       const reason =
-        `Solvency invariant violated after ${actionType}: ` +
+        `Solvency invariant violated after ${actionType} (model=${proof.model}): ` +
         `netEquity=${proof.netEquity} μ¢, ` +
         `totalAssets=${proof.totalAssets} μ¢, ` +
-        `totalLiabilities=${proof.totalLiabilities} μ¢`;
+        `totalLiabilities=${proof.totalLiabilities} μ¢, ` +
+        `sumAll=${proof.sumAll} μ¢`;
       this.orchestrator.audit.append({
         id: randomUUID(),
         tenantId,
