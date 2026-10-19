@@ -615,6 +615,30 @@ export class PersistentLedger implements PaymentProvider {
     return this.idem.get(key) ?? null;
   }
 
+  /** Evidence lookup (read-only): does an idempotency key exist in the verified
+   *  history? The market boot uses this to prove an order's escrow deposit
+   *  actually landed (idem `lock:<orderId>`) before letting the order back onto
+   *  the book — a resurrected order without its deposit is a rollback ghost,
+   *  and ghosting it attributes the loss to the rollback instead of silently
+   *  confiscating other traders' escrowed capital (the live bug of the
+   *  2026-10-18/19 reboots). */
+  hasIdem(idemKey: string): boolean {
+    return this.idem.has(idemKey);
+  }
+
+  /** Read-only scan of idempotency-keyed TRANSACTIONS whose key starts with the
+   *  given prefix (boot-time evidence queries). Never mutates. The tx carries
+   *  debitAccountId (the paying account), creditAccountId (the receiving
+   *  account), amount and createdAt — enough to attribute an orphaned escrow
+   *  deposit to its rightful owner instead of sweeping it anonymously. */
+  idemTransactions(prefix: string): { key: string; tx: LedgerTransaction }[] {
+    const out: { key: string; tx: LedgerTransaction }[] = [];
+    for (const [key, hit] of this.idem) {
+      if (key.startsWith(prefix) && hit.kind === "tx") out.push({ key, tx: hit.tx });
+    }
+    return out;
+  }
+
   /** Trusted-state export (backup / verification / tests). */
   exportState(): { accounts: Account[]; entries: JournalEntry[]; transactions: LedgerTransaction[] } {
     return this.inner.exportState();
