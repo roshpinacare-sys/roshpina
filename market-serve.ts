@@ -279,7 +279,14 @@ const server = Bun.serve({
           return json(200, {
             agentId: resolved,
             ...(await engine.balances(resolved)),
-            ownOrders: snap.bids.concat(snap.asks).filter((o) => o.agentId === resolved),
+            // side MUST travel with each order: strategies filter their own side
+            // (farmer counts its asks, accumulator its bids) — a concatenated
+            // snapshot loses the side and every guard silently reads 0
+            // (live bug: ask accumulation — the "fewer than 2 own asks" guard
+            // never fired because o.side was undefined for every order).
+            ownOrders: snap.bids.map((o) => ({ ...o, side: "bid" as const }))
+              .concat(snap.asks.map((o) => ({ ...o, side: "ask" as const })))
+              .filter((o) => o.agentId === resolved),
           });
         }
         return json(404, { error: "not found" });
@@ -310,6 +317,28 @@ const server = Bun.serve({
 });
 
 console.log(`[market] LISTENING ${server.port}`);
+
+// Graceful shutdown — the torn-run lesson (2026-10-19 07:07): an abrupt exit
+// mid-economy-run tears the market journal apart from the ledger's last
+// committed transfer; the next boot then converges by ghosting REAL inventory
+// (6 asks / 16.86M µ-SAOS that boot). SIGTERM now quiesces first (every new
+// mutation refused), gives in-flight ledger writes a moment to land, flushes
+// the disk-maintenance snapshot, and only then exits — the next boot replays
+// a consistent state instead of eating the newest maker generation.
+let shuttingDown = false;
+const graceful = (signal: string): void => {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.warn(`[market] ${signal} — graceful shutdown: quiesce → settle → flush → exit`);
+  try { engine.quiesce(true); } catch { /* already quiesced */ }
+  setTimeout(() => {
+    try { if (engine.diskMaintenance()) console.warn("[market] shutdown flush: snapshot regenerated"); } catch { /* best effort */ }
+    try { server.stop(true); } catch { /* already closed */ }
+    process.exit(0);
+  }, 1500);
+};
+process.on("SIGTERM", () => graceful("SIGTERM"));
+process.on("SIGINT", () => graceful("SIGINT"));
 
 // Disk watchdog: external actors delete data files in this sandbox. The kernel
 // heals on the next append, but a deletion during an append-gap used to go
