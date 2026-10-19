@@ -590,12 +590,27 @@ export class MarketEngine {
     this.guardLive();
     if (!/^[\w.\-:]{1,128}$/.test(ref)) throw new MarketError("ref must match [\\w.\\-:]{1,128}", "BAD_REF");
     const { quoteId, baseId } = await this.registerAgent(agentId);
-    if (parseMicroCents(usds) > 0n) {
-      await this.quote.guardMint("sovereign", quoteId, parseMicroCents(usds), `re-allocation ${agentId} (${ref})`, "treasury", `alloc:${agentId}:usds:${ref}`);
+    // UNITS — read before calling (the ×10⁴ trap bit Task 27 AND Task 29):
+    //   usds: CENT-unit decimal string — "1.00" = 10,000 µ¢ = 0.01 USDS (parseMicroCents).
+    //   saos: µ-SAOS integer string — "25000000" = 25 SAOS (BigInt, direct).
+    // A signed amount contracts: negative = guardWithdraw (burn into the platform
+    // reserve — the ONLY designed destruction path), positive = guardMint.
+    const negU = usds.startsWith("-");
+    const usdsAmt = (() => { const a = parseMicroCents(negU ? usds.slice(1) : usds); return negU ? -a : a; })();
+    const negS = saos.startsWith("-");
+    const saosAmt = (() => { const a = BigInt(negS ? saos.slice(1) : saos); return negS ? -a : a; })();
+    if (usdsAmt > 0n) {
+      await this.quote.guardMint("sovereign", quoteId, usdsAmt, `re-allocation ${agentId} (${ref})`, "treasury", `alloc:${agentId}:usds:${ref}`);
+      await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId, amount: usds, ref: `realloc:${ref}:${agentId}:usds` });
+    } else if (usdsAmt < 0n) {
+      await this.quote.guardWithdraw("sovereign", quoteId, -usdsAmt, `re-allocation withdrawal ${agentId} (${ref})`, "treasury", `alloc-neg:${agentId}:usds:${ref}`);
       await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId, amount: usds, ref: `realloc:${ref}:${agentId}:usds` });
     }
-    if (BigInt(saos) > 0n) {
-      await this.base.guardMint("sovereign", baseId, BigInt(saos), `re-allocation ${agentId} (${ref})`, "treasury", `alloc:${agentId}:saos:${ref}`);
+    if (saosAmt > 0n) {
+      await this.base.guardMint("sovereign", baseId, saosAmt, `re-allocation ${agentId} (${ref})`, "treasury", `alloc:${agentId}:saos:${ref}`);
+      await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId, amount: saos, ref: `realloc:${ref}:${agentId}:saos` });
+    } else if (saosAmt < 0n) {
+      await this.base.guardWithdraw("sovereign", baseId, -saosAmt, `re-allocation withdrawal ${agentId} (${ref})`, "treasury", `alloc-neg:${agentId}:saos:${ref}`);
       await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId, amount: saos, ref: `realloc:${ref}:${agentId}:saos` });
     }
     return { usdsIdem: `alloc:${agentId}:usds:${ref}`, saosIdem: `alloc:${agentId}:saos:${ref}` };
