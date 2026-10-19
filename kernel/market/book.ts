@@ -105,6 +105,26 @@ export function notionalOf(price: bigint, amount: bigint): { notional: bigint; r
   return { notional: product / MICRO, remainder: product % MICRO };
 }
 
+/**
+ * The EXACT µ¢ cost of `units` µ-SAOS at `price` µ¢/SAOS — rounded UP to the
+ * whole µ¢ (ceil), never down, never doubled.
+ *
+ * LIVE BUG 20 (root-fixed): settlement paid `notional + remainder` — adding
+ * the sub-µ¢ remainder (product % MICRO ∈ [0, 1e6)) as if it were WHOLE µ¢.
+ * Real evidence, trade-657: buyer paid 857,682 µ¢ for goods worth 486,739 µ¢
+ * (a 76% overcharge — the remainder 370,944 was charged as whole µ¢). Every
+ * fill in history overcharged its buyer by `remainder` µ¢ — anywhere between
+ * 0 and ~1 USDS per fill (avg ≈ 0.5 USDS).
+ *
+ * LIVE BUG 19d (the units law): placement locks, cancel releases and boot
+ * coverage all use this SAME exact-ceil law — one law, three boundaries.
+ */
+export function exactCeilMicro(price: bigint, units: bigint): bigint {
+  const product = price * units;
+  const whole = product / MICRO;
+  return product % MICRO > 0n ? whole + 1n : whole;
+}
+
 // ─── The Book ────────────────────────────────────────────────────────────────
 
 export class OrderBook {
@@ -228,13 +248,16 @@ export class OrderBook {
 
         best.filled += tradeAmount;
         remaining -= tradeAmount;
-        // THE MAKER'S LOCK FOLLOWS THE DELIVERY: a partial fill paid out of the
-        // maker's escrow (asks: µ-SAOS direct; bids: exact notional+remainder µ¢).
-        // Not reducing locked here inflated Σ book locks over the real escrow —
-        // a phantom deficit that ghosted healthy market-makers at EVERY boot
-        // (the deepest root of live bug 13; the replay mirrors this exactly).
-        if (best.side === "ask") best.locked -= tradeAmount;
-        else best.locked -= notional + remainder;
+        // THE MAKER'S LOCK FOLLOWS THE DELIVERY — in TRADED UNITS for BOTH
+        // sides (LIVE BUG 19d, the units law): `locked` counts µ-SAOS units
+        // for asks AND bids; the bid's money-leg conversion happens only at
+        // the ledger boundary (placement lock / cancel release / settle).
+        // The old bid branch subtracted µ¢ notional from a units counter —
+        // corrupting every partially-filled bid's book lock and inflating
+        // Σ book locks over the real escrow (a phantom deficit that ghosted
+        // healthy market-makers at EVERY boot — the deepest root of live
+        // bug 13; the replay mirrors this exactly).
+        best.locked -= tradeAmount;
         if (best.locked < 0n) throw new BookError(`maker ${best.id} locked underflow — escrow law broken`, "LOCK_UNDERFLOW");
         this.tradeCounter += 1;
         fills.push({
