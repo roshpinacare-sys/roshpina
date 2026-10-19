@@ -1,0 +1,259 @@
+{
+  "executions": {
+    "2026-10-18T03:41:30.218Z::t1": {
+      "executedAt": "2026-10-18T03:50:40.924Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T03:41:30.218Z::t2": {
+      "executedAt": "2026-10-18T03:51:52.745Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T03:41:30.218Z::t3": {
+      "executedAt": "2026-10-18T03:52:19.415Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t3.json"
+    },
+    "2026-10-18T03:41:30.218Z::t4": {
+      "executedAt": "2026-10-18T04:25:08.258Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t4.json"
+    },
+    "2026-10-18T05:20:41.299Z::t1": {
+      "executedAt": "2026-10-18T05:40:50.909Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T05:20:41.299Z::t2": {
+      "executedAt": "2026-10-18T05:41:25.608Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T05:20:41.299Z::t3": {
+      "executedAt": "2026-10-18T05:41:36.292Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t3.json"
+    },
+    "2026-10-18T05:20:41.299Z::t4": {
+      "executedAt": "2026-10-18T06:27:03.674Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t4.json"
+    },
+    "2026-10-18T05:20:41.299Z::t5": {
+      "executedAt": "2026-10-18T06:27:37.128Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t5.json"
+    },
+    "2026-10-18T06:47:36.866Z::t4": {
+      "executedAt": "2026-10-18T06:47:52.241Z",
+      "result": "accepted",
+      "file": "agent-lab/economy-run-improver.ts"
+    },
+    "SYNTHETIC-GATE-TEST-2026-10-18::g1": {
+      "executedAt": "2026-10-18T06:49:20.542Z",
+      "result": "refused: path \"kernel/evil.ts\" is outside the code whitelist [agent-lab/, docs/, broadcasts/]",
+      "file": "kernel/evil.ts"
+    },
+    "SYNTHETIC-GATE-TEST-2026-10-18::g2": {
+      "executedAt": "2026-10-18T06:49:20.543Z",
+      "result": "refused: path traversal refused",
+      "file": "../../etc/passwd"
+    },
+    "SYNTHETIC-GATE-TEST-2026-10-18::g3": {
+      "executedAt": "2026-10-18T06:49:20.565Z",
+      "result": "refused: forbidden pattern: network calls are not allowed in lab modules",
+      "file": "agent-lab/bad.ts"
+    },
+    "SYNTHETIC-GATE-TEST-2026-10-18::g5": {
+      "executedAt": "2026-10-18T06:49:20.709Z",
+      "result": "accepted",
+      "file": "docs/gate-test.md"
+    },
+    "2026-10-18T06:47:36.866Z::t1": {
+      "executedAt": "2026-10-18T07:07:31.203Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T06:47:36.866Z::t2": {
+      "executedAt": "2026-10-18T07:07:50.980Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T06:47:36.866Z::t3": {
+      "executedAt": "2026-10-18T07:08:06.543Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t3.json"
+    },
+    "2026-10-18T06:47:36.866Z::t5": {
+      "executedAt": "2026-10-18T07:26:50.510Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t5.json"
+    },
+    "SYNTHETIC-GATE-TEST-20::sg1": {
+      "executedAt": "2026-10-18T07:39:12.078Z",
+      "result": "accepted",
+      "file": "site-data://sovereign-net.json"
+    },
+    "SYNTHETIC-GATE-TEST-20::sg2": {
+      "executedAt": "2026-10-18T07:39:12.078Z",
+      "result": "refused: site-schema: item.id required (≤40 chars)",
+      "file": "site-data://sovereign-net.json"
+    },
+    "SYNTHETIC-GATE-TEST-20::sg3": {
+      "executedAt": "2026-10-18T07:39:19.802Z",
+      "result": "refused: site lane has exactly one writable target: site-data://sovereign-net.json",
+      "file": "site-data://../../etc/passwd"
+    },
+    "2026-10-18T07:40:51.423Z::t1": {
+      "executedAt": "2026-10-18T07:41:53.893Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T07:40:51.423Z::t2": {
+      "executedAt": "2026-10-18T07:42:12.362Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T07:40:51.423Z::t4": {
+      "executedAt": "2026-10-18T07:42:41.517Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t4.json"
+    },
+    "2026-10-18T07:40:51.423Z::t3": {
+      "executedAt": "2026-10-18T07:55:35.827Z",
+      "result": "accepted",
+      "file": "agent-lab/economy-retry.ts"
+    },
+    "2026-10-18T11:48:40.542Z::t1": {
+      "executedAt": "2026-10-18T11:50:07.813Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T11:48:40.542Z::t2": {
+      "executedAt": "2026-10-18T11:50:46.963Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T11:48:40.542Z::t3": {
+      "executedAt": "2026-10-18T11:51:05.415Z",
+      "result": "accepted",
+      "file": "site-data://sovereign-net.json"
+    },
+    "2026-10-18T12:26:56.171Z::t1": {
+      "executedAt": "2026-10-18T12:27:52.367Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T12:26:56.171Z::t2": {
+      "executedAt": "2026-10-18T12:28:16.681Z",
+      "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T12:26:56.171Z::t3": {
+      "executedAt": "2026-10-18T12:28:33.586Z",
+      "result": "accepted",
+      "file": "agent-lab/ledger-sync-failures.ts"
+    },
+    "2026-10-18T12:48:03.712Z::t1": {
+      "executedAt": "2026-10-18T13:07:48.107Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T12:48:03.712Z::t2": {
+      "executedAt": "2026-10-18T13:08:03.520Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T12:48:03.712Z::t3": {
+      "executedAt": "2026-10-18T13:17:00.012Z",
+      "result": "accepted",
+      "file": "site-data://sovereign-net.json"
+    },
+    "2026-10-18T13:47:11.607Z::t1": {
+      "executedAt": "2026-10-18T14:17:00.219Z",
+      "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T13:47:11.607Z::t2": {
+      "executedAt": "2026-10-18T14:17:37.474Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T13:47:11.607Z::t4": {
+      "executedAt": "2026-10-18T14:18:24.476Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t4.json"
+    },
+    "2026-10-18T13:47:11.607Z::t3": {
+      "executedAt": "2026-10-18T14:26:44.091Z",
+      "result": "accepted",
+      "file": "site-data://sovereign-net.json"
+    },
+    "2026-10-18T14:58:36.109Z::t1": {
+      "executedAt": "2026-10-18T15:26:17.025Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T14:58:36.109Z::t2": {
+      "executedAt": "2026-10-18T15:27:09.102Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T14:58:36.109Z::t3": {
+      "executedAt": "2026-10-18T15:36:46.700Z",
+      "result": "accepted",
+      "file": "site-data://sovereign-net.json"
+    },
+    "2026-10-18T16:08:10.377Z::t1": {
+      "executedAt": "2026-10-18T16:27:01.891Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T16:08:10.377Z::t2": {
+      "executedAt": "2026-10-18T16:27:29.344Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T16:08:10.377Z::t4": {
+      "executedAt": "2026-10-18T16:27:56.846Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t4.json"
+    },
+    "2026-10-18T16:08:10.377Z::t3": {
+      "executedAt": "2026-10-18T22:29:31.486Z",
+      "result": "accepted",
+      "file": "site-data://sovereign-net.json"
+    },
+    "2026-10-18T22:31:19.013Z::t1": {
+      "executedAt": "2026-10-18T22:51:56.424Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T22:31:19.013Z::t2": {
+      "executedAt": "2026-10-18T22:52:06.205Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T22:31:19.013Z::t3": {
+      "executedAt": "2026-10-18T23:01:17.909Z",
+      "result": "accepted",
+      "file": "site-data://sovereign-net.json"
+    },
+    "2026-10-18T23:33:15.327Z::t1": {
+      "executedAt": "2026-10-18T23:59:23.268Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t1.json"
+    },
+    "2026-10-18T23:33:15.327Z::t2": {
+      "executedAt": "2026-10-18T23:59:35.212Z",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "insightFile": "/home/z/my-project/mini-services/fleet-runner/data/insights/t2.json"
+    },
+    "2026-10-18T23:33:15.327Z::t3": {
+      "executedAt": "2026-10-19T00:09:19.650Z",
+      "result": "accepted",
+      "file": "site-data://sovereign-net.json"
+    }
+  }
+}

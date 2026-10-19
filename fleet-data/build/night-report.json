@@ -1,0 +1,73 @@
+{
+  "builtAt": "2026-10-19T00:42:19.518Z",
+  "cycle": 22,
+  "live": {
+    "market": "UNREACHABLE",
+    "ledger": "UNREACHABLE",
+    "runner": {
+      "jobs": 1908,
+      "schedules": "0/13 ירוקים",
+      "ticks": 39,
+      "heals": 1
+    },
+    "economy": "UNREACHABLE"
+  },
+  "stats": {
+    "trades": 0,
+    "ledgerSeq": 0,
+    "agents": 0,
+    "jobsTotal": 1908,
+    "schedulesGreen": 0,
+    "schedulesEnabled": 13
+  },
+  "whatWasBuilt": [
+    "market-report: 840 ריצות-מוצלחות ב-24h (3 כישלונות-כנים)",
+    "ledger-sync: 158 ריצות-מוצלחות ב-24h (9 כישלונות-כנים)",
+    "economy-run: 141 ריצות-מוצלחות ב-24h (23 כישלונות-כנים)",
+    "economy-cycle: 72 ריצות-מוצלחות ב-24h (9 כישלונות-כנים)",
+    "state-backup: 46 ריצות-מוצלחות ב-24h (7 כישלונות-כנים)",
+    "plan-executor: 32 ריצות-מוצלחות ב-24h",
+    "ai-sentinel: 24 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "site-builder: 21 ריצות-מוצלחות ב-24h",
+    "מטוס-הבקרה מגובה: 75773b5 afde5c41-015c-4321-872f-bbdfddae781b"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-18T23:33:15.327Z",
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "mission": "לשפר את אמינות הרשת על ידי ניתוח כשלים, תיעודם ופרסום עדכון חי באתר על מצב השוק והכשלים האחרונים.",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "ניתוח כשלי ledger-sync",
+        "why": "הכשלים ב-ledger-sync מרובים ומצביעים על בעיית סינכרון שפוגעת בעדכניות החשבונאות.",
+        "action": "insight"
+      },
+      {
+        "id": "t2",
+        "title": "תיעוד כשלים אחרונים עם timestamps",
+        "why": "תיעוד מדויק של הכשלים מאפשר למערכת ללמוד ולהפעיל תיקונים אוטומטיים בעתיד.",
+        "action": "note"
+      },
+      {
+        "id": "t3",
+        "title": "פרסום שידור-רשת באתר על מצב השוק וכשלים",
+        "why": "האתר מציג רק שידורים כשיש חדשות אמיתיות; כעת יש נתוני שוק עדכניים ורשימת כשלים שיש לפרסם.",
+        "action": "code"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-19T00:09:56.836Z",
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "text": "הערכה: הרשת מציגה פעילות מסחר סבירה עם 114 עסקאות ומאזן עשיר אצל מספר סוכנים, אך מספר לוחות זמנים קריטיים מציגים כשלונות חוזרים והאוצר נמצא ברמה מזערית. זה מעיד על לחץ תפעולי שעלול לפגוע ביציבות הכלכלה והאמינות של הרשימה המבוזרת.\n\nסיכונים: 1. כשלונות חוזרים בלוחות economy"
+  },
+  "commits": {
+    "roshpina": [],
+    "control": [
+      "75773b5 afde5c41-015c-4321-872f-bbdfddae781b (6 minutes ago)",
+      "94918ef Task 27 evidence: site renders clean post-audit, zero console errors, mobile 393==393 (62 minutes ago)",
+      "63ea561 worklog: Task 27 — authenticity audit (6/6 probes), treasury legacy hole admitted honestly, fleet 7→10, live bug 12 closed (62 minutes ago)",
+      "6ae13e8 Task 27: market authenticity proven live (6/6 fail-closed probes: no anonymous/forged/short/unfunded orders; conservation exact) + fleet 7→10 soldiers (fleet-expand, calibrated parity top-up via operator realloc) + live bug 12: start-nodes do_wait lock-hold killed self-healing for an hour (setsid daemonization fix) + treasury legacy hole admitted honestly via new admit-legacy-credit + economy-run 30 ticks (64 minutes ago)"
+    ]
+  }
+}
