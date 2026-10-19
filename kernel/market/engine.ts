@@ -112,75 +112,155 @@ export class MarketEngine {
       if (m) await eng.registerAgent(m[1]);
     }
     eng.replay(records);
-    await eng.reconcileEscrow();
+    // Orders whose escrowed deposits were consumed by fills (each leg delivered
+    // legitimately) — excluded from boot orphan attribution so a fully-filled
+    // order is never mistaken for an unattributed deposit.
+    const filledOrderIds = new Set<string>();
+    for (const env of records) {
+      const r = env.rec;
+      if (r.t === "trade_intent") {
+        filledOrderIds.add(r.fill.makerOrderId);
+        filledOrderIds.add(r.fill.takerOrderId);
+      }
+    }
+    await eng.reconcileEscrow(filledOrderIds);
     return eng;
   }
 
   /** Boot-time escrow reconciliation. The rebuilt book's locks MUST equal the
-   *  escrow balances — any orphaned difference (orders that died with a lost
-   *  journal; the live bug of 2026-10-18: restart found an empty market journal
-   *  while 14.86M µ¢ sat in escrow with no owner) is swept to the treasury
-   *  with loud, signed correction records. Conservation preserved; nothing
-   *  sits in limbo; the fiscal loop redistributes through legitimate channels.
-   *  Idempotent per boot (idem keys carry bootedAt).
-   *  A NEGATIVE difference (locks > escrow) — the live bug of the 06:06 reboot:
-   *  a torn backup resurrected orders whose escrow backing was already swept —
-   *  is converged honestly: the newest unbacked orders are GHOSTED (removed
-   *  from the book with a loud journal record each, FIFO by seq so the escrow
-   *  keeps covering the oldest deposits first), never fabricated away and
-   *  never left degrading the book. The money itself was never destroyed — it
-   *  sits in the treasury and the fiscal loop redistributes it. */
-  private async reconcileEscrow(): Promise<void> {
+   *  escrow balances — any difference is resolved BY EVIDENCE, never by age:
+   *
+   *  PASS 1 — evidence-based ghosting (the root fix of live bug 13): an order
+   *  whose lock deposit is PROVABLY ABSENT from the verified currency history
+   *  (idem `lock:<orderId>` missing — its deposit was rolled away by a sandbox
+   *  wipe) is ghosted. Its money truly does not exist; the loss is attributed
+   *  to the rollback event itself. The PREVIOUS policy ghosted the NEWEST
+   *  orders FIFO-by-age regardless of deposits — every reboot then silently
+   *  confiscated the newest depositors' real escrowed capital and let it back
+   *  the survivors (146 orders / 350M µ-units across 5 boots, 2026-10-18→19 —
+   *  that is how the ask side kept dying). That confiscation is over.
+   *
+   *  PASS 2 — FIFO fallback (fail-closed, expected never to fire): if the book
+   *  is STILL overlocked after pass 1 (deeper corruption than a rollback),
+   *  the old FIFO-by-age ghosting converges the book as a last resort, loud
+   *  record each. Never fabricated away.
+   *
+   *  ORPHAN ATTRIBUTION — the surplus (escrow > kept locks) used to be swept
+   *  to the treasury anonymously. Now it is attributed BY EVIDENCE: deposits
+   *  (`lock:<orderId>`) of orders that are no longer on the book, were never
+   *  released, and were never filled are refunded to the account that paid
+   *  them (oldest first, capped at each deposit's amount); only a truly
+   *  unattributable remainder goes to the treasury, with a loud, signed
+   *  correction record. The fiscal loop still redistributes — but through
+   *  legitimate channels, to the right owners first. Idempotent per boot
+   *  (idem keys carry bootedAt). */
+  private async reconcileEscrow(filledOrderIds: Set<string>): Promise<void> {
     this.escrowOrphanQuote = 0n;
     this.escrowOrphanBase = 0n;
     this.ghostsBoot = { quote: { count: 0, amount: 0n }, base: { count: 0, amount: 0n } };
     const escQ = BigInt((await this.quote.getAccount("sovereign", this.escrowQuoteId)).balance);
     const escB = BigInt((await this.base.getAccount("sovereign", this.escrowBaseId)).balance);
-    // ── degraded branch first: ghost unbacked locks until locks ≤ escrow ──
-    const ghostSide = async (side: "bid" | "ask", esc: bigint): Promise<void> => {
+    const ghostSide = async (side: "bid" | "ask", esc: bigint, ledger: PersistentLedger): Promise<void> => {
       const orders = this.book.allOrders().filter((o) => o.side === side).sort((a, b) => a.seq - b.seq);
-      let covered = orders.reduce((a, o) => a + o.locked, 0n);
+      const covered = orders.reduce((a, o) => a + o.locked, 0n);
       if (covered <= esc) return; // fully backed — nothing to ghost
-      const deficit = covered - esc;
       let ghosted = 0n;
       let count = 0;
-      // ghost from the NEWEST backwards until the remaining locks fit the escrow
-      for (let i = orders.length - 1; i >= 0 && covered - ghosted > esc; i--) {
-        const o = orders[i];
+      const ghostOne = async (o: Order, ref: string): Promise<void> => {
         ghosted += o.locked;
         count++;
         try { this.book.cancel(o.id, o.agentId); } catch { /* already gone */ }
-        await this.journal.append({ t: "ghosted", orderId: o.id, side, agentId: o.agentId, unbacked: o.locked.toString(), ref: `boot-ghost:${this.bootedAt}` });
+        await this.journal.append({ t: "ghosted", orderId: o.id, side, agentId: o.agentId, unbacked: o.locked.toString(), ref });
+      };
+      // PASS 1 — evidence: ghost only orders whose deposit is provably absent.
+      if (covered - ghosted > esc) {
+        for (const o of orders) {
+          if (covered - ghosted <= esc) break;
+          if (ledger.hasIdem(`lock:${o.id}`)) continue; // deposit landed — backed, keep
+          await ghostOne(o, `boot-ghost-evidence:${this.bootedAt}`);
+        }
+      }
+      // PASS 2 — last-resort FIFO-by-age over the (now all-evidence-backed) rest.
+      if (covered - ghosted > esc) {
+        console.error(`[market-engine] escrow reconcile: evidence pass insufficient (shortfall=${covered - ghosted - esc}) — falling back to FIFO-by-age ghosting`);
+        const remaining = this.book.allOrders().filter((o) => o.side === side).sort((a, b) => a.seq - b.seq);
+        for (let i = remaining.length - 1; i >= 0 && covered - ghosted > esc; i--) {
+          await ghostOne(remaining[i], `boot-ghost-fifo-fallback:${this.bootedAt}`);
+        }
       }
       if (side === "bid") this.ghostsBoot.quote = { count, amount: ghosted };
       else this.ghostsBoot.base = { count, amount: ghosted };
       // escrowOrphan stays 0 — the book now converges with the escrow; ghostsBoot tells the story.
-      console.error(`arket-engine] escrow reconcile: GHOSTED ${count} ${side}(s), ${ghosted} µ-units of unbacked locks (deficit=${deficit}) — journal-recorded, treasury holds the funds`);
+      console.error(`[market-engine] escrow reconcile: GHOSTED ${count} ${side}(s), ${ghosted} µ-units of unbacked locks (deficit=${covered - esc}) — journal-recorded`);
     };
-    await ghostSide("bid", escQ);
-    await ghostSide("ask", escB);
+    await ghostSide("bid", escQ, this.quote);
+    await ghostSide("ask", escB, this.base);
     const orders = this.book.allOrders();
     const lockQuote = orders.filter((o) => o.side === "bid").reduce((a, o) => a + o.locked, 0n);
     const lockBase = orders.filter((o) => o.side === "ask").reduce((a, o) => a + o.locked, 0n);
     const orphanQ = escQ - lockQuote;
     const orphanB = escB - lockBase;
+    // ORPHAN ATTRIBUTION — refund provable deposits of book-less, never-released
+    // orders to the account that paid them (oldest first, capped per deposit).
+    const attributeOrphans = async (
+      ledger: PersistentLedger,
+      escrowAccountId: string,
+      orphan: bigint,
+    ): Promise<{ refunded: bigint; toTreasury: bigint }> => {
+      if (orphan <= 0n) return { refunded: 0n, toTreasury: 0n };
+      const bookIds = new Set(this.book.allOrders().map((o) => o.id));
+      type Cand = { orderId: string; amount: bigint; payeeAccountId: string; createdAt: string };
+      const cands: Cand[] = [];
+      for (const { key, tx } of ledger.idemTransactions("lock:")) {
+        const orderId = key.slice("lock:".length);
+        if (bookIds.has(orderId)) continue;                 // live order — its lock is counted
+        if (ledger.hasIdem(`rel:${orderId}`)) continue;     // was released legitimately
+        if (filledOrderIds.has(orderId)) continue;          // deposit was delivered via fills
+        const amt = BigInt(tx.amount);
+        if (amt <= 0n) continue;
+        cands.push({ orderId, amount: amt, payeeAccountId: tx.debitAccountId, createdAt: tx.createdAt });
+      }
+      cands.sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0));
+      let refunded = 0n;
+      let pool = orphan;
+      for (const c of cands) {
+        if (pool <= 0n) break;
+        const pay = c.amount < pool ? c.amount : pool;
+        await ledger.transfer("sovereign", escrowAccountId, c.payeeAccountId, pay,
+          `orphan-deposit refund @boot ${this.bootedAt} (order ${c.orderId})`, "market", `escrow-refund:${this.bootedAt}:${c.orderId}`);
+        await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: "market-escrow", amount: pay.toString(), ref: `escrow-refund:${this.bootedAt}:${c.orderId}` });
+        pool -= pay;
+        refunded += pay;
+      }
+      return { refunded, toTreasury: pool };
+    };
     if (orphanQ > 0n) {
-      await this.quote.transfer(
-        "sovereign", this.escrowQuoteId, this.treasuryQuoteId, orphanQ,
-        `escrow-orphan salvage @boot ${this.bootedAt}`, "market", `escrow-reconcile:${this.bootedAt}:q`,
-      );
-      await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: "market-escrow", amount: (-orphanQ).toString(), ref: `escrow-reconcile:${this.bootedAt}:q` });
-      console.warn(`[market-engine] escrow reconcile: swept ORPHANED ${orphanQ} µ¢ (USDS) to treasury (book locks=${lockQuote}, escrow=${escQ})`);
-      this.escrowOrphanQuote = orphanQ;
+      const { refunded, toTreasury } = await attributeOrphans(this.quote, this.escrowQuoteId, orphanQ);
+      if (toTreasury > 0n) {
+        await this.quote.transfer(
+          "sovereign", this.escrowQuoteId, this.treasuryQuoteId, toTreasury,
+          `escrow-orphan salvage (unattributable) @boot ${this.bootedAt}`, "market", `escrow-reconcile:${this.bootedAt}:q`,
+        );
+        await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: "market-escrow", amount: (-toTreasury).toString(), ref: `escrow-reconcile:${this.bootedAt}:q` });
+      }
+      this.escrowOrphanQuote = toTreasury;
+      if (refunded > 0n || toTreasury !== orphanQ) {
+        console.warn(`[market-engine] escrow reconcile: orphan ${orphanQ} µ¢ — REFUNDED ${refunded} to proven depositors, ${toTreasury} unattributable → treasury`);
+      }
     }
     if (orphanB > 0n) {
-      await this.base.transfer(
-        "sovereign", this.escrowBaseId, this.treasuryBaseId, orphanB,
-        `escrow-orphan salvage @boot ${this.bootedAt}`, "market", `escrow-reconcile:${this.bootedAt}:b`,
-      );
-      await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: "market-escrow", amount: (-orphanB).toString(), ref: `escrow-reconcile:${this.bootedAt}:b` });
-      console.warn(`[market-engine] escrow reconcile: swept ORPHANED ${orphanB} µ-SAOS (SAOS) to treasury (book locks=${lockBase}, escrow=${escB})`);
-      this.escrowOrphanBase = orphanB;
+      const { refunded, toTreasury } = await attributeOrphans(this.base, this.escrowBaseId, orphanB);
+      if (toTreasury > 0n) {
+        await this.base.transfer(
+          "sovereign", this.escrowBaseId, this.treasuryBaseId, toTreasury,
+          `escrow-orphan salvage (unattributable) @boot ${this.bootedAt}`, "market", `escrow-reconcile:${this.bootedAt}:b`,
+        );
+        await this.journal.append({ t: "econ", kind: "correction", epoch: "", agentId: "market-escrow", amount: (-toTreasury).toString(), ref: `escrow-reconcile:${this.bootedAt}:b` });
+      }
+      this.escrowOrphanBase = toTreasury;
+      if (refunded > 0n || toTreasury !== orphanB) {
+        console.warn(`[market-engine] escrow reconcile: orphan ${orphanB} µ-SAOS — REFUNDED ${refunded} to proven depositors, ${toTreasury} unattributable → treasury`);
+      }
     }
     if (orphanQ < 0n || orphanB < 0n) {
       // Can only happen if ghosting could not fully cover the deficit — still never fabricated.
