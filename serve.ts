@@ -142,6 +142,13 @@ async function handleGet(url: URL): Promise<Response> {
         unit: "tenant ledger-units (market tenant: 1 µ¢ = 10^4 units)",
         law: "R36 — the mirror-law model above and these custodial numbers are always shown together; neither hides the other",
       },
+      sovereignty: {
+        owner: "architecture",
+        law: "R39 — the sovereign autonomous architecture is the owner of this network: it operates, verifies, heals, schedules and reports on itself; the human operator is an exceptional-case fallback, not a dependency of any daily path",
+        humanEscalation: "exception-only: physical host loss, identity/legal instruments (accounts, domains, third-party key issuance), and assets held outside this ledger",
+        agents: "builders are ephemeral — no daily path depends on an agent session; the work lives in refs, daemons, schedules and signed capsules",
+        selfServeProof: "state capsules (state-backup), independent chain audit (chain-audit), red-team (self-audit), watchdog+keeper healing, oracle anchoring — all executed by the fleet itself",
+      },
     });
   }
   return json(404, { error: "not found" });
