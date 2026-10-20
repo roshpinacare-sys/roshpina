@@ -145,9 +145,22 @@ async function handleGet(url: URL): Promise<Response> {
       sovereignty: {
         owner: "architecture",
         law: "R39 — the sovereign autonomous architecture is the owner of this network: it operates, verifies, heals, schedules and reports on itself; the human operator is an exceptional-case fallback, not a dependency of any daily path",
+        decides: "R40 — the architecture decides: it gathers ground truth, rules by law, executes immediately (restores externally-deleted refs, heals nodes, refreshes capsules and anchors) and journals every decision — holds included — to data/sovereign/decisions.jsonl; the owner is informed, not asked",
         humanEscalation: "exception-only: physical host loss, identity/legal instruments (accounts, domains, third-party key issuance), and assets held outside this ledger",
         agents: "builders are ephemeral — no daily path depends on an agent session; the work lives in refs, daemons, schedules and signed capsules",
-        selfServeProof: "state capsules (state-backup), independent chain audit (chain-audit), red-team (self-audit), watchdog+keeper healing, oracle anchoring — all executed by the fleet itself",
+        selfServeProof: "state capsules (state-backup), independent chain audit (chain-audit), red-team (self-audit), watchdog+keeper healing, oracle anchoring, sovereign decision journal — all executed by the fleet itself",
+        ownerMemory: {
+          remembered: "הבעלים לעולם לא נשכח — the architecture carries the owner's identity, standing intents and directive record even in the owner's absence",
+          human: "beneficiary & origin of intent — הבעלים בפועל; never an operator of the daily path",
+          standingIntents: [
+            "R40a — הארכיטקטורה מחליטה הכל: החלטות-בעלות-ערך מתוך חשיבה, בדיקה ותכנון; לא ממתינה לתשובות הבעלים (2026-10-20)",
+            "R40b — הכל פועל ומנוהל גם כשהבעלים אינו קיים — והבעלים לעולם לא נשכח (2026-10-20)",
+            "R39 — הארכיטקטורה הריבונית האוטונומית היא הבעלים; הבעלים האנושי הוא מקרה-חריג בלבד",
+            "R37 — הסוכנים בני-תמותה: אף-נתיב-יומי לא תלוי בסשן של שום-סוכן; העבודה חיה ב-refs, דימונים, לוחות-זמנים ונתונים",
+            "R28 — כנות מוחלטת: אין דמו, אין סימולציה, אין המצאה; פלט-ריק אינו ראיה; כל-טענה נמדדת מהקרקע",
+          ],
+          record: "the full owner-intent record lives at sovereignty/owner-memory.json + sovereignty/OWNER-COVENANT.md in the lane ref, mirrored into every control-plane snapshot",
+        },
       },
     });
   }
