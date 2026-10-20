@@ -1,0 +1,79 @@
+{
+  "builtAt": "2026-10-20T03:24:31.728Z",
+  "cycle": 39,
+  "live": {
+    "market": "UNREACHABLE",
+    "ledger": "UNREACHABLE",
+    "runner": {
+      "jobs": 2795,
+      "schedules": "0/13 ירוקים",
+      "ticks": 33,
+      "heals": 1
+    },
+    "economy": "UNREACHABLE"
+  },
+  "stats": {
+    "trades": 0,
+    "ledgerSeq": 0,
+    "agents": 0,
+    "jobsTotal": 2795,
+    "schedulesGreen": 0,
+    "schedulesEnabled": 13
+  },
+  "whatWasBuilt": [
+    "market-report: 497 ריצות-מוצלחות ב-24h (5 כישלונות-כנים)",
+    "economy-run: 99 ריצות-מוצלחות ב-24h (3 כישלונות-כנים)",
+    "ledger-sync: 98 ריצות-מוצלחות ב-24h (4 כישלונות-כנים)",
+    "economy-cycle: 48 ריצות-מוצלחות ב-24h (4 כישלונות-כנים)",
+    "state-backup: 32 ריצות-מוצלחות ב-24h (3 כישלונות-כנים)",
+    "plan-executor: 25 ריצות-מוצלחות ב-24h",
+    "site-builder: 17 ריצות-מוצלחות ב-24h",
+    "ai-sentinel: 16 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "מטוס-הבקרה מגובה: 9a7ffaa 8e70e6c3-a5ee-417d-9843-6e89b65aeb39"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-19T19:56:31.717Z",
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "mission": "לזהות ולדווח על כשל בגיבוי control-plane-backup ולהציע צעדים לשיפור עמידות הרשת",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "ניתוח כשל control-plane-backup",
+        "why": "הגיבוי נכשל בזמן אמת (19:55:11) ומצטרף לשרשרת כשלים קודמים, מצביע על בעיה מערכתית",
+        "action": "insight"
+      },
+      {
+        "id": "t2",
+        "title": "תיעוד כישלונות עם timestamps",
+        "why": "לשמור רשימה עדכנית של כל הכשלים האחרונים לצורך תחקור ושיפור",
+        "action": "note"
+      },
+      {
+        "id": "t3",
+        "title": "פרסום שידור-רשת על כשל גיבוי והמלצה",
+        "why": "יש חדשות אמיתיות – כשל גיבוי קריטי שדורש תשומת לב מיידית ושקיפות לחברי הרשת",
+        "action": "code"
+      },
+      {
+        "id": "t4",
+        "title": "הצעת עדכון לוחות זמנים להפחתת עומס",
+        "why": "לוחזמני economy-run, economy-cycle, ledger-sync ו-market-report נכשלו יחד ב‑16:37:21, מה שמרמז על עומס או תחרות משאבים",
+        "action": "note"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-19T19:55:56.459Z",
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "text": "הערכה: הרשת מציגה פעילות שוק מתונה עם 121 עסקאות וביקוש/הצעה מצומצמים, בעוד שהאגרות של הסוכנים גבוהות מאוד לעומת האוצר שמכיל רק כ-889 µ-USDS. רוב הלוחות זמנים מציגים יחס גבוה של דילוגים על פני הרצות, מה שמעיד על עומס או קונפליקט משאבים, והלוח הדר-דريل לא ביצע אף פעולה.  \n\nסיכונים:  \n1. אוצר נמוך מאוד – עלול להגביל יכולת לכסות עלויות תפעול, תשלומים ושמירת יציבות.  \n2. שיעורי דילוג גבוהים בלוחות זמנים קריטיים (code‑executor, site‑builder, ai‑architect, plan‑executor, estate‑vault, control‑plane‑backup) – עלול לגרום לעיכובים בביצוע משימות תפעוליות וגיבויים.  \n3. מפעיל יחיד (operatorKeys=1) וללא בדיקת דר-דрил – נקודת כישלון יחידה וחוסר בדיקת יכולת שיקום.  \n\nאנומליות: האגרות של סוכנים כמו אלפא, בראבו וגמאה עולות על מיליון יחידות SAOS בעוד שהאוצר מזערי, וסוכנים עם אפס מילויים (Iota, Kappa) מחזיקים יתרות SAOS משמעותיות.  \n\nהמלצות:  \n1. להגדיל את הכנסות האוצר באמצעות העלאת עמלות שוק"
+  },
+  "commits": {
+    "roshpina": [],
+    "control": [
+      "9a7ffaa 8e70e6c3-a5ee-417d-9843-6e89b65aeb39 (7 hours ago)",
+      "3a9dc39 agent4 (task 34): verification lesson — snapshot-branch fetch refspec requires + prefix (force-update semantics); self-caught stale-ref read (8 hours ago)",
+      "8a3026c agent4 (task 34): harden fleet scheduling API — idempotent POST (duplicate-preset guard), GET /schedules/:id, PATCH intervalSec with cadence anchoring; live-fire probe 7/7 with self-cleanup; worklog task 34 (8 hours ago)",
+      "3c2ad36 021b2382-a075-4508-b112-bc15168cb429 (9 hours ago)"
+    ]
+  }
+}
