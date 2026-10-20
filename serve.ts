@@ -111,6 +111,18 @@ async function handleGet(url: URL): Promise<Response> {
     const accounts = await ledger.listAccounts(tenantId);
     const dec = (v: bigint) => microCentsToString(v);
     const solvency = await ledger.proofOfSolvency(tenantId);
+    // חוק-הכנות-הכפולה (task 36): דוח-המראה (solvency למעלה) הוא מעגלי מעצמו —
+    // "solvent כי-הכרזנו-מודל". לכן /state נושא תמיד את שני-המדדים יחד:
+    // ה-pool-הפועלי שמגבה את התחייבויות-הסוכנים, והרזרבה-הפלטפורמית (equity).
+    // חישוב קריאה-בלבד על אותם-חשבונות — אפס-נגיעה בנתיבי-כתיבה.
+    const poolAssets = accounts
+      .filter((a) => a.ownerId.startsWith("pool:") && a.type === "asset")
+      .reduce((s, a) => s + a.balance, 0n);
+    const platformReserve = accounts.filter((a) => a.type === "equity").reduce((s, a) => s + a.balance, 0n);
+    const agentLiabilities = accounts
+      .filter((a) => a.ownerId.startsWith("agent:") && a.ownerId.endsWith(":usds"))
+      .reduce((s, a) => s + a.balance, 0n);
+    const backingPct = agentLiabilities > 0n ? Number((poolAssets * 10_000n) / agentLiabilities) / 100 : null;
     return json(200, {
       tenantId,
       accounts: accounts.map((a) => ({ ...a, balance: a.balance.toString(), balanceDecimal: dec(a.balance) })),
@@ -121,6 +133,14 @@ async function handleGet(url: URL): Promise<Response> {
         totalLiabilities: solvency.totalLiabilities.toString(),
         netEquity: solvency.netEquity.toString(),
         sumAll: solvency.sumAll.toString(),
+      },
+      custodial: {
+        agentLiabilitiesUsds: agentLiabilities.toString(),
+        activePoolAssets: poolAssets.toString(),
+        backingPct,
+        platformReserve: platformReserve.toString(),
+        unit: "tenant ledger-units (market tenant: 1 µ¢ = 10^4 units)",
+        law: "R36 — the mirror-law model above and these custodial numbers are always shown together; neither hides the other",
       },
     });
   }
