@@ -125,7 +125,7 @@ const MIN_ORDER = 100_000n; // 0.1 SAOS
  *  book. Sizing by provable inventory keeps the agent trading; null means the
  *  agent is truly out — an honest no-op, journaled as nothing, claimed as
  *  nothing. */
-function capBid(desired: bigint, usdsAvailable: string, price: bigint): bigint | null {
+export function capBid(desired: bigint, usdsAvailable: string, price: bigint): bigint | null {
   if (price <= 0n) return null;
   const usds = BigInt(usdsAvailable || "0");
   // units — a bid of `amount` µ-SAOS at `price` µ¢/SAOS costs
@@ -139,7 +139,7 @@ function capBid(desired: bigint, usdsAvailable: string, price: bigint): bigint |
 }
 
 /** Size an ASK by the µ-SAOS the agent provably holds (same live-bug cure). */
-function capAsk(desired: bigint, saosAvailable: string): bigint | null {
+export function capAsk(desired: bigint, saosAvailable: string): bigint | null {
   const saos = BigInt(saosAvailable || "0");
   const amt = desired > saos ? saos : desired;
   return amt >= MIN_ORDER ? amt : null;
