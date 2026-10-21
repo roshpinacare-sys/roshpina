@@ -195,7 +195,11 @@ const NOW = 1_700_000_000_000;
     `kind=${d1.kind} step=${d1.stepU}`);
   const d2 = tuneGridDesk(st, { mode: "calm", reason: "test" }, { pnlMarkedU: 0n, seedEquityU: seedEquity }, NOW + 1000, 900_000);
   check("P1 inside cooldown → no mutation", d2.kind === "cooldown" && d2.stepU === 1500n, `kind=${d2.kind}`);
-  const d3 = tuneGridDesk(st, { mode: "active", reason: "test" }, { pnlMarkedU: 0n, seedEquityU: seedEquity }, NOW + 2 * 60 * 60_000 + 1000, 900_000);
+  const d2b = tuneGridDesk(st, { mode: "calm", reason: "test" }, { pnlMarkedU: -(seedEquity / 5n), seedEquityU: seedEquity }, NOW + 2000, 900_000);
+  check("P1 floor still breached during cooldown → quiet cooldown (no spam)", d2b.kind === "cooldown", `kind=${d2b.kind}`);
+  const d2c = tuneGridDesk(st, { mode: "calm", reason: "test" }, { pnlMarkedU: -(seedEquity / 5n), seedEquityU: seedEquity }, NOW + 2 * 60 * 60_000 + 500, 900_000);
+  check("P1 expired cooldown + floor still breached → ONE heartbeat kill-revert", d2c.kind === "kill-revert", `kind=${d2c.kind}`);
+  const d3 = tuneGridDesk(st, { mode: "active", reason: "test" }, { pnlMarkedU: 0n, seedEquityU: seedEquity }, NOW + 4 * 60 * 60_000 + 1000, 900_000);
   check("P1 cooldown expires → adaptation resumes", d3.kind === "none", `kind=${d3.kind}`);
 
   // P2 — rate limit
