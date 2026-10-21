@@ -154,6 +154,12 @@
       "at": "2026-10-21T22:28:00Z",
       "quote-he": "תמשיך מאיפה שעצרת",
       "distilled": "19th continuation — continue from the measured frontier. Environment re-froze 20:46→22:13 (87min journal gap measured, honest); the boot wave's failures were each measured to root and cured structurally: (1) NIM empty-content — a reasoning model can burn the whole max_tokens budget (finish=length) and return empty content; the fallback ran at 1400 with the full network-state prompt. Cure: callNIM now retries ONCE with a doubled budget (≥3200) before declaring failure, in all three carriers (ai-sentinel/ai-architect/plan-executor) — proven live through the runner (sentinel exit 0). (2) self-audit's fixed 2h never-fired grace falsely flagged any schedule whose own interval exceeds 2h (roast-grill 6h, first natural fire 23:04) — grace now max(2h, own interval), not a loosened gate. (3) economy-cycle boot-window module miss (transient tree unavailability at catch-up wave) healed by runner rerun, succeeded, evidence journaled. roast-grill got its first journal record via the runner. Chain re-verified: SELF-AUDIT-OK 11/11 + CAPABILITY-AUDIT-OK fresh, secrets CLEAN both trees, conservation HOLDS both sides, refs truth head==tag==remote 420d216."
+    },
+    {
+      "trace": "1a160a018a938659",
+      "at": "2026-10-21T22:52:00Z",
+      "quote-he": "טפל בבקשה בהכל כי משהו חסום אני לא רואה בכלל פעילות אסור שזה יקרה פעילות אוטונומית תמיד חייבת לעבוד ולהפעיל את עצמה להקים מחדש וכו אם יש בעיה אינטליגנציה אוטונומית למה בעצם זה לא קרה?? תתקן הכל שיעבוד ברמה הכי גבוהה שיש כל הכשלים תמשיך ודחוף",
+      "distilled": "20th directive — the operator saw NO activity and demanded to know why autonomous self-revival was invisible. Measured truth: the network WAS reviving itself every time (1475+ jobs today, watchdog heal 28s after boot), but the revivals were INVISIBLE — 3 environment suspensions that day (488/29/87 min, ~10h) left zero public trace. Cure: network pulse published on the public panel — measured from the journal (primary evidence): last-activity age, jobs24h, freeze gaps >15min each PROVEN closed by self-revival, verdict ALIVE/QUIET/SUSPENDED-LIKELY; plus an honest suspension banner when publish age >90min (no real-time reporting is possible mid-suspension — maximal honesty is post-recovery truth). Pulse tile is the FIRST tile; silence now has a measured explanation, never a silent blank. All boot-wave failures already cured in task 53; journal green."
     }
   ],
   "forgetProtocols": [
