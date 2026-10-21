@@ -59,6 +59,10 @@ const spawnNode = (dataDir: string, operator: AgentKeys, agents: AgentKeys[]): R
     ROSHPINA_PORT: String(PORT),
     ROSHPINA_DATA_DIR: dataDir,
     ROSHPINA_OPERATOR_PUBLIC_KEY_1: operator.publicPem,
+    // this probe verifies SETTLEMENT LAWS with hand-placed orders; the desks
+    // (default on) would compete for the same fills and blur the assertions —
+    // they have their own golden probe (liquidity-desk-probe.ts)
+    ROSHPINA_DESK: "off",
   };
   for (const a of agents) overrides[`ROSHPINA_AGENT_KEY_${a.agentId.toUpperCase()}`] = a.publicPem;
   return Bun.spawn(["bun", "market-serve.ts"], { env: { ...process.env, ...overrides }, stdout: "pipe", stderr: "pipe", cwd: import.meta.dir });
