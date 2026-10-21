@@ -18,6 +18,8 @@ import {
   deskIntents, newDeskState, oracleRegime, recordFill, onMakerPrint,
 } from "./liquidity-desk";
 import type { DeskConfig, DeskState, OracleView, OracleRegime } from "./liquidity-desk";
+import { newTunerState, tuneGridDesk } from "./desk-tuner";
+import type { TunerState } from "./desk-tuner";
 
 export interface DeskHostOptions {
   oraclePath: string;
@@ -32,6 +34,8 @@ export interface DeskHostOptions {
   oracleMaxSpreadU?: bigint;
   journalPath: string;
   now?: () => number;
+  /** (tuner D1) מרווח-מינימלי-בין-מוטציות-כוונון בms — ברירת-מחדל 15 דקות (probe מכווץ) */
+  tuneMinIntervalMs?: number;
 }
 
 const GRID_CFG: DeskConfig = {
@@ -52,10 +56,12 @@ interface AnchRec { at: string; source: string; network: string; pair: string; l
 
 export class DeskHost {
   private timer: ReturnType<typeof setInterval> | null = null;
-  private desks: { cfg: DeskConfig; state: DeskState }[] = [
-    { cfg: GRID_CFG, state: newDeskState() },
-    { cfg: ORACLE_CFG, state: newDeskState() },
-  ];
+  /** עותקי-cfg פר-דסק — נבנים בקונסטרוקטור *אחרי* עקיפות-הסביבה, כדי שה-env יגיע
+   *  לעותקים; ה-tuner מוטט את העותק-בלבד, לעולם לא את הקבועים-המודוליים */
+  private desks: { cfg: DeskConfig; state: DeskState }[];
+  /** D1 strategy-tuner state (grid desk בלבד) */
+  private tuner: TunerState;
+  private tuneMinIntervalMs = 900_000;
   private oracleCache: OracleView = { ageMin: null, source: null, networks: 0, volPct: null };
   private busy = false;
   private now: () => number;
@@ -70,6 +76,14 @@ export class DeskHost {
     this.now = opts.now ?? Date.now;
     if (opts.gridStepU !== undefined) GRID_CFG.stepU = opts.gridStepU;
     if (opts.oracleMaxSpreadU !== undefined) ORACLE_CFG.maxSpreadU = opts.oracleMaxSpreadU;
+    // עותקים אחרי-העקיפות — ערכי-env חיים בעותקים; הקבועים-המודוליים נשארים-בראשית
+    this.desks = [
+      { cfg: { ...GRID_CFG }, state: newDeskState() },
+      { cfg: { ...ORACLE_CFG }, state: newDeskState() },
+    ];
+    const grid = this.desks.find((d) => d.cfg.kind === "grid");
+    this.tuner = newTunerState(grid ? grid.cfg.stepU : 1_500n, grid ? grid.cfg.maxSpreadU : 3_000n, this.now());
+    this.tuneMinIntervalMs = opts.tuneMinIntervalMs ?? 900_000;
   }
 
   // ── oracle (primary evidence from the real anchors file) ───────────────────
@@ -225,6 +239,24 @@ export class DeskHost {
           this.tracker.set(cfg.agentId, new Map(own.map((o) => [o.id, { side: o.side, price: BigInt(o.price), filled: o.filled, remaining: o.remaining }])));
           jc.clear();
           const b = await this.engine.balances(cfg.agentId);
+          // ── D1 strategy-tuner (grid בלבד): שערי-ארבעה לפני-כל-כוונון ──
+          // risk (רצפת-הפסד) → quant (משטר מהעוגנים) → execution (dampener+תחומים).
+          // החלה על עותק-ה-cfg → deskIntents הבא מצטט לפי-הפרמטרים-החדשים.
+          if (cfg.kind === "grid") {
+            const mid = state.lastMidU;
+            if (mid !== null && mid > 0n) {
+              const saosBal = BigInt(b.saosAvailable || "0") + BigInt(b.saosLocked || "0");
+              const usdsBal = BigInt(b.usdsAvailable || "0") + BigInt(b.usdsLocked || "0");
+              const equityU = usdsBal + (saosBal * mid) / 1_000_000n;
+              const seedEquityU = parseMicroCents(this.opts.seedUsdsCents) + (BigInt(this.opts.seedSaosU) * mid) / 1_000_000n;
+              const dec = tuneGridDesk(this.tuner, oracleRegime(this.oracleCache), { pnlMarkedU: equityU - seedEquityU, seedEquityU }, this.now(), this.tuneMinIntervalMs);
+              if (dec.stepU !== cfg.stepU) cfg.stepU = dec.stepU;
+              if (dec.maxSpreadU !== cfg.maxSpreadU) cfg.maxSpreadU = dec.maxSpreadU;
+              if (dec.kind === "tune" || dec.kind === "kill-revert") {
+                this.journal({ kind: dec.kind, desk: cfg.agentId, fourGate: dec.fourGate ?? null, stepU: dec.stepU.toString(), maxSpreadU: dec.maxSpreadU.toString(), reason: dec.reason });
+              }
+            }
+          }
           const intents = deskIntents(state, cfg, {
             view,
             ownOrders: own,
@@ -301,6 +333,7 @@ export class DeskHost {
       }
       desks.push({
         agentId: cfg.agentId, kind: cfg.kind, tickNo: state.tickNo,
+        stepU: cfg.stepU.toString(), maxSpreadU: cfg.maxSpreadU.toString(),
         emaU: state.emaU?.toString() ?? null, lastMidU: state.lastMidU?.toString() ?? null,
         buys: state.buys, sells: state.sells,
         grossFlowU: state.grossFlowU.toString(), ownOrders: ownCount,
