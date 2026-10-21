@@ -83,6 +83,12 @@
       "at": "2026-10-21T02:15:00Z",
       "quote-he": "תמשיך יותר עמוק ודחוף",
       "distilled": "go-deeper order: after Task 41 closed the death-rebirth verification, keep drilling into measured failures — root-cause the ai-architect boot race (vault unseal ordering + BOOT_CATCHUP measured at ~90s), the persistent NIM primary 404 (model order swapped by evidence: nano 3/3 live, super 3/3 dead, fixed in BOTH runtime vault and sealed blob via vault-seal), and the live refs war (council fired inline, both branches restored lane=4c5a073 cp=a2bed4af, dual-ref consistent). Deepening = fixing measured failures, not adding surface."
+    },
+    {
+      "trace": "1a15c68f15630959",
+      "at": "2026-10-21T03:45:00Z",
+      "quote-he": "לא נדרש ממני כלום... הכי הייתי רוצה שנוכל לייצר באמת שוק חריף של גרידים וארביטראזים דווקא על הדקס שלנו במקום להתלות בשירותים אחרים... חשוב לוודא שיש לנו דרך לקבל תזרים אמיתי מבחוץ... github.com/HKUDS/Vibe-Trading",
+      "distilled": "sovereign market-making executed: designated liquidity desks ON OUR OWN venue — mm-grid (EMA fair-value grid, postOnly, inventory-capped) + mm-oracle (real Kraken/Bitstamp anchors govern the regime; wide-book repair; stale=halt fail-closed); law: one venue, one fair value (all desk prints feed the venue EMA); measured live: book spread 22,912µ¢ (9.5%) → 3,000µ¢ (119bps), conservation exact both ledgers; golden 22/22 + settlement 24/24 + kernel 47/47; external truth recorded: HTX rejected (KYC, owner's call), FixedFloat pending THEIR approval, SAOS unlisted externally so external arb stays structurally open — mm-oracle is the built-in seam for when a real venue exists; channeled from Vibe-Trading by R43 (grid discipline, per-strategy run journals, regime gating) natively in TS, zero new dependencies"
     }
   ],
   "forgetProtocols": [

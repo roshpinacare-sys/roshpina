@@ -30,6 +30,7 @@ import { MarketEngine, MarketError } from "./kernel/market/engine";
 import { BookError } from "./kernel/market/book";
 import { LedgerError } from "./kernel/ledger/in-memory-ledger";
 import { parseMicroCents, microCentsToString } from "./kernel/ledger/persistent-ledger";
+import { DeskHost } from "./kernel/market/desk-host";
 import { readFileSync, writeFileSync, renameSync } from "fs";
 import { join } from "path";
 
@@ -112,6 +113,29 @@ for (const p of loadPrincipals()) {
 if (restoredPrincipals > 0) console.log(`[market] principals restored from disk: ${restoredPrincipals}`);
 
 const replay = new InMemoryReplayCache();
+
+// ── Designated liquidity desks (grid + oracle-anchored) ───────────────────
+// Operator directive 2026-10-21: a sharp grid/arb market on OUR OWN venue —
+// not depending on external services (HTX rejected over KYC; FixedFloat
+// pending on their side). The desks are ORDINARY economy principals (same
+// fees, escrow, conservation laws; seeded once via guardMint idempotency,
+// journaled, introspectable at GET /desk/state). Kill switch: ROSHPINA_DESK=off.
+const DESK_ON = (process.env.ROSHPINA_DESK ?? "on") !== "off";
+const DESK_TICK_MS = Number(process.env.ROSHPINA_DESK_TICK_MS ?? 5000);
+let desk: DeskHost | null = null;
+if (DESK_ON) {
+  desk = new DeskHost(engine, {
+    oraclePath: process.env.ROSHPINA_ORACLE_PATH ?? "/home/z/my-project/mini-services/fleet-runner/data/oracle/anchors.jsonl",
+    tickMs: DESK_TICK_MS,
+    seedUsdsCents: process.env.ROSHPINA_DESK_SEED_CENTS ?? "5000", // 50 USDS (cent units)
+    seedSaosU: process.env.ROSHPINA_DESK_SEED_SAOS ?? "15000000",  // 15 SAOS
+    gridStepU: BigInt(process.env.ROSHPINA_DESK_GRID_STEP_U ?? "1500"),
+    oracleMaxSpreadU: BigInt(process.env.ROSHPINA_DESK_ORACLE_MAX_SPREAD_U ?? "4000"),
+    journalPath: join(DATA_DIR, "desk-journal.jsonl"),
+  });
+  await desk.start();
+  console.log(`[market] liquidity desks ON (mm-grid + mm-oracle, tick ${DESK_TICK_MS}ms)`);
+}
 
 const json = (status: number, body: unknown): Response =>
   new Response(JSON.stringify(body, null, 2), { status, headers: { "content-type": "application/json" } });
@@ -281,10 +305,11 @@ const server = Bun.serve({
       if (req.method === "GET") {
         if (url.pathname === "/health") {
           const st = engine.stats();
-          return json(200, { ok: true, service: "roshpina-sovereign-market", trades: st.settled, bids: st.book.bids, asks: st.book.asks, phantomsSkipped: st.phantomsSkipped, bootedAt: engine.bootedAt, escrowOrphanQuote: engine.escrowOrphanQuote.toString(), escrowOrphanBase: engine.escrowOrphanBase.toString(), ghostsBootQuote: st.ghostsBootQuote, ghostsBootQuoteAmount: st.ghostsBootQuoteAmount, ghostsBootBase: st.ghostsBootBase, ghostsBootBaseAmount: st.ghostsBootBaseAmount, quiesced: st.quiesced });
+          return json(200, { ok: true, service: "roshpina-sovereign-market", trades: st.settled, bids: st.book.bids, asks: st.book.asks, phantomsSkipped: st.phantomsSkipped, bootedAt: engine.bootedAt, escrowOrphanQuote: engine.escrowOrphanQuote.toString(), escrowOrphanBase: engine.escrowOrphanBase.toString(), ghostsBootQuote: st.ghostsBootQuote, ghostsBootQuoteAmount: st.ghostsBootQuoteAmount, ghostsBootBase: st.ghostsBootBase, ghostsBootBaseAmount: st.ghostsBootBaseAmount, quiesced: st.quiesced, desk: DESK_ON ? "on" : "off" });
         }
         if (url.pathname === "/market/book") return json(200, engine.bookSnapshot());
         if (url.pathname === "/economy/report") return await report();
+        if (url.pathname === "/desk/state") return json(200, desk ? await desk.stateJson() : { enabled: false });
         if (url.pathname === "/agent/me") {
           const auth = await requireOperatorSignature(req, ring, replay);
           if (!auth.ok) return json(auth.status, { error: "refused", code: auth.code, detail: auth.detail });
@@ -346,6 +371,7 @@ const graceful = (signal: string): void => {
   if (shuttingDown) return;
   shuttingDown = true;
   console.warn(`[market] ${signal} — graceful shutdown: quiesce → settle → flush → exit`);
+  try { desk?.stop(); } catch { /* desk already stopped */ }
   try { engine.quiesce(true); } catch { /* already quiesced */ }
   setTimeout(() => {
     try { if (engine.diskMaintenance()) console.warn("[market] shutdown flush: snapshot regenerated"); } catch { /* best effort */ }
