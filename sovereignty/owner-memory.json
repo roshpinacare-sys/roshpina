@@ -148,6 +148,12 @@
       "at": "2026-10-21T16:50:00Z",
       "quote-he": "תבחן את האמת בלי לסמוך על הטענות שלך בוא נעשה רגע roast grill test כדי לחשוף את האמת הכואבת לתקן ולהפעיל בצורה טובה יותר ודחוף",
       "distilled": "18th continuation (Task 52) — roast grill: the network grills ITSELF without trusting its own claims. Built roast-grill.ts — independent adversarial audit: raw primitives only (git-plumbing, authenticated ls-remote, live HTTP, file reads), the existing auditors (self-audit/capability-audit) re-run fresh and treated as claims-to-verify, and NEGATIVE CONTROLS prove the audit tool itself can fail — a grill without teeth is a grill broken (fail-closed exit 1). Painful truths measured this unit: worklog Task-50 section was lost to the environment freeze (reconstructed verbatim from lane commits b28f7f9+1edd7f3 — git is the memory of record); scheduled self-audit/capability-audit lastStatus=failed from the recovery window (healed by fresh inline runs, gates NOT loosened); Domain main moved under us mid-unit (union rebase discipline). The grill is now a standing runner preset + schedule — and its verdict is published on the live panel as the 10th evidence source (roastGrill), so the painful truth is public, not buried."
+    },
+    {
+      "trace": "1a16089ddb1ed8c9",
+      "at": "2026-10-21T22:28:00Z",
+      "quote-he": "תמשיך מאיפה שעצרת",
+      "distilled": "19th continuation — continue from the measured frontier. Environment re-froze 20:46→22:13 (87min journal gap measured, honest); the boot wave's failures were each measured to root and cured structurally: (1) NIM empty-content — a reasoning model can burn the whole max_tokens budget (finish=length) and return empty content; the fallback ran at 1400 with the full network-state prompt. Cure: callNIM now retries ONCE with a doubled budget (≥3200) before declaring failure, in all three carriers (ai-sentinel/ai-architect/plan-executor) — proven live through the runner (sentinel exit 0). (2) self-audit's fixed 2h never-fired grace falsely flagged any schedule whose own interval exceeds 2h (roast-grill 6h, first natural fire 23:04) — grace now max(2h, own interval), not a loosened gate. (3) economy-cycle boot-window module miss (transient tree unavailability at catch-up wave) healed by runner rerun, succeeded, evidence journaled. roast-grill got its first journal record via the runner. Chain re-verified: SELF-AUDIT-OK 11/11 + CAPABILITY-AUDIT-OK fresh, secrets CLEAN both trees, conservation HOLDS both sides, refs truth head==tag==remote 420d216."
     }
   ],
   "forgetProtocols": [
