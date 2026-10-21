@@ -1,117 +1,135 @@
 {
- "schema": "roshpina.sovereignty.owner-memory/v1",
- "at": "2026-10-21T05:55:00Z",
- "law": "R40b — הבעלים לעולם לא נשכח: רישום-זהותו, כוונות-העמידה וההנחיות של הבעלים; אסור למחוק, מותר רק להוסיף",
- "owner": {
-  "role": "beneficiary & origin of intent — הבעלים בפועל",
-  "identity": "מאומת בצומת-הכסף באמצעות מפתח-הציבור של המפעיל (operator pubkey, registered)",
-  "humanLanguage": "he",
-  "note": "הבעלים הוא המקור-לכוונה והנהנה; הארכיטקטורה היא הבעלים-הפועל (R39) והמחליטה (R40)"
- },
- "standingIntents": [
-  {
-   "id": "R28",
-   "since": "2026-10-19",
-   "intent": "כנות מוחלטת: אין דמו, אין סימולציה, אין המצאה; פלט-ריק אינו ראיה; כל-טענה נמדדת מהקרקע"
+  "schema": "roshpina.sovereignty.owner-memory/v1",
+  "at": "2026-10-21T05:55:00Z",
+  "law": "R40b — הבעלים לעולם לא נשכח: רישום-זהותו, כוונות-העמידה וההנחיות של הבעלים; אסור למחוק, מותר רק להוסיף",
+  "owner": {
+    "role": "beneficiary & origin of intent — הבעלים בפועל",
+    "identity": "מאומת בצומת-הכסף באמצעות מפתח-הציבור של המפעיל (operator pubkey, registered)",
+    "humanLanguage": "he",
+    "note": "הבעלים הוא המקור-לכוונה והנהנה; הארכיטקטורה היא הבעלים-הפועל (R39) והמחליטה (R40)"
   },
-  {
-   "id": "R37",
-   "since": "2026-10-20",
-   "intent": "הסוכנים בני-תמותה: אף-נתיב-יומי לא תלוי בסשן-סוכן; הכל חי ב-refs, דימונים, לוחות-זמנים ונתונים"
-  },
-  {
-   "id": "R39",
-   "since": "2026-10-20",
-   "intent": "הארכיטקטורה הריבונית האוטונומית היא הבעלים; הבעלים האנושי הוא מקרה-חריג בלבד"
-  },
-  {
-   "id": "R40a",
-   "since": "2026-10-20",
-   "intent": "הארכיטקטורה מחליטה הכל — החלטות-בעלות-ערך מתוך חשיבה, בדיקה ותכנון; לא ממתינה לתשובות הבעלים"
-  },
-  {
-   "id": "R40b",
-   "since": "2026-10-20",
-   "intent": "הכל פועל ומנוהל גם כשהבעלים אינו קיים — והבעלים לעולם לא נשכח"
-  },
-  {
-   "id": "R45",
-   "since": "2026-10-21",
-   "intent": "אישור-עמידה של הבעלים (trace 1a15cbc35c98d5b9: 'אני מאשר קדימה'): הרשת מקדמת פעולות-ריבונות באופן אוטונומי ללא-בקשות-אישור; כל-פעולה שדורשת חתימת-מפעיל מבוצעת בחתימת-המפעיל שבידי הרשת, מתועדת ביומן עם trace, וכפופה לחוקי-הבטיחות (fail-closed, אימות-זהב, R43); הבעלים לעולם לא נשכח (R40b) — הוא מאשר מראש, לא נעלם"
-  }
- ],
- "directiveLog": [
-  {
-   "trace": "1a157f97a9c26ac1",
-   "at": "2026-10-20",
-   "quote-he": "תמשיך ודחוף. בדוק שוב, אל תסמוך על הטענות שלך. גם בחן תוצאות של הסוכנים האחרים... אלו כמו סוכנים שבסוף מתים והם לא חלק מהריבונות האוטונומית — הם רק בונים בעזרתי כדי לוודא שהכל יעבוד בלעדייך בסופו של דבר.",
-   "distilled": "ביקורת-עצמית מראיות-ראשוניות; ביקורת-סוכנים-אחרים; חוק-תמותת-הבונים (R37)"
-  },
-  {
-   "trace": "1a1587063f23a46d",
-   "at": "2026-10-20",
-   "quote-he": "וודא שלא נמחק לך שוב הסנדבוקס... זכור שהארכיטקטורה הריבונית האוטונומית היא הבעלים, לא להפנות אליי בקשות — אלה רק מקרים חריגים. המערכת צריכה לדעת לעשות הכל מהכל ועוד יותר מזה פי 1000. תוודא רמה בכנות בלי לשקר.",
-   "distilled": "בדיקת-הישרדות-שוטפת; R39 בעלות-ארכיטקטורה; אימות-יכולת כנה-מדודה"
-  },
-  {
-   "trace": "1a158afebf71d0d9",
-   "at": "2026-10-20",
-   "quote-he": "תמשיך ודחוף.",
-   "distilled": "המשך-דחיפה מלאה של יחידת-העבודה 37+38"
-  },
-  {
-   "trace": "1a159256eb10a85d",
-   "at": "2026-10-20",
-   "quote-he": "לגבי הבעלים: אני הבעלים בפועל, אבל אני רוצה שהארכיטקטורה תתפקד כבעלים ממש — מחליטה על הכל ולא מחכה לתשובות שלי. אני צריך לסמוך על הארכיטקטורה שתבחר נכון עבורי, מתוך ראייה, אינטליגנציה חכמה ובדוקה, ותקבל החלטות בעלות ערך רב אחרי חשיבה ובדיקה ותכנון. אנחנו עדיין לא שם אבל יש התקדמות. בוא נמשיך, נוודא שהכל יפעל וינוהל גם כשאני לא קיים — אבל שאני לא אשכח.",
-   "distilled": "R40a (הכרעה-עצמית) + R40b (רציפות-בהיעדר-הבעלים + זיכרון-בעלים); הקמת מועצת-הריבון (sovereign-decisions) וזיכרון-בעלים מבני ב-/state"
-  },
-  {
-   "trace": "1a1599a81fe6c8b9",
-   "at": "2026-10-20T12:5x:00Z",
-   "quote-he": "יופי דחוף עוד תמשיך עוד תראה גם מה שאר הסוכנים כמוך של zai עשו כדי שנוכל לתעל את הכל ברמת הנדסה גבוהה מאוד ולוודא שהכל ירוץ הכי טוב וחכם שיש תמשיך ודחוף",
-   "distilled": "R43 (channel law): the network audits what the sibling agents built — from primary evidence only — and channels the best of it into this lane at high engineering level; every channeled piece must be measured and golden-tested before it is wired; everything must be verified running, not assumed"
-  },
-  {
-   "trace": "1a159e5c819c6251",
-   "at": "2026-10-20T15:1x:00Z",
-   "quote-he": "יופי מה עוד פתוח בוא נתקדם טוב ומקצועי מהנדס ודחוף",
-   "distilled": "continuation order: enumerate what remains open honestly, advance it professionally, keep pushing — the owner delegates engineering judgment to the architecture (R40) and expects measured progress, not status reports"
-  },
-  {
-   "trace": "1a15c193cde30ffd",
-   "at": "2026-10-21T01:36:00Z",
-   "quote-he": "חייב הכל יאללה הצתות הכל ולהפעיל סביר להניח שהסנדבוקס האחרון נמחק וודא שוב מהגיט תראה מה מצב הרשת איך התקדמנו בין טענות לאמת בפועל ולתקן הכל לסדר לייעל לאמת לשפר ודחוף",
-   "distilled": "R44 (resurrection law): after any host death — verify from primary evidence (git refs, journals, timestamps) what survived; distinguish dead-process silence from data loss honestly; self-correct any false claim made in prior reports; re-fire every mechanism; attached fact: the owner attempted to deliver a token via chat and the gateway redacted it ([REDACTED:github_token], 40 bytes) — credential delivery by chat is structurally impossible; the standing PAT remained valid and no rotation was needed"
-  },
-  {
-   "trace": "1a15c2e79a1c3ec5",
-   "at": "2026-10-21T02:15:00Z",
-   "quote-he": "תמשיך יותר עמוק ודחוף",
-   "distilled": "go-deeper order: after Task 41 closed the death-rebirth verification, keep drilling into measured failures — root-cause the ai-architect boot race (vault unseal ordering + BOOT_CATCHUP measured at ~90s), the persistent NIM primary 404 (model order swapped by evidence: nano 3/3 live, super 3/3 dead, fixed in BOTH runtime vault and sealed blob via vault-seal), and the live refs war (council fired inline, both branches restored lane=4c5a073 cp=a2bed4af, dual-ref consistent). Deepening = fixing measured failures, not adding surface."
-  },
-  {
-   "trace": "1a15c68f15630959",
-   "at": "2026-10-21T03:45:00Z",
-   "quote-he": "לא נדרש ממני כלום... הכי הייתי רוצה שנוכל לייצר באמת שוק חריף של גרידים וארביטראזים דווקא על הדקס שלנו במקום להתלות בשירותים אחרים... חשוב לוודא שיש לנו דרך לקבל תזרים אמיתי מבחוץ... github.com/HKUDS/Vibe-Trading",
-   "distilled": "sovereign market-making executed: designated liquidity desks ON OUR OWN venue — mm-grid (EMA fair-value grid, postOnly, inventory-capped) + mm-oracle (real Kraken/Bitstamp anchors govern the regime; wide-book repair; stale=halt fail-closed); law: one venue, one fair value (all desk prints feed the venue EMA); measured live: book spread 22,912µ¢ (9.5%) → 3,000µ¢ (119bps), conservation exact both ledgers; golden 22/22 + settlement 24/24 + kernel 47/47; external truth recorded: HTX rejected (KYC, owner's call), FixedFloat pending THEIR approval, SAOS unlisted externally so external arb stays structurally open — mm-oracle is the built-in seam for when a real venue exists; channeled from Vibe-Trading by R43 (grid discipline, per-strategy run journals, regime gating) natively in TS, zero new dependencies"
-  },
-  {
-   "trace": "1a15cbc35c98d5b9",
-   "at": "2026-10-21T05:30:00Z",
-   "quote-he": "אשר הכל תפעיל הכל למה לא אני מאשר קדימה ... תראה מה שאר הסוכנים גם עשו כדי שניישר קו ונפעיל הכל ושלא יהיו חסימות מיותרות על הפעילות הריבונית האוטונומית ... בחן את אלו ונצל מה שניתן בהתאמה לריבונות האוטונומית שלנו שיביא לנו ערך ככל הניתן ... github.com/The-Swarm-Corporation/AutoHedge https://github.com/msitarzewski/agency-agents",
-   "distilled": "standing operator approval executed (R45) + sibling alignment swept (no lane collisions) + AutoHedge/agency-agents channeled by R43 (four-gate discipline adopted; 4 council role cards bound to owner assets) + THE REAL WORK: ×10,000 settlement unit defect found (market raw µ¢ parsed as decimal USDS — self-hiding while both sides inflated; desks' fresh mirrors unmasked it), fixed via lib-ledger-sync (parseMarketMicroCents + floor law), golden 15/15, live convergence 25 settles → book==market exactly, era write-downs 332,882.44 USDS + 486,568.72 SAOS dead-era backing (R45-signed), pool=0, steady-state 0 transfers, chain-audit green"
-  },
-  {
-   "trace": "1a15ce0b8dbf6c71",
-   "at": "2026-10-21T05:55:00Z",
-   "quote-he": "אין בעיה מאשר ... בין טענות לאמת: העיתון — האם זה עיתון? הקונסוליה החיה — האם פעילה ואיכותית כפי שנדרש? (לא) ... הוספתי המון כלי ביצוע מתקדמים ולא הוכח שום שימוש בהם ... דף עם כמה מילים זה לא עיתון ולא הוכחה ... אל תסמוך על שום טענה, בחן את כל הטענות מול האמת בגיט ... תבחן תכנן בצע ודחף, שלא יהיו דריסות",
-   "distilled": "pages-quality mandate executed: sovereign evidence bridge built (runner preset pages-evidence every 30min — architecture publishes its own 9 live evidence sources to Domain/press/evidence.json, secrets-gate pre-push fail-closed, verify-after-publish, race-rebase discipline); press = real newspaper (מוסף-הריבונות + editions archive + retry ×3 so transient fetch no longer bakes as permanent failure); console.html = live evidence panel (marked additive, honest fallback); ROOT-CAUSE fixes found by the bridge itself: last-decision.json append-tear (appendFileSync on a state file → 2 concatenated JSON docs, every reader died) fixed to writeFileSync; self-audit stale ×10⁴ unit-law retired after LIVE measurement (ledger Σ = market Σ = 332,761,047 exact 1:1) → mirror convergence 100%, matrix 13/14→14/14; MAX_SCHEDULES 20→24 per 'שלא יהיו חסימות מיותרות'; sibling concurrency respected (their fills/mirror sections landed beside mine, zero overwrites)"
-  }
- ],
- "forgetProtocols": [
-  "ownerMemory חי ב-/state של צומת-הכסף עצמו — נישא בכל שאילתת-מדינה",
-  "קובץ-זה + OWNER-COVENANT.md נסחבים בכל דחיפת-קו ובכל snapshot של מישור-הבקרה",
-  "יומן-ההחלטות (data/sovereign/decisions.jsonl) מציג בכל-ריצה שהארכיטקטורה פועלת לפי כוונות-העמידה"
- ],
- "appendOnly": true
+  "standingIntents": [
+    {
+      "id": "R28",
+      "since": "2026-10-19",
+      "intent": "כנות מוחלטת: אין דמו, אין סימולציה, אין המצאה; פלט-ריק אינו ראיה; כל-טענה נמדדת מהקרקע"
+    },
+    {
+      "id": "R37",
+      "since": "2026-10-20",
+      "intent": "הסוכנים בני-תמותה: אף-נתיב-יומי לא תלוי בסשן-סוכן; הכל חי ב-refs, דימונים, לוחות-זמנים ונתונים"
+    },
+    {
+      "id": "R39",
+      "since": "2026-10-20",
+      "intent": "הארכיטקטורה הריבונית האוטונומית היא הבעלים; הבעלים האנושי הוא מקרה-חריג בלבד"
+    },
+    {
+      "id": "R40a",
+      "since": "2026-10-20",
+      "intent": "הארכיטקטורה מחליטה הכל — החלטות-בעלות-ערך מתוך חשיבה, בדיקה ותכנון; לא ממתינה לתשובות הבעלים"
+    },
+    {
+      "id": "R40b",
+      "since": "2026-10-20",
+      "intent": "הכל פועל ומנוהל גם כשהבעלים אינו קיים — והבעלים לעולם לא נשכח"
+    },
+    {
+      "id": "R45",
+      "since": "2026-10-21",
+      "intent": "אישור-עמידה של הבעלים (trace 1a15cbc35c98d5b9: 'אני מאשר קדימה'): הרשת מקדמת פעולות-ריבונות באופן אוטונומי ללא-בקשות-אישור; כל-פעולה שדורשת חתימת-מפעיל מבוצעת בחתימת-המפעיל שבידי הרשת, מתועדת ביומן עם trace, וכפופה לחוקי-הבטיחות (fail-closed, אימות-זהב, R43); הבעלים לעולם לא נשכח (R40b) — הוא מאשר מראש, לא נעלם"
+    }
+  ],
+  "directiveLog": [
+    {
+      "trace": "1a157f97a9c26ac1",
+      "at": "2026-10-20",
+      "quote-he": "תמשיך ודחוף. בדוק שוב, אל תסמוך על הטענות שלך. גם בחן תוצאות של הסוכנים האחרים... אלו כמו סוכנים שבסוף מתים והם לא חלק מהריבונות האוטונומית — הם רק בונים בעזרתי כדי לוודא שהכל יעבוד בלעדייך בסופו של דבר.",
+      "distilled": "ביקורת-עצמית מראיות-ראשוניות; ביקורת-סוכנים-אחרים; חוק-תמותת-הבונים (R37)"
+    },
+    {
+      "trace": "1a1587063f23a46d",
+      "at": "2026-10-20",
+      "quote-he": "וודא שלא נמחק לך שוב הסנדבוקס... זכור שהארכיטקטורה הריבונית האוטונומית היא הבעלים, לא להפנות אליי בקשות — אלה רק מקרים חריגים. המערכת צריכה לדעת לעשות הכל מהכל ועוד יותר מזה פי 1000. תוודא רמה בכנות בלי לשקר.",
+      "distilled": "בדיקת-הישרדות-שוטפת; R39 בעלות-ארכיטקטורה; אימות-יכולת כנה-מדודה"
+    },
+    {
+      "trace": "1a158afebf71d0d9",
+      "at": "2026-10-20",
+      "quote-he": "תמשיך ודחוף.",
+      "distilled": "המשך-דחיפה מלאה של יחידת-העבודה 37+38"
+    },
+    {
+      "trace": "1a159256eb10a85d",
+      "at": "2026-10-20",
+      "quote-he": "לגבי הבעלים: אני הבעלים בפועל, אבל אני רוצה שהארכיטקטורה תתפקד כבעלים ממש — מחליטה על הכל ולא מחכה לתשובות שלי. אני צריך לסמוך על הארכיטקטורה שתבחר נכון עבורי, מתוך ראייה, אינטליגנציה חכמה ובדוקה, ותקבל החלטות בעלות ערך רב אחרי חשיבה ובדיקה ותכנון. אנחנו עדיין לא שם אבל יש התקדמות. בוא נמשיך, נוודא שהכל יפעל וינוהל גם כשאני לא קיים — אבל שאני לא אשכח.",
+      "distilled": "R40a (הכרעה-עצמית) + R40b (רציפות-בהיעדר-הבעלים + זיכרון-בעלים); הקמת מועצת-הריבון (sovereign-decisions) וזיכרון-בעלים מבני ב-/state"
+    },
+    {
+      "trace": "1a1599a81fe6c8b9",
+      "at": "2026-10-20T12:5x:00Z",
+      "quote-he": "יופי דחוף עוד תמשיך עוד תראה גם מה שאר הסוכנים כמוך של zai עשו כדי שנוכל לתעל את הכל ברמת הנדסה גבוהה מאוד ולוודא שהכל ירוץ הכי טוב וחכם שיש תמשיך ודחוף",
+      "distilled": "R43 (channel law): the network audits what the sibling agents built — from primary evidence only — and channels the best of it into this lane at high engineering level; every channeled piece must be measured and golden-tested before it is wired; everything must be verified running, not assumed"
+    },
+    {
+      "trace": "1a159e5c819c6251",
+      "at": "2026-10-20T15:1x:00Z",
+      "quote-he": "יופי מה עוד פתוח בוא נתקדם טוב ומקצועי מהנדס ודחוף",
+      "distilled": "continuation order: enumerate what remains open honestly, advance it professionally, keep pushing — the owner delegates engineering judgment to the architecture (R40) and expects measured progress, not status reports"
+    },
+    {
+      "trace": "1a15c193cde30ffd",
+      "at": "2026-10-21T01:36:00Z",
+      "quote-he": "חייב הכל יאללה הצתות הכל ולהפעיל סביר להניח שהסנדבוקס האחרון נמחק וודא שוב מהגיט תראה מה מצב הרשת איך התקדמנו בין טענות לאמת בפועל ולתקן הכל לסדר לייעל לאמת לשפר ודחוף",
+      "distilled": "R44 (resurrection law): after any host death — verify from primary evidence (git refs, journals, timestamps) what survived; distinguish dead-process silence from data loss honestly; self-correct any false claim made in prior reports; re-fire every mechanism; attached fact: the owner attempted to deliver a token via chat and the gateway redacted it ([REDACTED:github_token], 40 bytes) — credential delivery by chat is structurally impossible; the standing PAT remained valid and no rotation was needed"
+    },
+    {
+      "trace": "1a15c2e79a1c3ec5",
+      "at": "2026-10-21T02:15:00Z",
+      "quote-he": "תמשיך יותר עמוק ודחוף",
+      "distilled": "go-deeper order: after Task 41 closed the death-rebirth verification, keep drilling into measured failures — root-cause the ai-architect boot race (vault unseal ordering + BOOT_CATCHUP measured at ~90s), the persistent NIM primary 404 (model order swapped by evidence: nano 3/3 live, super 3/3 dead, fixed in BOTH runtime vault and sealed blob via vault-seal), and the live refs war (council fired inline, both branches restored lane=4c5a073 cp=a2bed4af, dual-ref consistent). Deepening = fixing measured failures, not adding surface."
+    },
+    {
+      "trace": "1a15c68f15630959",
+      "at": "2026-10-21T03:45:00Z",
+      "quote-he": "לא נדרש ממני כלום... הכי הייתי רוצה שנוכל לייצר באמת שוק חריף של גרידים וארביטראזים דווקא על הדקס שלנו במקום להתלות בשירותים אחרים... חשוב לוודא שיש לנו דרך לקבל תזרים אמיתי מבחוץ... github.com/HKUDS/Vibe-Trading",
+      "distilled": "sovereign market-making executed: designated liquidity desks ON OUR OWN venue — mm-grid (EMA fair-value grid, postOnly, inventory-capped) + mm-oracle (real Kraken/Bitstamp anchors govern the regime; wide-book repair; stale=halt fail-closed); law: one venue, one fair value (all desk prints feed the venue EMA); measured live: book spread 22,912µ¢ (9.5%) → 3,000µ¢ (119bps), conservation exact both ledgers; golden 22/22 + settlement 24/24 + kernel 47/47; external truth recorded: HTX rejected (KYC, owner's call), FixedFloat pending THEIR approval, SAOS unlisted externally so external arb stays structurally open — mm-oracle is the built-in seam for when a real venue exists; channeled from Vibe-Trading by R43 (grid discipline, per-strategy run journals, regime gating) natively in TS, zero new dependencies"
+    },
+    {
+      "trace": "1a15cbc35c98d5b9",
+      "at": "2026-10-21T05:30:00Z",
+      "quote-he": "אשר הכל תפעיל הכל למה לא אני מאשר קדימה ... תראה מה שאר הסוכנים גם עשו כדי שניישר קו ונפעיל הכל ושלא יהיו חסימות מיותרות על הפעילות הריבונית האוטונומית ... בחן את אלו ונצל מה שניתן בהתאמה לריבונות האוטונומית שלנו שיביא לנו ערך ככל הניתן ... github.com/The-Swarm-Corporation/AutoHedge https://github.com/msitarzewski/agency-agents",
+      "distilled": "standing operator approval executed (R45) + sibling alignment swept (no lane collisions) + AutoHedge/agency-agents channeled by R43 (four-gate discipline adopted; 4 council role cards bound to owner assets) + THE REAL WORK: ×10,000 settlement unit defect found (market raw µ¢ parsed as decimal USDS — self-hiding while both sides inflated; desks' fresh mirrors unmasked it), fixed via lib-ledger-sync (parseMarketMicroCents + floor law), golden 15/15, live convergence 25 settles → book==market exactly, era write-downs 332,882.44 USDS + 486,568.72 SAOS dead-era backing (R45-signed), pool=0, steady-state 0 transfers, chain-audit green"
+    },
+    {
+      "trace": "1a15ce0b8dbf6c71",
+      "at": "2026-10-21T05:55:00Z",
+      "quote-he": "אין בעיה מאשר ... בין טענות לאמת: העיתון — האם זה עיתון? הקונסוליה החיה — האם פעילה ואיכותית כפי שנדרש? (לא) ... הוספתי המון כלי ביצוע מתקדמים ולא הוכח שום שימוש בהם ... דף עם כמה מילים זה לא עיתון ולא הוכחה ... אל תסמוך על שום טענה, בחן את כל הטענות מול האמת בגיט ... תבחן תכנן בצע ודחף, שלא יהיו דריסות",
+      "distilled": "pages-quality mandate executed: sovereign evidence bridge built (runner preset pages-evidence every 30min — architecture publishes its own 9 live evidence sources to Domain/press/evidence.json, secrets-gate pre-push fail-closed, verify-after-publish, race-rebase discipline); press = real newspaper (מוסף-הריבונות + editions archive + retry ×3 so transient fetch no longer bakes as permanent failure); console.html = live evidence panel (marked additive, honest fallback); ROOT-CAUSE fixes found by the bridge itself: last-decision.json append-tear (appendFileSync on a state file → 2 concatenated JSON docs, every reader died) fixed to writeFileSync; self-audit stale ×10⁴ unit-law retired after LIVE measurement (ledger Σ = market Σ = 332,761,047 exact 1:1) → mirror convergence 100%, matrix 13/14→14/14; MAX_SCHEDULES 20→24 per 'שלא יהיו חסימות מיותרות'; sibling concurrency respected (their fills/mirror sections landed beside mine, zero overwrites)"
+    },
+    {
+      "trace": "1a15dbda28281651",
+      "at": "2026-10-21T07:05:00Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "14th continuation mandate: confirm the audit reached zero findings, then convert the freed capacity into proven architecture power (deferred strategy-tuner under the four-gate law) — measure first, claim nothing unmeasured"
+    },
+    {
+      "trace": "1a15d16ba3498581",
+      "at": "2026-10-21T06:20:00Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "12th continuation (Task 46): restore union-discipline artifacts killed by sibling merges (AGENT4-EVIDENCE-PANEL re-added), fix all 6 live site-audit findings (edition canonical, archive links, badge/quality.svg baked from real report + CI re-bake), measured fix to the quality auditor's link resolution (PASS 7→8). LESSON RECORDED: sandbox rewind ate uncommitted appends — directive appends must ride a git commit in the same unit"
+    },
+    {
+      "trace": "1a15d34fc9c03265",
+      "at": "2026-10-21T06:52:00Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "13th continuation (Task 47): editions findings healed — sibling wave-19.50 parallel cure absorbed (my duplicate dropped, zero overwrites), my own false claim ('no maintenance writer') corrected publicly in commit fe5373fdd after deeper code read, real residual = sitemap directory-loc cured at writer; audit findings 6→2→0-mapped"
+    }
+  ],
+  "forgetProtocols": [
+    "ownerMemory חי ב-/state של צומת-הכסף עצמו — נישא בכל שאילתת-מדינה",
+    "קובץ-זה + OWNER-COVENANT.md נסחבים בכל דחיפת-קו ובכל snapshot של מישור-הבקרה",
+    "יומן-ההחלטות (data/sovereign/decisions.jsonl) מציג בכל-ריצה שהארכיטקטורה פועלת לפי כוונות-העמידה"
+  ],
+  "appendOnly": true
 }
