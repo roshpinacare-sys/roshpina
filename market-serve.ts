@@ -131,6 +131,7 @@ if (DESK_ON) {
     seedSaosU: process.env.ROSHPINA_DESK_SEED_SAOS ?? "15000000",  // 15 SAOS
     gridStepU: BigInt(process.env.ROSHPINA_DESK_GRID_STEP_U ?? "1500"),
     oracleMaxSpreadU: BigInt(process.env.ROSHPINA_DESK_ORACLE_MAX_SPREAD_U ?? "4000"),
+    tuneMinIntervalMs: Number(process.env.ROSHPINA_DESK_TUNE_MIN_MS ?? "900000"),
     journalPath: join(DATA_DIR, "desk-journal.jsonl"),
   });
   await desk.start();
