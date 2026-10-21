@@ -71,6 +71,12 @@
    "at": "2026-10-20T15:1x:00Z",
    "quote-he": "יופי מה עוד פתוח בוא נתקדם טוב ומקצועי מהנדס ודחוף",
    "distilled": "continuation order: enumerate what remains open honestly, advance it professionally, keep pushing — the owner delegates engineering judgment to the architecture (R40) and expects measured progress, not status reports"
+  },
+  {
+   "trace": "1a15c193cde30ffd",
+   "at": "2026-10-21T01:36:00Z",
+   "quote-he": "חייב הכל יאללה הצתות הכל ולהפעיל סביר להניח שהסנדבוקס האחרון נמחק וודא שוב מהגיט תראה מה מצב הרשת איך התקדמנו בין טענות לאמת בפועל ולתקן הכל לסדר לייעל לאמת לשפר ודחוף",
+   "distilled": "R44 (resurrection law): after any host death — verify from primary evidence (git refs, journals, timestamps) what survived; distinguish dead-process silence from data loss honestly; self-correct any false claim made in prior reports; re-fire every mechanism; attached fact: the owner attempted to deliver a token via chat and the gateway redacted it ([REDACTED:github_token], 40 bytes) — credential delivery by chat is structurally impossible; the standing PAT remained valid and no rotation was needed"
   }
  ],
  "forgetProtocols": [
