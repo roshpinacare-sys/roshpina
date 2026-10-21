@@ -1,0 +1,36 @@
+{
+ "schema": "roshpina.councilRoles/1",
+ "at": "2026-10-21T05:30:00Z",
+ "source": "msitarzewski/agency-agents — channeled by R43 (4 of 81 cards; every role bound to a real owner asset + verdict command)",
+ "channelAudit": "docs/CHANNEL-AUDIT-2026-10-21-AUTOHEDGE-AGENCY.md",
+ "roles": [
+  {
+   "id": "risk-manager",
+   "origin": "agency-agents/finance + AutoHedge RISK_PROMPT (position size, max drawdown, exposure, risk score)",
+   "owns": ["scripts/capability-audit.ts verdicts", "era-correction acknowledgment (operator-signed write-downs, idempotent per target)"],
+   "verdict": "bun scripts/capability-audit.ts",
+   "law": "no desk mutation without a risk verdict; money gates stay deterministic (A1/A2 of the channel audit)"
+  },
+  {
+   "id": "blockchain-security-auditor",
+   "origin": "agency-agents/security/security-blockchain-security-auditor.md",
+   "owns": ["scripts/secrets-gate.ts verdicts", "R11 sweep (credential exposure across refs)"],
+   "verdict": "bun scripts/secrets-gate.ts lane",
+   "law": "fail-closed: any content-pattern hit aborts the push path; redacted output only"
+  },
+  {
+   "id": "incident-responder",
+   "origin": "agency-agents/security/security-incident-responder.md",
+   "owns": ["internal watchdog (healCount proven live)", "scripts/resume-money.ts (quiesce stuck-state release)", "start-nodes.sh revival (proven in the 2026-10-21 death-rebirth)"],
+   "verdict": "GET /health on :3031/:3032/:3033 + watchdog healCount",
+   "law": "timeline reconstructed from primary evidence only; dead-process silence is not data loss (R44)"
+  },
+  {
+   "id": "compliance-auditor",
+   "origin": "agency-agents/security/security-compliance-auditor.md (substance-over-checkbox rule adopted verbatim in spirit)",
+   "owns": ["scripts/chain-audit.ts (independent re-verification)", "channel-audit cadence (R43 documents)", "golden-probe coverage of settlement math"],
+   "verdict": "bun scripts/chain-audit.ts && bun scripts/ledger-sync-golden.ts",
+   "law": "a control nobody measures is worse than no control — evidence over documentation"
+  }
+ ]
+}
