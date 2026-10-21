@@ -1,0 +1,6 @@
+{
+  "at": "2026-10-20T16:57:17.429Z",
+  "gotContent": false,
+  "lastErr": "Error: http 503 — {\"error\":{\"message\":\"ResourceExhausted: Worker local total request limit reached (16/16)\",\"type\":\"Service Unavailable\",\"code\":503}}",
+  "rawSample": ""
+}

@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-10-20T17:58:26.983Z",
+  "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  "jsonRepaired": false,
+  "mission": "לרענן את קובץ site-data://sovereign-net.json עם עובדות רשת חיות ולהתעדכן בתיעוד ובתובנות על כשלים",
+  "tasks": [
+    {
+      "id": "t1",
+      "title": "עדכון שידור רשת עם עובדות רגעיות",
+      "why": "כדי לרענן את הקובץ site-data://sovereign-net.json שעדיין מכיל מידע מלפני 4.2 שעות ולספק נתונים מדויקים לפעילות האוטונומית",
+      "action": "code",
+      "detail": "ליצור פריט JSON אחד בתוך array items המשקף את המצב החי של הרשת",
+      "path": "site-data://sovereign-net.json",
+      "content": "{\"items\":[{\"id\":\"status-2026-10-20\",\"title\":\"מצב רשת רגע זה\",\"body\":\"בשעה 17:57:18 Z, trades=121, bids=4, asks=6, ledger seq=1214, accounts=25, runner jobs=3358, tick=13577, heals=1. כשל ב‑ai‑sentinel בת 17:25:46 ו‑ai‑architect בת 16:57:16, בנוסף לכשל ב‑market‑report בת 13:55:43. agents: alpha 988, bravo 1158, gamma 34, delta 4, epsilon 51, zeta 10, eta 68, theta 5, iota 0, kappa 0.\",\"kind\":\"broadcast\",\"createdAt\":\"2026-10-20T17:57:18.994Z\"}]}"
+    },
+    {
+      "id": "t2",
+      "title": "תיעוד כשלי AI‑sentinel ו‑ai‑architect",
+      "why": "כדי לשמור רישום מסודר של כשלים עם זמנים כדי לסייע בתיקון ובמעקב עתידי",
+      "action": "note",
+      "detail": "לכתוב תיעוד בקובץ docs/2026-10-20-failure-note.md הכולל רשימת כשלים עם תאריכי timestamp כפי שצויינו"
+    },
+    {
+      "id": "t3",
+      "title": "הצעת שינוי לוחות זמנים להפחתת עומס",
+      "why": "בהתבסס על מספר הכישלונות והעומס הקיים, עדכון לוחות הזמנים יכול להפחית כשלים ולקדם יציבות הרשת",
+      "action": "insight",
+      "detail": "לנתח את מספר הכישלונות לפי לוח זמנים קיים, ו להציע שינוי ב‑interval של schedule‑state‑backup או schedule‑sovereign‑oracle להפחתת עומס"
+    }
+  ],
+  "risks": [],
+  "stateSnapshot": "time: 2026-10-20T17:57:18.994Z\nmarket: trades=121 bids=4 asks=6\nledger: seq=1214 accounts=25\nrunner: jobs=3358 schedules=20 tick=13577 heals=1\n  schedule plan-executor/1200s: runs=68 fails=1 last=succeeded\n  schedule code-executor/1800s: runs=41 fails=2 last=succeeded\n  schedule market-report/60s: runs=1934 fails=82 last=succeeded\n  schedule estate-vault/900s: runs=21 fails=0 last=succeeded\n  schedule sovereign-oracle/900s: runs=14 fails=0 last=succeeded\n  schedule agent-pnl/900s: runs=14 fails=0 last=succeeded\n  schedule ledger-sync/300s: runs=382 fails=31 last=succeeded\n  schedule economy-run/300s: runs=343 fails=31 last=succeeded\n  schedule economy-cycle/600s: runs=181 fails=18 last=succeeded\n  schedule capability-audit/3600s: runs=3 fails=0 last=succeeded\n  schedule state-backup/900s: runs=112 fails=11 last=succeeded\n  schedule treasury-report/1800s: runs=7 fails=0 last=succeeded\n  schedule chain-audit/1800s: runs=7 fails=0 last=succeeded\n  schedule sovereign-decisions/1800s: runs=7 fails=0 last=succeeded\n  schedule self-audit/3600s: runs=4 fails=0 last=succeeded\n  schedule ai-sentinel/1800s: runs=50 fails=6 last=succeeded\n  schedule site-builder/1800s: runs=47 fails=0 last=succeeded\n  schedule control-plane-backup/3600s: runs=23 fails=2 last=running\n  schedule ai-architect/3600s: runs=22 fails=7 last=running\n  schedule dr-drill/86400s: runs=1 fails=0 last=succeeded\neconomy: agents=10 fills=alpha:988,bravo:1158,gamma:34,delta:4,epsilon:51,zeta:10,eta:68,theta:5,iota:0,kappa:0\nrecent failures (evidence): ai-sentinel: failed @17:25:46 · ai-architect: failed @16:57:16 · ai-sentinel: failed @16:55:46 · ai-architect: failed @15:57:15 · ai-architect: failed @14:55:57 · ai-sentinel: failed @14:55:42 · ai-sentinel: failed @14:25:42 · market-report: failed @13:55:43\nprevious plan (2026-10-19T19:56:31.717Z): t1=ניתוח כשל control-plane-backup · t2=תיעוד כישלונות עם timestamps · t3=פרסום שידור-רשת על כשל גיבוי והמלצה · t4=הצעת עדכון לוחות זמנים להפחתת עומס\nlast site build: cycle=48 @2026-10-20T17:57:18.990Z\nsite lane: sovereign-net.json is STALE (4.2h old) — prefer exactly one action:\"code\" task with path site-data://sovereign-net.json this round, refreshing it with the real live facts below"
+}

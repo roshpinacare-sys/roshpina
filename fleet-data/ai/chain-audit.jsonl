@@ -1,0 +1,9 @@
+{"at":"2026-10-20T14:12:34.114Z","ok":true,"baseSeq":261,"records":917,"lastSeq":1178,"lastHash":"557839878067fac7","liveSeq":1178,"liveHead":"557839878067fac7","anchored":"fold@1108","journalBytes":1478578}
+{"at":"2026-10-20T14:40:33.717Z","ok":true,"baseSeq":261,"records":918,"lastSeq":1179,"lastHash":"904c0927ceafd6f9","liveSeq":1179,"liveHead":"904c0927ceafd6f9","anchored":"fold@1108","journalBytes":1480173}
+{"at":"2026-10-20T15:10:33.760Z","ok":true,"baseSeq":261,"records":918,"lastSeq":1179,"lastHash":"904c0927ceafd6f9","liveSeq":1179,"liveHead":"904c0927ceafd6f9","anchored":"fold@1108","journalBytes":1480173}
+{"at":"2026-10-20T15:41:25.081Z","ok":true,"baseSeq":261,"records":926,"lastSeq":1187,"lastHash":"20472e03329bf888","liveSeq":1187,"liveHead":"20472e03329bf888","anchored":"fold@1108","journalBytes":1492984}
+{"at":"2026-10-20T16:11:46.492Z","ok":true,"baseSeq":261,"records":944,"lastSeq":1205,"lastHash":"f47303f7697e8c9a","liveSeq":1205,"liveHead":"f47303f7697e8c9a","anchored":"fold@1108","journalBytes":1521879}
+{"at":"2026-10-20T16:41:46.928Z","ok":true,"baseSeq":261,"records":944,"lastSeq":1205,"lastHash":"f47303f7697e8c9a","liveSeq":1205,"liveHead":"f47303f7697e8c9a","anchored":"fold@1108","journalBytes":1521879}
+{"at":"2026-10-20T17:11:46.919Z","ok":true,"baseSeq":261,"records":953,"lastSeq":1214,"lastHash":"a4b372813a1f32f7","liveSeq":1214,"liveHead":"a4b372813a1f32f7","anchored":"fold@1108","journalBytes":1536275}
+{"at":"2026-10-20T17:41:46.956Z","ok":true,"baseSeq":261,"records":953,"lastSeq":1214,"lastHash":"a4b372813a1f32f7","liveSeq":1214,"liveHead":"a4b372813a1f32f7","anchored":"fold@1108","journalBytes":1536275}
+{"at":"2026-10-20T18:11:49.458Z","ok":true,"baseSeq":261,"records":960,"lastSeq":1221,"lastHash":"9aefa88c2417f6fe","liveSeq":1221,"liveHead":"9aefa88c2417f6fe","anchored":"fold@1108","journalBytes":1547474}
