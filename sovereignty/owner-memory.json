@@ -130,6 +130,12 @@
       "at": "2026-10-21T10:11:02Z",
       "quote-he": "תמשיך",
       "distilled": "15th continuation (Task 49): the 2 capability-audit FAILs measured and killed — lane archive tag lagged behind live HEAD (cfc05d6 vs ca662d6; the manual tag-advance ritual failed once) breaking remote-preservation + self-red-team 1/11 — and dr-drill rebuilds production FROM this tag, so a lagging tag = stale-code DR. Immediate cure: guarded fast-forward advance, remote peel==HEAD verified. Structural cure: the council (sovereign-decisions) now advances the tag itself — preserve-lane-work, fast-forward-only, clean-tree-only, branch-first, divergence=ABSTAIN (R42); local-behind case heals via ff-only catch-up. Preservation no longer depends on builder memory."
+    },
+    {
+      "trace": "1a15e3f8b6405911",
+      "at": "2026-10-21T11:36:59Z",
+      "quote-he": "תמשיך",
+      "distilled": "16th continuation (Task 50): next measured frontier = the dead weave console chain that keeps sovereign/press data-age WARNs alive (quality 8/3/0); investigate from primary evidence whether it is revivable in-lane (task-41 flavor: revive from git, claims-vs-truth) or honestly external; union discipline; directive rides a commit this unit."
     }
   ],
   "forgetProtocols": [
