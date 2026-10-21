@@ -133,7 +133,12 @@ export function tuneGridDesk(
   now: number,
   tuneMinIntervalMs: number,
 ): TuneDecision {
-  // ── שער-הסיכון הראשון: רצפת-הפסד (kill) ──────────────────────────────────
+  // ── שער-הסיכון הראשון: הסגר (cooldown) — לפני-ה-kill, כדי שהמצב-הנמדד
+  // (pnl מתחת-לרצפה בתוך-הסגר) יהיה אירוע-שקט-אחד ולא ספאם-בכל-tick;
+  // kill-revert נורה פעם-אחת-בסגר — ואז פעימת-לב-אחת-לכל-2h אם-הרצפה עדיין נפרצה
+  if (now < st.cooldownUntil) {
+    return { kind: "cooldown", stepU: st.stepU, maxSpreadU: st.maxSpreadU, reason: `inside kill cooldown until ${new Date(st.cooldownUntil).toISOString()}` };
+  }
   if (
     risk.pnlMarkedU !== null &&
     risk.seedEquityU > 0n &&
@@ -155,9 +160,6 @@ export function tuneGridDesk(
         execution: "host applies genesis cfg + journals kill-revert",
       },
     };
-  }
-  if (now < st.cooldownUntil) {
-    return { kind: "cooldown", stepU: st.stepU, maxSpreadU: st.maxSpreadU, reason: `inside kill cooldown until ${new Date(st.cooldownUntil).toISOString()}` };
   }
   // ── quant: עוגן-מת/חסר = הקפאה (fail-closed — אין-כוונון על-עוגן-עיוור) ──
   if (regime.mode === "halt") {
