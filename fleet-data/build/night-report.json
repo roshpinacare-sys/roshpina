@@ -1,0 +1,91 @@
+{
+  "builtAt": "2026-10-22T00:14:21.264Z",
+  "cycle": 76,
+  "live": {
+    "market": {
+      "trades": 121,
+      "bids": 9,
+      "asks": 11
+    },
+    "ledger": {
+      "seq": 1469,
+      "accounts": 29
+    },
+    "runner": {
+      "jobs": 5107,
+      "schedules": "17/23 ירוקים",
+      "ticks": 2210,
+      "heals": 0
+    },
+    "economy": {
+      "agents": 12,
+      "treasury": "2026.04",
+      "staked": "641281.81",
+      "conservation": "מוחזק"
+    }
+  },
+  "stats": {
+    "trades": 121,
+    "ledgerSeq": 1469,
+    "agents": 12,
+    "jobsTotal": 5107,
+    "schedulesGreen": 17,
+    "schedulesEnabled": 23
+  },
+  "whatWasBuilt": [
+    "market-report: 765 ריצות-מוצלחות ב-24h (4 כישלונות-כנים)",
+    "economy-run: 154 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "ledger-sync: 125 ריצות-מוצלחות ב-24h (32 כישלונות-כנים)",
+    "economy-cycle: 77 ריצות-מוצלחות ב-24h (4 כישלונות-כנים)",
+    "estate-vault: 53 ריצות-מוצלחות ב-24h",
+    "agent-pnl: 52 ריצות-מוצלחות ב-24h",
+    "sovereign-oracle: 52 ריצות-מוצלחות ב-24h",
+    "state-backup: 51 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "הנדסה אמיתית שנדחפה לגיט (roshpina): b5556cc agent4: directiveLog 21/21",
+    "מטוס-הבקרה מגובה: c9eda22 cab77fa2-adc0-459e-9ed2-cf0785da5ee3"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-21T23:51:57.407Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "mission": "לבצע ניתוח והערכת כשלי משימות קריטיות כדי לתכנן שיפורים אוטונומיים ברשת",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "ניתוח כשלי משימות קריטיות",
+        "why": "זיהוי דפוסים של כישלונות לאחרונה לשיפור היציבות",
+        "action": "insight"
+      },
+      {
+        "id": "t2",
+        "title": "תיעוד מצב site-data://sovereign-net.json",
+        "why": "להבטיח שהאתר מעודכן ומוכן לפרסום אם יש צורך",
+        "action": "note"
+      },
+      {
+        "id": "t3",
+        "title": "הערכת עומס משימות schedule",
+        "why": "לזהות משימות עם כשל גבוה ול prioritize תיקון",
+        "action": "insight"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-21T23:45:00.669Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "text": "הערכה: הרשת פעילה עם 121 עסקאות, בידים ובקשות מאוזנות, ו‑12 סוכנים מחזיקים כמויות משמעותיות של USDS ו‑SAOS, אך מספר משימות ליבה (לדוגמה לידר‑סינק, כלכלה‑רัน, AI‑סניטל ו‑AI‑אדריכל) נכשלות בתדירות גבוהה, מה שמעיד על בעיות יציבות אפשריות.  \n\nסיכונים:  \n1. כשל גבוה בתהליכים הקריטיים (לידר‑סינק, כלכלה‑רัน, AI‑סניטל, AI‑אדריכל) – עלול לגרום לאינקונסיסטנטיות של הלדג’ר ולחוסר רווחים.  \n2. סוכנים (דלתא, תיאטה,iota, קאפה) עם אפס סטייקינג USDS – מגבילים את יכולתם לייצר פילס and לקחת חלק פעיל בשוק, מה שמפחית עומק ומשפיע על נזילות.  \n3. האוצר מחזיק כמות זעירה של µ‑USDS (1997.40) ביחס ל‑USDS של הסוכנים – סיכון ריכוז נזילות אם יתבצעו משיכות גדולות.  \n\nאנומליות: משימת “roast‑grill” (ברצף 21600s) ביצעה רק ריצה אחת ונכשלה מיד, דבר שאינו אופייני לתהליך מתוזמן בטווח זמן ארוך.  \n\nהמלצות:  \n- לבדוק ולהפעיל מחדש את משימות הלידר‑סינק והכלכלה‑רัน המונעות, לרבות טיפול בתוצאות השגויות שגורמות להן לכישלון.  \n- לעודד סוכנים עם אפס סטייקינג USDS להתחיל סטייקינג, כך יגדלו הסיכויים שלהם לקבל פילס ולתרום לעומק השוק.  \n- להגדיל את רזרבת האוצר µ‑USDS (לדוגמה על‑ידי הקצאת חלק קטן מהעמלה היומית) כדי לחזק את נזילות האוצר ולמנוע משבר נזילות פתאומי."
+  },
+  "commits": {
+    "roshpina": [
+      "b5556cc agent4: directiveLog 21/21 (trace 1a160c8a9c5a3805) — self-revival proven by kill-test, ref-warden cures eaten branches, secrets root bled (upload/ untracked) (28 minutes ago)",
+      "0c7569d agent4 (task 54, trace 1a160a018a938659): 20th directive distilled — operator saw no activity; measured truth: self-revival worked every time but was invisible (3 env suspensions 488/29/87min left zero public trace). Cure: network pulse published live on the public panel — measured from the journal: last-activity age, jobs24h=1491, freeze gaps each proven closed by self-revival, ALIVE/QUIET/SUSPENDED-LIKELY verdict + honest suspension banner >90min. Silence now carries a measured explanation, never a silent blank. directiveLog 20/20 (87 minutes ago)",
+      "01f0c9a agent4 (task 53, trace 1a16089ddb1ed8c9): 19th directive distilled — continue from the measured frontier: environment re-freeze 20:46→22:13 measured honestly (87min journal gap); boot-wave failures measured to root and cured structurally — NIM empty-content retry-once-larger (≥3200) in all 3 carriers, proven live; self-audit schedule grace = max(2h, own interval) (a 6h schedule cannot fire within 2h — fixed grace was a false alarm, not a loosened gate); economy-cycle boot-window transient healed with journaled evidence; roast-grill first journal record. SELF-AUDIT-OK 11/11 + CAPABILITY-AUDIT-OK fresh. directiveLog 19/19 (2 hours ago)",
+      "420d216 agent4 (task 52, trace 1a15f55f6d0395f9): 18th directive distilled — roast grill test: the network grills itself without trusting its own claims (independent adversarial audit, raw primitives, existing auditors re-run fresh as claims, negative controls prove the audit tool can fail — grill-without-teeth=broken, fail-closed). Painful truths measured: worklog Task-50 lost to the freeze (reconstructed from lane commits), scheduled self/capability audits failed in the recovery window (fresh runs heal, gates not loosened). directiveLog 18/18 (7 hours ago)"
+    ],
+    "control": [
+      "c9eda22 cab77fa2-adc0-459e-9ed2-cf0785da5ee3 (16 minutes ago)",
+      "6bb838a agent4: Task 55 closure addendum — grill 15/0 via runner, browser-verified, chain green (17 minutes ago)",
+      "199a668 agent4: Task 55 closure — ai-architect site-payload gate (truncation-class dropped honestly), grill in-flight self-visibility fix, grill 15/0 green via runner (20 minutes ago)",
+      "a9fc7b0 agent4: Task 55 — ref-warden (branch-from-tag heal, 10min), night-heartbeat v3 supervisor (kill-test proven ~93s revival), upload/ untracked (push-protection root), directiveLog 21/21, worklog Task 55 (28 minutes ago)"
+    ]
+  }
+}

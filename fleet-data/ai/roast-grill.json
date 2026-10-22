@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-21T23:53:41.773Z",
+  "verdict": "ROAST-GRILL-OK",
+  "summary": {
+    "pass": 15,
+    "fail": 0,
+    "gaps": 0,
+    "controls": "proven"
+  },
+  "directives": 21,
+  "painful": []
+}

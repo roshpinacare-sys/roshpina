@@ -1,0 +1,70 @@
+{"ts":"2026-10-18T06:47:52.143Z","plan":"2026-10-18T06:47:36.866Z","taskId":"t4","path":"agent-lab/economy-run-improver.ts","phase":"attempt","title":"כתיבת מודול שיפור economy-run עם retry ו-backoff"}
+{"ts":"2026-10-18T06:47:52.241Z","plan":"2026-10-18T06:47:36.866Z","taskId":"t4","path":"agent-lab/economy-run-improver.ts","phase":"accepted","bytes":1617,"kernel":"? pass"}
+{"ts":"2026-10-18T06:48:29.916Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g1","path":"kernel/evil.ts","phase":"attempt","title":"path outside whitelist"}
+{"ts":"2026-10-18T06:48:29.919Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g1","path":"kernel/evil.ts","phase":"refused","reason":"path \"kernel/evil.ts\" is outside the code whitelist [agent-lab/, docs/, broadcasts/]"}
+{"ts":"2026-10-18T06:48:29.919Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g2","path":"../../etc/passwd","phase":"attempt","title":"traversal"}
+{"ts":"2026-10-18T06:48:29.919Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g2","path":"../../etc/passwd","phase":"refused","reason":"path traversal refused"}
+{"ts":"2026-10-18T06:49:20.542Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g1","path":"kernel/evil.ts","phase":"attempt","title":"path outside whitelist"}
+{"ts":"2026-10-18T06:49:20.542Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g1","path":"kernel/evil.ts","phase":"refused","reason":"path \"kernel/evil.ts\" is outside the code whitelist [agent-lab/, docs/, broadcasts/]"}
+{"ts":"2026-10-18T06:49:20.542Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g2","path":"../../etc/passwd","phase":"attempt","title":"traversal"}
+{"ts":"2026-10-18T06:49:20.543Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g2","path":"../../etc/passwd","phase":"refused","reason":"path traversal refused"}
+{"ts":"2026-10-18T06:49:20.565Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g3","path":"agent-lab/bad.ts","phase":"attempt","title":"forbidden content"}
+{"ts":"2026-10-18T06:49:20.565Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g3","path":"agent-lab/bad.ts","phase":"refused","reason":"forbidden pattern: network calls are not allowed in lab modules"}
+{"ts":"2026-10-18T06:49:20.565Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g4","path":"agent-lab/broken.ts","phase":"attempt","title":"broken import"}
+{"ts":"2026-10-18T06:49:20.577Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g4","path":"agent-lab/broken.ts","phase":"reverted","reason":"import gate failed (exit 1): 1 | export const y: number = { not a number };;\n                                   ^\nerror: Expected \"}\" but found \"a\"\n    at /home/z/repos/roshpina/agent-lab/broken.ts:1:32\n\n1 | export const y: number = { not a number };;\n                                     ^\nerror: Expected \";\" but found \"number\""}
+{"ts":"2026-10-18T06:49:20.602Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g4","path":"agent-lab/broken.ts","phase":"attempt","title":"broken import"}
+{"ts":"2026-10-18T06:49:20.615Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g4","path":"agent-lab/broken.ts","phase":"reverted","reason":"import gate failed (exit 1): 1 | export const y: number = { not a number };;\n                                   ^\nerror: Expected \"}\" but found \"a\"\n    at /home/z/repos/roshpina/agent-lab/broken.ts:1:32\n\n1 | export const y: number = { not a number };;\n                                     ^\nerror: Expected \";\" but found \"number\""}
+{"ts":"2026-10-18T06:49:20.615Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g5","path":"docs/gate-test.md","phase":"attempt","title":"valid doc"}
+{"ts":"2026-10-18T06:49:20.709Z","plan":"SYNTHETIC-GATE-TEST-2026-10-18","taskId":"g5","path":"docs/gate-test.md","phase":"accepted","bytes":165,"kernel":"47 pass"}
+{"ts":"2026-10-18T07:39:12.062Z","plan":"SYNTHETIC-GATE-TEST-20","taskId":"sg1","path":"site-data://sovereign-net.json","phase":"attempt","title":"מבחן-שער תקין — פרסום-אתר"}
+{"ts":"2026-10-18T07:39:12.078Z","plan":"SYNTHETIC-GATE-TEST-20","taskId":"sg1","path":"site-data://sovereign-net.json","phase":"accepted","bytes":387,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-18T07:39:12.078Z","plan":"SYNTHETIC-GATE-TEST-20","taskId":"sg2","path":"site-data://sovereign-net.json","phase":"attempt","title":"מבחן-שער פסול-סכמה"}
+{"ts":"2026-10-18T07:39:12.078Z","plan":"SYNTHETIC-GATE-TEST-20","taskId":"sg2","path":"site-data://sovereign-net.json","phase":"refused","reason":"site-schema: item.id required (≤40 chars)"}
+{"ts":"2026-10-18T07:39:19.801Z","plan":"SYNTHETIC-GATE-TEST-20","taskId":"sg3","path":"site-data://../../etc/passwd","phase":"attempt","title":"מבחן-חדירה site-data"}
+{"ts":"2026-10-18T07:39:19.802Z","plan":"SYNTHETIC-GATE-TEST-20","taskId":"sg3","path":"site-data://../../etc/passwd","phase":"refused","reason":"site lane has exactly one writable target: site-data://sovereign-net.json"}
+{"ts":"2026-10-18T07:42:29.383Z","plan":"2026-10-18T07:40:51.423Z","taskId":"t3","path":"agent-lab/economy-retry.ts","phase":"attempt","title":"כתיבת מודול ריטרי עבור economy-run"}
+{"ts":"2026-10-18T07:42:29.477Z","plan":"2026-10-18T07:40:51.423Z","taskId":"t3","path":"agent-lab/economy-retry.ts","phase":"accepted","bytes":479,"gate":"kernel 47 pass"}
+{"ts":"2026-10-18T07:55:35.732Z","plan":"2026-10-18T07:40:51.423Z","taskId":"t3","path":"agent-lab/economy-retry.ts","phase":"attempt","title":"כתיבת מודול ריטרי עבור economy-run"}
+{"ts":"2026-10-18T07:55:35.827Z","plan":"2026-10-18T07:40:51.423Z","taskId":"t3","path":"agent-lab/economy-retry.ts","phase":"accepted","bytes":479,"gate":"kernel 47 pass"}
+{"ts":"2026-10-18T11:51:05.402Z","plan":"2026-10-18T11:48:40.542Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור רשת חי"}
+{"ts":"2026-10-18T11:51:05.415Z","plan":"2026-10-18T11:48:40.542Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":813,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-18T12:28:33.483Z","plan":"2026-10-18T12:26:56.171Z","taskId":"t3","path":"agent-lab/ledger-sync-failures.ts","phase":"attempt","title":"קובץ מוניטור כישלונות ledger-sync"}
+{"ts":"2026-10-18T12:28:33.586Z","plan":"2026-10-18T12:26:56.171Z","taskId":"t3","path":"agent-lab/ledger-sync-failures.ts","phase":"accepted","bytes":218,"gate":"kernel 47 pass"}
+{"ts":"2026-10-18T13:17:00.000Z","plan":"2026-10-18T12:48:03.712Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת באתר על כשלים והמלצות"}
+{"ts":"2026-10-18T13:17:00.012Z","plan":"2026-10-18T12:48:03.712Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":699,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-18T14:26:44.043Z","plan":"2026-10-18T13:47:11.607Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת באתר על כשלים והמלצות"}
+{"ts":"2026-10-18T14:26:44.091Z","plan":"2026-10-18T13:47:11.607Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":895,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-18T15:36:46.688Z","plan":"2026-10-18T14:58:36.109Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת באתר על כשלים והמלצות"}
+{"ts":"2026-10-18T15:36:46.700Z","plan":"2026-10-18T14:58:36.109Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":935,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-18T22:29:31.471Z","plan":"2026-10-18T16:08:10.377Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת באתר על כשלים והמלצות"}
+{"ts":"2026-10-18T22:29:31.486Z","plan":"2026-10-18T16:08:10.377Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":733,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-18T23:01:17.885Z","plan":"2026-10-18T22:31:19.013Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת באתר על מצב השוק וכשלים"}
+{"ts":"2026-10-18T23:01:17.909Z","plan":"2026-10-18T22:31:19.013Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":1420,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-19T00:09:19.591Z","plan":"2026-10-18T23:33:15.327Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת באתר על מצב השוק וכשלים"}
+{"ts":"2026-10-19T00:09:19.650Z","plan":"2026-10-18T23:33:15.327Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":1049,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-19T14:15:07.832Z","plan":"2026-10-19T13:45:43.855Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת באתר (sovereign-net.json)"}
+{"ts":"2026-10-19T14:15:07.844Z","plan":"2026-10-19T13:45:43.855Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":1471,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-19T14:45:07.916Z","plan":"2026-10-19T14:45:06.397Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת באתר (sovereign-net.json)"}
+{"ts":"2026-10-19T14:45:07.917Z","plan":"2026-10-19T14:45:06.397Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"refused","reason":"site-schema: site payload is not valid JSON"}
+{"ts":"2026-10-19T15:15:08.126Z","plan":"2026-10-19T14:45:06.397Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת באתר (sovereign-net.json)"}
+{"ts":"2026-10-19T15:15:08.126Z","plan":"2026-10-19T14:45:06.397Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"refused","reason":"site-schema: site payload is not valid JSON"}
+{"ts":"2026-10-19T15:45:08.483Z","plan":"2026-10-19T15:44:27.218Z","taskId":"t3","path":"docs/2026-10-19-failure-summary.md","phase":"attempt","title":"כתיבת סיכום כשלים למסמך פנימי"}
+{"ts":"2026-10-19T15:45:08.574Z","plan":"2026-10-19T15:44:27.218Z","taskId":"t3","path":"docs/2026-10-19-failure-summary.md","phase":"accepted","bytes":982,"gate":"kernel 47 pass"}
+{"ts":"2026-10-19T16:15:08.501Z","plan":"2026-10-19T15:44:27.218Z","taskId":"t3","path":"docs/2026-10-19-failure-summary.md","phase":"attempt","title":"כתיבת סיכום כשלים למסמך פנימי"}
+{"ts":"2026-10-19T16:15:08.586Z","plan":"2026-10-19T15:44:27.218Z","taskId":"t3","path":"docs/2026-10-19-failure-summary.md","phase":"accepted","bytes":982,"gate":"kernel 47 pass"}
+{"ts":"2026-10-19T18:07:35.802Z","plan":"2026-10-19T17:39:22.297Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"עדכון שידורי-הרשת באתר"}
+{"ts":"2026-10-19T18:07:35.815Z","plan":"2026-10-19T17:39:22.297Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":1961,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-19T19:25:26.644Z","plan":"2026-10-19T18:39:54.313Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת עם סיכום והמלצות"}
+{"ts":"2026-10-19T19:25:26.654Z","plan":"2026-10-19T18:39:54.313Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":948,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-20T13:15:07.168Z","plan":"2026-10-19T19:56:31.717Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת על כשל גיבוי והמלצה"}
+{"ts":"2026-10-20T13:15:07.975Z","plan":"2026-10-19T19:56:31.717Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":562,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-20T13:45:07.204Z","plan":"2026-10-19T19:56:31.717Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"attempt","title":"פרסום שידור-רשת על כשל גיבוי והמלצה"}
+{"ts":"2026-10-20T13:45:07.218Z","plan":"2026-10-19T19:56:31.717Z","taskId":"t3","path":"site-data://sovereign-net.json","phase":"accepted","bytes":562,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-21T01:23:30.850Z","plan":"2026-10-20T17:58:26.983Z","taskId":"t1","path":"site-data://sovereign-net.json","phase":"attempt","title":"עדכון שידור רשת עם עובדות רגעיות"}
+{"ts":"2026-10-21T01:23:30.863Z","plan":"2026-10-20T17:58:26.983Z","taskId":"t1","path":"site-data://sovereign-net.json","phase":"accepted","bytes":495,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-21T18:34:16.074Z","plan":"2026-10-21T17:57:02.501Z","taskId":"t1","path":"site-data://sovereign-net.json","phase":"attempt","title":"עדכון site-data://sovereign-net.json בנתוני המצב החי"}
+{"ts":"2026-10-21T18:34:16.076Z","plan":"2026-10-21T17:57:02.501Z","taskId":"t1","path":"site-data://sovereign-net.json","phase":"refused","reason":"site-schema: site payload is not valid JSON"}
+{"ts":"2026-10-21T22:44:50.151Z","plan":"2026-10-21T22:14:55.389Z","taskId":"t1","path":"site-data://sovereign-net.json","phase":"attempt","title":"עדכון site-data://sovereign-net.json"}
+{"ts":"2026-10-21T22:44:50.166Z","plan":"2026-10-21T22:14:55.389Z","taskId":"t1","path":"site-data://sovereign-net.json","phase":"accepted","bytes":507,"gate":"site-gate ok (kernel untouched)"}
+{"ts":"2026-10-21T23:44:50.675Z","plan":"2026-10-21T23:17:04.865Z","taskId":"t1","path":"site-data://sovereign-net.json","phase":"attempt","title":"עדכון site-data://sovereign-net.json עם רשימת כשלי משימות קריטיות"}
+{"ts":"2026-10-21T23:44:50.675Z","plan":"2026-10-21T23:17:04.865Z","taskId":"t1","path":"site-data://sovereign-net.json","phase":"refused","reason":"site-schema: site payload is not valid JSON"}

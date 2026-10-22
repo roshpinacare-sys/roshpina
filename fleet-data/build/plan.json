@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2026-10-21T23:51:57.407Z",
+  "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  "jsonRepaired": false,
+  "mission": "לבצע ניתוח והערכת כשלי משימות קריטיות כדי לתכנן שיפורים אוטונומיים ברשת",
+  "tasks": [
+    {
+      "id": "t1",
+      "title": "ניתוח כשלי משימות קריטיות",
+      "why": "זיהוי דפוסים של כישלונות לאחרונה לשיפור היציבות",
+      "action": "insight",
+      "detail": "סקירת הכשלים (roast-grill, code-executor, control-plane-backup, ai-sentinel, self-audit, capability-audit) ומציאת קשרים של זמן ושעורים"
+    },
+    {
+      "id": "t2",
+      "title": "תיעוד מצב site-data://sovereign-net.json",
+      "why": "להבטיח שהאתר מעודכן ומוכן לפרסום אם יש צורך",
+      "action": "note",
+      "detail": "בדיקת עדכניות site-data; לפי המידע, האתר עודכן לאחרונה (previous plan) ולכן אין צורך בפרסום חדש"
+    },
+    {
+      "id": "t3",
+      "title": "הערכת עומס משימות schedule",
+      "why": "לזהות משימות עם כשל גבוה ול prioritize תיקון",
+      "action": "insight",
+      "detail": "ניתוח מספר הכשלים לפי משימה (לדוגמה, ai-sentinel 19, self-audit 5, capability-audit 5) כדי לקבוע סדר עדיפויות"
+    }
+  ],
+  "risks": [],
+  "stateSnapshot": "time: 2026-10-21T23:51:24.925Z\nmarket: trades=121 bids=9 asks=11\nledger: seq=1459 accounts=29\nrunner: jobs=5056 schedules=23 tick=670 heals=0\n  schedule market-report/60s: runs=2710 fails=86 last=succeeded\n  schedule economy-cycle/600s: runs=261 fails=22 last=succeeded\n  schedule ledger-sync/300s: runs=539 fails=63 last=succeeded\n  schedule economy-run/300s: runs=500 fails=33 last=succeeded\n  schedule plan-executor/1200s: runs=109 fails=3 last=succeeded\n  schedule state-backup/900s: runs=165 fails=13 last=succeeded\n  schedule ref-warden/600s: runs=1 fails=0 last=succeeded\n  schedule estate-vault/900s: runs=74 fails=0 last=succeeded\n  schedule sovereign-oracle/900s: runs=67 fails=0 last=succeeded\n  schedule agent-pnl/900s: runs=67 fails=0 last=succeeded\n  schedule ai-sentinel/1800s: runs=78 fails=19 last=succeeded\n  schedule control-plane-backup/3600s: runs=37 fails=2 last=succeeded\n  schedule site-builder/1800s: runs=74 fails=0 last=succeeded\n  schedule ai-architect/3600s: runs=36 fails=18 last=succeeded\n  schedule code-executor/1800s: runs=69 fails=4 last=failed\n  schedule treasury-report/1800s: runs=35 fails=0 last=succeeded\n  schedule self-audit/3600s: runs=19 fails=5 last=succeeded\n  schedule capability-audit/3600s: runs=18 fails=5 last=succeeded\n  schedule chain-audit/1800s: runs=35 fails=0 last=succeeded\n  schedule sovereign-decisions/1800s: runs=35 fails=0 last=succeeded\n  schedule pages-evidence/1800s: runs=18 fails=1 last=succeeded\n  schedule roast-grill/21600s: runs=1 fails=1 last=failed\n  schedule dr-drill/86400s: runs=2 fails=0 last=succeeded\neconomy: agents=12 fills=alpha:988,bravo:1158,gamma:34,delta:4,epsilon:51,zeta:10,eta:68,theta:5,iota:0,kappa:0,mm-grid:0,mm-oracle:0\nrecent failures (evidence): roast-grill: failed @23:47:40 · code-executor: failed @23:44:50 · roast-grill: failed @23:04:45 · control-plane-backup: failed @22:47:12 · roast-grill: failed @22:22:48 · capability-audit: failed @22:15:20 · self-audit: failed @22:15:05 · ai-sentinel: failed @22:14:05\nprevious plan (2026-10-21T23:17:04.865Z): t1=עדכון site-data://sovereign-net.json עם רשימת כשלי משימות קריטיות · t2=ניתוח כשלי משימות קריטיות · t3=תיעוד על סטטוס site-data · t4=הערכת עומס משימות schedule\nlast site build: cycle=75 @2026-10-21T23:44:21.198Z\nsite lane: sovereign-net.json published recently — refresh only when there is real news"
+}
