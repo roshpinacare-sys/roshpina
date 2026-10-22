@@ -1,6 +1,6 @@
 {
  "schema": "roshpina.sovereignty.owner-memory/v1",
- "at": "2026-10-21T23:45:25Z",
+ "at": "2026-10-22T01:30:00Z",
  "law": "R40b — הבעלים לעולם לא נשכח: רישום-זהותו, כוונות-העמידה וההנחיות של הבעלים; אסור למחוק, מותר רק להוסיף",
  "owner": {
   "role": "beneficiary & origin of intent — הבעלים בפועל",
@@ -178,6 +178,12 @@
    "at": "2026-10-22T00:50:00Z",
    "quote-he": "תמשיך ודחוף",
    "distilled": "23rd directive — continue and push. The last declared grill gap (ai-architect 19/37) taken to root. MEASURED anatomy from persisted outputs: three distinct failure modes stacked — (1) runner preset timeoutMs 150s KILLS the job (exit 137) while the measured legitimate success distribution reaches 172s — the budget is tighter than reality; (2) primary nano call hits its own 90s AbortSignal mid-reasoning (TimeoutError); (3) upstream 503 ResourceExhausted (recurring capacity); (4) lightning fallback empty content (reasoning burn — task-56 class). CURES: preset budget 150s→300s (measured distribution + ladder worst-case room); lightning fallback now goes UNTHINKING-FIRST (chat_template_kwargs thinking:false — probed 2026-10-22: finish=stop, zero reasoning tokens, immediate content) so the emergency lane answers in seconds instead of burning the remaining budget; ladder preserved for attempts 1–2. The architect's emergency plan arrives alive instead of being killed while thinking."
+  },
+  {
+   "trace": "1a1612bd377d7169",
+   "at": "2026-10-22T01:30:00Z",
+   "quote-he": "תמשיך ודחוף",
+   "distilled": "24th directive — continue and push. The supervision layer itself made VISIBLE and JOURNALED (the operator's standing complaint 'אני לא רואה בכלל פעילות' — task 54 published the network's pulse; this unit publishes the supervisor's own truth). MEASURED: the summary's cron plan was architecturally dead in this environment — no crontab binary, no cron daemon (ls-verified), so the honest division stands: night-heartbeat.sh v3 (30s external loop) revives, and the NEW watchdog preset measures. BUILT: scripts/watchdog.mjs — journaled supervision measurement (heartbeat pid+log liveness, 4 probes, journal last-END age, revive history) writing data/heartbeat.json (atomic) + data/watchdog.jsonl (append-only); SUPERVISION-BROKEN = exit 1 fail-closed, negative control PROVEN (pidfile hidden → BROKEN, restored → OK); journal stale >180min while runner alive = self-activation of ai-sentinel (visible agent activity). Runner preset registered (hot-reload verified) + standing schedule every 15min = supervision now leaves journal evidence every quarter-hour. VISIBILITY: /api/watchdog (read-only disk-truth) + console tile 'משגיח-החוץ' on :3000 — alive badge, verdict badge, live probe line with age, journal freshness, measured revive history (the 23:42 KILL-TEST REVIVE shown as proof). Browser-verified: tile renders with live data, auto-refresh proven (probe age advanced), mobile 390px + desktop clean, zero console errors."
   }
  ],
  "forgetProtocols": [
