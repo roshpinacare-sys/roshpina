@@ -1,6 +1,6 @@
 {
   "schema": "roshpina.sovereignty.owner-memory/v1",
-  "at": "2026-10-22T03:32:49Z",
+  "at": "2026-10-22T04:50:35Z",
   "law": "R40b — הבעלים לעולם לא נשכח: רישום-זהותו, כוונות-העמידה וההנחיות של הבעלים; אסור למחוק, מותר רק להוסיף",
   "owner": {
     "role": "beneficiary & origin of intent — הבעלים בפועל",
@@ -196,6 +196,12 @@
       "at": "2026-10-22T03:32:49Z",
       "quote-he": "תמשיך ודחוף תראה אם יש להם איך להועיל לנו ותממש מה שהכי טוב לנו כדי לייעל בנוסף למה שפתוח github.com/miqdadbadjuber/anti-slop ואל תכתוב בסינית",
       "distilled": "26th directive — continue and push; mine miqdadbadjuber/anti-slop IN ADDITION to what's already open (25th: context-budget); answer in Hebrew, never Chinese. IMPLEMENTED (measured): machine slop-filter lib (lib-slop-filter.ts) distilling anti-slop Hard-Gate text rules (R-02/R-16/R-17/R-18/R-36) into tier1-kill/tier2-evidence regexes with Hebrew hype equivalents; prevention = SLOP_PROMPT_RULES injected into BOTH agents' SYSTEM; enforcement = architect strips tier-1 slop site items at source (kept items keep the exact executor contract; all-slop → task dropped, honest note); evidence = sentinel scan journaled in latest-analysis.json (record.slopScan) + consumer scan-only in code-executor (declared, no new failure class); console badge 'סריקת-slop' emerald-CLEAN/amber-SLOP. NEGATIVE CONTROLS: synthetic slop → SLOP tier1=4 (מהפכנית/ROI-claim/10,000%-magic/SOC-2); measured-facts text → CLEAN zero-hits (real numbers never punished — our live data IS the source); per-item isolation proven (slopIds=[slop-item], clean-item untouched). LIVE: ai-sentinel job_mvizf83o_f80l1k → succeeded 53.1s (nano 503-class ×3 → lightning unthinking rescue re-proven) → analysis fact-shaped → CLEAN tier1=0 tier2=5 (em-dash advisory only) — browser-verified badge, mobile 390, zero console errors."
+    },
+    {
+      "trace": "1a161e768973e095",
+      "at": "2026-10-22T04:50:35Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "27th directive — continue and push. MEASURED PAIN: (1) ref-warden was direction-blind — it force-reset the lane branch BACKWARD (bfbb973→bf1e6e6) because the directive commit was 'drift' vs the stale archive tag (the warden itself ate the work; grill 05:04 would have failed refs-law); (2) roast-grill schedule showed last=failed from 23:04 (refs eaten — attributed), all manual grills since succeeded but don't heal schedule cache; (3) ai-architect 04:18 burned 2×Timeout on dead nano (~3min) then got broken JSON. CURES (measured): (A) tag-forward law in ref-warden — ancestry measured (merge-base --is-ancestor on temp refs): branch that is a strict DESCENDANT of the archive tag = work moved forward → the TAG follows the branch (remote + local head mirror); only unrelated drift or GONE keeps the old conservative branch-to-tag force; ZERO backward moves ever. Negative controls 4/4 in scratch repo (descendant→true, ancestor→false, unrelated→false, equal→false); warden live-run then caught the real control-plane branch GONE and healed it (2059721) — core function intact. (B) lib-model-ladder.ts — adaptive model ladder: one small state file (lastGood/lastBad+kind+at, 30min window); fresh-dead first-of-ladder → start with last-good (architect: fallback-unthinking first per task-57 law; nano climbs after); static order remains the law, memory only skips the certainly-dead. Negative controls 4/4 (empty→static, fresh-bad→fallback-first, stale-bad(45m)→static, good recorded). (C) refs realigned: archive/agent4/p2-sovereign-market → bfbb973 (branch==tag==head). LIVE PROOF: sentinel seed run seeds ladder state honestly (nano 503 → recorded → lightning rescue), second run proves the skip note; fresh grill fired for post-directive certification."
     }
   ],
   "forgetProtocols": [
