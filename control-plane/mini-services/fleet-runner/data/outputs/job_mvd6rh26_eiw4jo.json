@@ -1,0 +1,1 @@
+{"stdout":"== economy-cycle against LIVE node http://127.0.0.1:3033 ==\nepoch e2026-10-18T02 · treasury before: 213826 µ¢ · trades=47\n","stderr":"tax refused: http 500 {\"error\":\"internal\",\"detail\":\"ENOENT: no such file or directory, open 'data/market-net/usds/snapshot.json.tmp'\"}\n","truncated":false}

@@ -1,0 +1,1 @@
+{"stdout":"","stderr":"AI-SENTINEL-FAIL: vault sealed/absent — data/vault/nim-api.env לא נמצא.\n  שחזור: bash scripts/vault-unseal.sh nim-api.env  (מהגיט, אוטונומית)\n","truncated":false}

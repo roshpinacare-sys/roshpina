@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-23T16:20:40.226Z",
+  "marketOk": true,
+  "ledgerOk": true,
+  "fees": "202604",
+  "mintedQuote": "338112919",
+  "staked": "64128181",
+  "inEscrowQuote": "3653925",
+  "settledTrades": 121,
+  "bookTrades": 663,
+  "holds": true
+}

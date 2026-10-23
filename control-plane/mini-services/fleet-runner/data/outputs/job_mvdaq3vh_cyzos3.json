@@ -1,0 +1,1 @@
+{"stdout":"STATE-BACKUP-OK\ncapsule: /home/z/my-project/state-snapshots/state-2026-10-18T03-58-57.tar.gz (240.0 KB)\npacked:  roshpina[data/ledger-net, data/market-net] runner[data/jobs.jsonl, data/schedules.json, data/keys/manifest.json]\nretained: 10 capsules (pruned 1 old)\n","stderr":"","truncated":false}

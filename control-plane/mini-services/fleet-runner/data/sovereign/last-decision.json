@@ -1,0 +1,23 @@
+{
+ "runAt": "2026-10-23T16:21:25.242Z",
+ "decisions": [
+  {
+   "at": "2026-10-23T16:21:30.324Z",
+   "id": "dec_mvl6gaqc_9xrt",
+   "kind": "restore-lane-branch",
+   "evidence": "external cleaner deleted agent4/p2-sovereign-market; archive tag intact (3f520c1)",
+   "action": "force-push local HEAD (3f520c1) → refs/heads/agent4/p2-sovereign-market",
+   "outcome": "restored",
+   "law": "R40 decides · builder-mortality law: the work survives the builder"
+  },
+  {
+   "at": "2026-10-23T16:21:43.090Z",
+   "id": "dec_mvl6gkky_75m6",
+   "kind": "restore-control-plane-branch",
+   "evidence": "external cleaner deleted agent4/control-plane; rebuilding snapshot from the live control-plane tree",
+   "action": "bun scripts/control-plane-backup.ts (dual-ref: branch + archive tag)",
+   "outcome": "restored",
+   "law": "R40 decides · snapshot-semantics survive external deletion"
+  }
+ ]
+}

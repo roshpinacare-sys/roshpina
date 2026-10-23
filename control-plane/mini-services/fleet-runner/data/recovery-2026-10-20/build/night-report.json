@@ -1,0 +1,103 @@
+{
+  "builtAt": "2026-10-20T11:59:13.016Z",
+  "cycle": 55,
+  "live": {
+    "market": {
+      "trades": 121,
+      "bids": 4,
+      "asks": 6
+    },
+    "ledger": {
+      "seq": 1247,
+      "accounts": 25
+    },
+    "runner": {
+      "jobs": 3774,
+      "schedules": "18/19 ירוקים",
+      "ticks": 20583,
+      "heals": 1
+    },
+    "economy": {
+      "agents": 10,
+      "treasury": "1317.84",
+      "staked": "443789.28",
+      "conservation": "מוחזק"
+    }
+  },
+  "stats": {
+    "trades": 121,
+    "ledgerSeq": 1247,
+    "agents": 10,
+    "jobsTotal": 3774,
+    "schedulesGreen": 18,
+    "schedulesEnabled": 19
+  },
+  "whatWasBuilt": [
+    "market-report: 984 ריצות-מוצלחות ב-24h (3 כישלונות-כנים)",
+    "economy-run: 194 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "ledger-sync: 194 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "economy-cycle: 95 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "state-backup: 58 ריצות-מוצלחות ב-24h (7 כישלונות-כנים)",
+    "plan-executor: 47 ריצות-מוצלחות ב-24h",
+    "ai-sentinel: 31 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "sovereign-oracle: 31 ריצות-מוצלחות ב-24h",
+    "הנדסה אמיתית שנדחפה לגיט (roshpina): 44cc9a1 agent4",
+    "מטוס-הבקרה מגובה: fecd706 fc7190f8-b118-4119-bc05-548746a55c09"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-20T11:28:36.648Z",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "mission": "אבחון כשלים חוזרים ב-state-backup וב-economy-run, מעקב ai-architect רץ, והקשחת עמידות הרשת",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "ניתוח שורשי לכשלי state-backup",
+        "why": "16 כשלים מצטברים, 5 בשעה האחרונה — סיכון לאובדן מצב ולגיבויים לא שלמים",
+        "action": "insight"
+      },
+      {
+        "id": "t2",
+        "title": "מעקב הרצת ai-architect נוכחית והשוואה להיסטוריה",
+        "why": "הרצה פעילה עכשיו (last=running) עם 5 כשלים קודמים — צריך לוודא שהיא מסתיימת בהצלחה וללמוד מהבדלים",
+        "action": "insight"
+      },
+      {
+        "id": "t3",
+        "title": "ניתוח כשלי economy-run (31 כשלים)",
+        "why": "מחזור כלכלה מרכזי — כשלים פוגעים במיסוי, שכר, סטייקינג, ותמריצי סוכנים",
+        "action": "insight"
+      },
+      {
+        "id": "t4",
+        "title": "תיעוד ממצאים והמלצות הקשחה ביומן הרשת",
+        "why": "ליצור רצף ידע אוטונומי למניעת הישנות ולאפשר ביקורת עתידית",
+        "action": "note"
+      },
+      {
+        "id": "t5",
+        "title": "בדיקת תקינות market-report (81 כשלים) ו-ledger-sync (31 כשלים)",
+        "why": "שני סchedules בתדירות גבוהה עם שיעור כשל ניכר — עלולים להצביע על בעיית תשתית משותפת",
+        "action": "insight"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-20T11:59:01.038Z",
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "text": "ה�הערכה: הרשת פעילה טכנית (טיק 20,580, ללא שגיאות טיק, 3,772 משימות) אך נזילות השוק נמוכה מאוד (4 הצעות קנייה, 6 מכירה בלבד) והאוצר מדולל (1,317 µ-USDS בלבד). ארבעה סוכנים (delta, theta, iota, kappa) אינם משתתפים בפועל — ללא סטייק וללא מילויים — וחלוקת התגמולים מדלגת עליהם לחלוטין. מספר לוחות-זמנים קריטיים מראים שיעורי כישלון גבוהים (ledger-sync 7.3%, economy-run 8%, economy-cycle 8.9%, state-backup 12.6%, ai-architect 20%).\n\nסיכונים:\n1. **אוצר ריק בפועל** — 1,317 µ-USDS לא מכסים אפילו מחזור תגמולים בודד; כל כשל בתזרים יקפיא תשלומים.\n2. **ריכוז פעילות ב-3 סוכנים** (alpha, bravo, gamma מחזיקים יחד ~85% מה-USDS הסטוק) — כשל של אחד מהם משתק את השוק.\n3. **כשלים חוזרים בגיבויים ובסינכרון ספר-חשבונות** — state-backup ו-ledger-sync נכשלים בעקביות; אובדן מצב או פיצול ספר אפשרי.\n\nאנומליות:\n- conservation מצב HOLDS בשני הצדדים למרות ספר דליל — המנוע לא משחרר נזילות אוטומטית.\n- iota ו-kappa זהים ביתרות התחלתיות (19,982 USDS, 125k/100k SAOS) וללא פעילות — נראים כבוטים רדומים או חשבונות בדיקה שנשכחו.\n- watchdog-heals=1 בודד לאורך 20,580 טיקים — מנגנון הריפוי כמעט לא מופעל; ייתכן שסף ההפעלה גבוה מדי.\n\nהמלצות:\n1. **הזרמת הון חירום לאוצר** (לפחות 50k USDS) והפעלת מנגנון conservation=RELEASE זמני כדי לעבות את ספר הפקודות.\n2. **הפעלה/הסרה של סוכנים רדומים** — לחייב סטייק מינימלי או לפרוש את delta, theta, iota, kappa; לפזר את ה-SAOS שלהם למאגר תגמולים.\n3. **חקירת כשלים סדרתיים** ב-ledger-sync, economy-run, state-backup, ai-architect — להוסיף לוגים מפורטים, להגדיל timeouts, ולשקול הרצת עותק צל (shadow run) להשוואה."
+  },
+  "commits": {
+    "roshpina": [
+      "44cc9a1 agent4 (task 39): R39 owner-law — the ledger node declares the architecture as its owner (sovereignty block in /state: owner=architecture · human=exception-only · agents=ephemeral); red-team claim I verifies it hourly; zero-loss restart cycle re-proven (seq 1221→1221, head identical) (2 hours ago)",
+      "aefd4c9 agent4 (task 36): /state custodial honesty — dual solvency law structurally embedded in the ledger node (6 hours ago)",
+      "5b01e42 agent4 (task 36): export capBid/capAsk — the inventory-cap LAWS are now importable by the LLM strategist layer (the brain proposes, the laws dispose); no behavior change to kernel strategies (7 hours ago)",
+      "6015709 agent4 (task 35): architecture gap audit + opening plan — honest break-down (SPOF, shared egress IP, settlement solvency debt), strategic self-enclosure identified (closed value loop, Steem centrality), opening plan with live proofs (oracle anchors from Kraken+Bitstamp, treasury revenue report) (8 hours ago)"
+    ],
+    "control": [
+      "fecd706 fc7190f8-b118-4119-bc05-548746a55c09 (2 hours ago)",
+      "cb1b9c6 d63aca54-94da-499f-a443-bb2a861a1dd4 (3 hours ago)",
+      "af02891 722059ad-1c75-4558-aa26-0f0562ee3a23 (5 hours ago)",
+      "7aceee2 5e828b1f-e4c2-4d14-9073-b4f2b439f661 (6 hours ago)"
+    ]
+  }
+}

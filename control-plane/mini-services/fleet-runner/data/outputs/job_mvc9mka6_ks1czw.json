@@ -1,0 +1,1 @@
+{"stdout":"start-nodes: self-healing check at 2026-10-17T10:40:25+00:00\n  ledger  :3032  already up — no-op\n  market  :3033  already up — no-op\nresult: ledger=UP market=UP\n","stderr":"","truncated":false}

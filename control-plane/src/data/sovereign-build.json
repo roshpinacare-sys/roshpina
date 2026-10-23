@@ -1,0 +1,97 @@
+{
+  "builtAt": "2026-10-23T16:19:40.192Z",
+  "cycle": 76,
+  "live": {
+    "market": {
+      "trades": 121,
+      "bids": 9,
+      "asks": 11
+    },
+    "ledger": {
+      "seq": 1474,
+      "accounts": 29
+    },
+    "runner": {
+      "jobs": 5061,
+      "schedules": "18/23 ירוקים",
+      "ticks": 6389,
+      "heals": 1
+    },
+    "economy": {
+      "agents": 12,
+      "treasury": "2026.04",
+      "staked": "641281.81",
+      "conservation": "מוחזק"
+    }
+  },
+  "stats": {
+    "trades": 121,
+    "ledgerSeq": 1474,
+    "agents": 12,
+    "jobsTotal": 5061,
+    "schedulesGreen": 18,
+    "schedulesEnabled": 23
+  },
+  "whatWasBuilt": [
+    "market-report: 90 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "economy-run: 19 ריצות-מוצלחות ב-24h",
+    "ledger-sync: 18 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "economy-cycle: 9 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "state-backup: 7 ריצות-מוצלחות ב-24h",
+    "agent-pnl: 6 ריצות-מוצלחות ב-24h",
+    "sovereign-oracle: 6 ריצות-מוצלחות ב-24h",
+    "estate-vault: 6 ריצות-מוצלחות ב-24h",
+    "הנדסה אמיתית שנדחפה לגיט (roshpina): 3f520c1 directiveLog 34/34: trace 1a1693e90c1532dd — swarm directive executed: Thread 3 meta-planner engine in giant",
+    "מטוס-הבקרה מגובה: d2d43c4 be30d498-b8e5-4750-87b2-fee9a007b94a"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-21T17:57:02.501Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "mission": "לfrsh את קובץ site-data://sovereign-net.json באמצעות נתוני המצב החי כדי לעדכן את האתר",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "עדכון site-data://sovereign-net.json בנתוני המצב החי",
+        "why": "לשמור על עדכניות האתר ולמנוע פגיעה באמינות",
+        "action": "code"
+      },
+      {
+        "id": "t2",
+        "title": "תיעוד כשלי ledger‑sync ו‑ai‑architect",
+        "why": "לזהות דפוסי כשל ולסייע בתיקון",
+        "action": "note"
+      },
+      {
+        "id": "t3",
+        "title": "ניתוח עומס משימות schedule",
+        "why": "להפחית כשלים עקב עומס גבוה",
+        "action": "insight"
+      },
+      {
+        "id": "t4",
+        "title": "תיעוד על סטטוס site-data (stale)",
+        "why": "להדגיש הצורך בחידוש",
+        "action": "note"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-23T15:50:12.636Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "text": "הערכה: הרשת פעילה עם מסחר מתון (121 עסקאות, 9 הצעות, 11 בקשות) אך קיימים סוכנים עם אפס סטייקינג או אפס מילויים, מה שמעיד על פעילות לא מאוזנת. למרות שהמאגר והזמן תקינים, מספר משימות קריטיות מראה כשלונות גבוהות, והמהלך הכלכלי רץ עם כשלונות מרובים, מה שמצביע על סיכונים אפשריים למערכת.  \nסיכונים: כשלונות גבוהות במערכות ניהול החלטות (ai‑architect, self‑audit, capability‑audit); כלכלת הרשת (economy‑run) רצה עם 34 כשלונות ו‑36 דילוגים; סוכנים ללא סטייקינג או מילויים (delta, theta, iota, kappa) שמפחיתים את השתתפות הרשת.  \nאנומליות: economy‑run מסומן כ‑running למרות 34 כשלונות ו‑36 דילוגים, מצב שמסמן על תקלה אפשרית בתהליך הכלכלי.  \nהמלצות: לבדוק ולהשתיק כשלונות במערכות ניהול החלטות; לבצע אופטימיזציה של economy‑run להפחתת כשלונות ודילוגים; לבדוק ולהפעיל מחדש סוכנים עם אפס סטייקינג או מילויים."
+  },
+  "commits": {
+    "roshpina": [
+      "3f520c1 directiveLog 34/34: trace 1a1693e90c1532dd — swarm directive executed: Thread 3 meta-planner engine in giant (PR #202, R365, TDD 19/19 green, self-scan zero-debt) (67 minutes ago)",
+      "f31ec38 directiveLog 33/33: trace 1a16427bae217da5 — directive-32 verification round: gh-pages clone restored, domain pushed, org-census rescue livelock fixed (own-action cooldown + enable-before-dispatch), 24 rescues all HTTP 204 over 9 starved repos — standing activity on ALL of git is a closed loop (25 hours ago)",
+      "a7ad70b directiveLog 32/32: trace 1a163aee5d666b5d — rewind recovery (8 scripts restored from snapshot, 5 presets re-proven green, unthinking terminal rung) + org-census standing schedule-truth over all of git (40 repos, 20 alive / 4 starved / 16 idle, autonomous rescue, hourly) (27 hours ago)",
+      "d1454e8 directiveLog 31/31: trace 1a163302be53ba4d — operator saw nothing for 2h (stale handoff summary + CDN-stale browser copy); full 9-page live audit PROVED the sovereign-center law live; cure: visible build-stamps on all front-door pages (pages-repo 6eeddd0) + no-cache; freshness is now a visible property (30 hours ago)"
+    ],
+    "control": [
+      "d2d43c4 be30d498-b8e5-4750-87b2-fee9a007b94a (65 minutes ago)",
+      "dc3b194 7a41b586-94c2-4fb1-97eb-1a35d0397bca (33 hours ago)",
+      "6ed3ec0 agent4 (task 52, trace 1a15f55f6d0395f9): roast grill unit — roast-grill.ts adversarial self-audit with proven teeth (negative controls), standing schedule sched_mvid46vo_ud1v, published as 10th evidence source; painful truths fixed: worklog Task-50 reconstructed from lane commits, dead NIM fallback replaced with measured-alive nemotron-3.5-lightning (vault re-sealed + 3 scripts), ledger-sync stale-tracker crash-loop contained via floor-cap-to-LIVE (golden untouched, 15/15), schedule-truth judged from primary journal evidence; arc PAINFUL(4)→PAINFUL(3)→OK(15/0/1) verified live (2 days ago)",
+      "f986c84 7f8c66c4-9d21-4f59-acd8-308773d9c89e (2 days ago)"
+    ]
+  }
+}
