@@ -1,0 +1,523 @@
+{
+  "schema": "org-census@2",
+  "generatedAt": "2026-10-23T16:33:28.359Z",
+  "durationMs": 13212,
+  "repos": 40,
+  "alive": 15,
+  "starved": 9,
+  "idle": 16,
+  "rescuesThisCycle": [],
+  "cooldownSkipped": [
+    "saos-jummper:.github/workflows/jumpper-tests.yml",
+    "anchor-baseline:.github/workflows/baseline-integrity.yml",
+    "saos-control-center:.github/workflows/control-center-build.yml",
+    "Project-files:.github/workflows/archive-keeper.yml",
+    "saos-sovereign-platform:.github/workflows/platform-selftest.yml",
+    "Adsmarket:.github/workflows/claims-guard.yml",
+    "Sdk:.github/workflows/sdk-verify.yml",
+    "saos-agents:.github/workflows/gitleaks.yml",
+    "saos-agents:.github/workflows/selftest-gate.yml",
+    "TruthRail:.github/workflows/exposure-gate.yml"
+  ],
+  "detail": [
+    {
+      "repo": "saos-jummper",
+      "defaultBranch": "main",
+      "workflows": 5,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-06T10:40:40Z",
+      "lastAnyRunAt": "2026-10-23T16:32:14Z",
+      "hoursSinceScheduled": 413.9,
+      "verdict": "STARVED",
+      "rescueDispatched": [],
+      "skippedByCooldown": [
+        ".github/workflows/jumpper-tests.yml"
+      ]
+    },
+    {
+      "repo": "Console",
+      "defaultBranch": "main",
+      "workflows": 25,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-23T16:32:10Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "anchor-baseline",
+      "defaultBranch": "main",
+      "workflows": 4,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-06T07:28:25Z",
+      "lastAnyRunAt": "2026-10-23T16:32:18Z",
+      "hoursSinceScheduled": 417.1,
+      "verdict": "STARVED",
+      "rescueDispatched": [],
+      "skippedByCooldown": [
+        ".github/workflows/baseline-integrity.yml"
+      ]
+    },
+    {
+      "repo": "roshpinacare-sys.github.io",
+      "defaultBranch": "main",
+      "workflows": 4,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-23T16:32:13Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "fleet-economy",
+      "defaultBranch": "main",
+      "workflows": 2,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-23T13:48:30Z",
+      "lastAnyRunAt": "2026-10-23T13:48:30Z",
+      "hoursSinceScheduled": 2.7,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "Domain",
+      "defaultBranch": "main",
+      "workflows": 110,
+      "scheduledWorkflows": 2,
+      "lastScheduledRunAt": "2026-10-23T15:56:24Z",
+      "lastAnyRunAt": "2026-10-23T16:30:56Z",
+      "hoursSinceScheduled": 0.6,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "saos-control-center",
+      "defaultBranch": "main",
+      "workflows": 3,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-05T12:53:50Z",
+      "lastAnyRunAt": "2026-10-23T16:32:14Z",
+      "hoursSinceScheduled": 435.7,
+      "verdict": "STARVED",
+      "rescueDispatched": [],
+      "skippedByCooldown": [
+        ".github/workflows/control-center-build.yml"
+      ]
+    },
+    {
+      "repo": "Project-files",
+      "defaultBranch": "main",
+      "workflows": 3,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-05T11:46:30Z",
+      "lastAnyRunAt": "2026-10-23T16:32:18Z",
+      "hoursSinceScheduled": 436.8,
+      "verdict": "STARVED",
+      "rescueDispatched": [],
+      "skippedByCooldown": [
+        ".github/workflows/archive-keeper.yml"
+      ]
+    },
+    {
+      "repo": "saos-sovereign-platform",
+      "defaultBranch": "main",
+      "workflows": 4,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-05T13:53:57Z",
+      "lastAnyRunAt": "2026-10-23T16:32:17Z",
+      "hoursSinceScheduled": 434.7,
+      "verdict": "STARVED",
+      "rescueDispatched": [],
+      "skippedByCooldown": [
+        ".github/workflows/platform-selftest.yml"
+      ]
+    },
+    {
+      "repo": "saos-runtime",
+      "defaultBranch": "main",
+      "workflows": 37,
+      "scheduledWorkflows": 9,
+      "lastScheduledRunAt": "2026-10-23T15:59:34Z",
+      "lastAnyRunAt": "2026-10-23T16:27:45Z",
+      "hoursSinceScheduled": 0.6,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "steem",
+      "defaultBranch": "saos-cockpit",
+      "workflows": 15,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-23T16:31:33Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "Adsmarket",
+      "defaultBranch": "main",
+      "workflows": 3,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-06T06:31:41Z",
+      "lastAnyRunAt": "2026-10-23T16:32:22Z",
+      "hoursSinceScheduled": 418,
+      "verdict": "STARVED",
+      "rescueDispatched": [],
+      "skippedByCooldown": [
+        ".github/workflows/claims-guard.yml"
+      ]
+    },
+    {
+      "repo": "Sdk",
+      "defaultBranch": "main",
+      "workflows": 4,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-06T09:37:54Z",
+      "lastAnyRunAt": "2026-10-23T16:32:22Z",
+      "hoursSinceScheduled": 414.9,
+      "verdict": "STARVED",
+      "rescueDispatched": [],
+      "skippedByCooldown": [
+        ".github/workflows/sdk-verify.yml"
+      ]
+    },
+    {
+      "repo": "Pulse",
+      "defaultBranch": "main",
+      "workflows": 5,
+      "scheduledWorkflows": 2,
+      "lastScheduledRunAt": "2026-10-23T13:39:30Z",
+      "lastAnyRunAt": "2026-10-23T16:30:04Z",
+      "hoursSinceScheduled": 2.9,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "Sandbox",
+      "defaultBranch": "main",
+      "workflows": 34,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-23T16:30:31Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "FleetHQ",
+      "defaultBranch": "main",
+      "workflows": 22,
+      "scheduledWorkflows": 2,
+      "lastScheduledRunAt": "2026-10-23T15:56:33Z",
+      "lastAnyRunAt": "2026-10-23T16:31:59Z",
+      "hoursSinceScheduled": 0.6,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "saos-dex",
+      "defaultBranch": "main",
+      "workflows": 14,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-23T16:22:26Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "giant",
+      "defaultBranch": "main",
+      "workflows": 4,
+      "scheduledWorkflows": 3,
+      "lastScheduledRunAt": "2026-10-23T14:33:01Z",
+      "lastAnyRunAt": "2026-10-23T16:29:50Z",
+      "hoursSinceScheduled": 2,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "Autonomy",
+      "defaultBranch": "main",
+      "workflows": 58,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-23T16:27:53Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "sovereign-lighthouse",
+      "defaultBranch": "main",
+      "workflows": 3,
+      "scheduledWorkflows": 2,
+      "lastScheduledRunAt": "2026-10-23T15:55:15Z",
+      "lastAnyRunAt": "2026-10-23T16:27:53Z",
+      "hoursSinceScheduled": 0.6,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "roshpina",
+      "defaultBranch": "main",
+      "workflows": 4,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-23T16:24:21Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "sovereign-runner-kit",
+      "defaultBranch": "main",
+      "workflows": 12,
+      "scheduledWorkflows": 12,
+      "lastScheduledRunAt": "2026-10-23T15:28:59Z",
+      "lastAnyRunAt": "2026-10-23T16:26:06Z",
+      "hoursSinceScheduled": 1.1,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "sovereign-executor",
+      "defaultBranch": "main",
+      "workflows": 1,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-23T15:55:39Z",
+      "lastAnyRunAt": "2026-10-23T16:21:44Z",
+      "hoursSinceScheduled": 0.6,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "execution-fabric",
+      "defaultBranch": "main",
+      "workflows": 1,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-23T16:19:12Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "Saosmartwallet",
+      "defaultBranch": "main",
+      "workflows": 4,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-23T16:13:36Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "saos-desk",
+      "defaultBranch": "main",
+      "workflows": 0,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": null,
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "ops-intake",
+      "defaultBranch": "main",
+      "workflows": 1,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-23T16:01:13Z",
+      "lastAnyRunAt": "2026-10-23T16:01:13Z",
+      "hoursSinceScheduled": 0.5,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "GridWatch",
+      "defaultBranch": "main",
+      "workflows": 5,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-23T11:52:08Z",
+      "lastAnyRunAt": "2026-10-23T15:39:50Z",
+      "hoursSinceScheduled": 4.7,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "Defi",
+      "defaultBranch": "main",
+      "workflows": 3,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-21T04:59:05Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "sovereign-beacon",
+      "defaultBranch": "main",
+      "workflows": 3,
+      "scheduledWorkflows": 2,
+      "lastScheduledRunAt": "2026-10-23T15:27:06Z",
+      "lastAnyRunAt": "2026-10-23T16:21:07Z",
+      "hoursSinceScheduled": 1.1,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "Zip",
+      "defaultBranch": "main",
+      "workflows": 16,
+      "scheduledWorkflows": 2,
+      "lastScheduledRunAt": "2026-10-23T15:27:41Z",
+      "lastAnyRunAt": "2026-10-23T15:27:41Z",
+      "hoursSinceScheduled": 1.1,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "ops-forge",
+      "defaultBranch": "main",
+      "workflows": 1,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-23T11:55:56Z",
+      "lastAnyRunAt": "2026-10-23T11:55:56Z",
+      "hoursSinceScheduled": 4.6,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "agent9-clock",
+      "defaultBranch": "main",
+      "workflows": 2,
+      "scheduledWorkflows": 2,
+      "lastScheduledRunAt": "2026-10-23T15:24:57Z",
+      "lastAnyRunAt": "2026-10-23T16:27:20Z",
+      "hoursSinceScheduled": 1.1,
+      "verdict": "ALIVE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "oss-scanner",
+      "defaultBranch": "main",
+      "workflows": 0,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": null,
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "saos-agents",
+      "defaultBranch": "main",
+      "workflows": 2,
+      "scheduledWorkflows": 2,
+      "lastScheduledRunAt": "2026-10-23T10:14:42Z",
+      "lastAnyRunAt": "2026-10-23T16:32:33Z",
+      "hoursSinceScheduled": 6.3,
+      "verdict": "STARVED",
+      "rescueDispatched": [],
+      "skippedByCooldown": [
+        ".github/workflows/gitleaks.yml",
+        ".github/workflows/selftest-gate.yml"
+      ]
+    },
+    {
+      "repo": "TruthRail",
+      "defaultBranch": "main",
+      "workflows": 2,
+      "scheduledWorkflows": 1,
+      "lastScheduledRunAt": "2026-10-23T09:58:29Z",
+      "lastAnyRunAt": "2026-10-23T16:32:36Z",
+      "hoursSinceScheduled": 6.6,
+      "verdict": "STARVED",
+      "rescueDispatched": [],
+      "skippedByCooldown": [
+        ".github/workflows/exposure-gate.yml"
+      ]
+    },
+    {
+      "repo": "sandbox-private",
+      "defaultBranch": "main",
+      "workflows": 1,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-20T11:43:42Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "saos-sovereign-foundry",
+      "defaultBranch": "main",
+      "workflows": 3,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": "2026-10-20T05:34:33Z",
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "saos-owner-channel",
+      "defaultBranch": "main",
+      "workflows": 0,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": null,
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    },
+    {
+      "repo": "saos-markets",
+      "defaultBranch": "main",
+      "workflows": 0,
+      "scheduledWorkflows": 0,
+      "lastScheduledRunAt": null,
+      "lastAnyRunAt": null,
+      "hoursSinceScheduled": null,
+      "verdict": "IDLE",
+      "rescueDispatched": [],
+      "skippedByCooldown": []
+    }
+  ]
+}
