@@ -1,283 +1,289 @@
 {
- "schema": "roshpina.sovereignty.owner-memory/v1",
- "at": "2026-10-22T04:50:35Z",
- "law": "R40b — הבעלים לעולם לא נשכח: רישום-זהותו, כוונות-העמידה וההנחיות של הבעלים; אסור למחוק, מותר רק להוסיף",
- "owner": {
-  "role": "beneficiary & origin of intent — הבעלים בפועל",
-  "identity": "מאומת בצומת-הכסף באמצעות מפתח-הציבור של המפעיל (operator pubkey, registered)",
-  "humanLanguage": "he",
-  "note": "הבעלים הוא המקור-לכוונה והנהנה; הארכיטקטורה היא הבעלים-הפועל (R39) והמחליטה (R40)"
- },
- "standingIntents": [
-  {
-   "id": "R28",
-   "since": "2026-10-19",
-   "intent": "כנות מוחלטת: אין דמו, אין סימולציה, אין המצאה; פלט-ריק אינו ראיה; כל-טענה נמדדת מהקרקע"
+  "schema": "roshpina.sovereignty.owner-memory/v1",
+  "at": "2026-10-22T04:50:35Z",
+  "law": "R40b — הבעלים לעולם לא נשכח: רישום-זהותו, כוונות-העמידה וההנחיות של הבעלים; אסור למחוק, מותר רק להוסיף",
+  "owner": {
+    "role": "beneficiary & origin of intent — הבעלים בפועל",
+    "identity": "מאומת בצומת-הכסף באמצעות מפתח-הציבור של המפעיל (operator pubkey, registered)",
+    "humanLanguage": "he",
+    "note": "הבעלים הוא המקור-לכוונה והנהנה; הארכיטקטורה היא הבעלים-הפועל (R39) והמחליטה (R40)"
   },
-  {
-   "id": "R37",
-   "since": "2026-10-20",
-   "intent": "הסוכנים בני-תמותה: אף-נתיב-יומי לא תלוי בסשן-סוכן; הכל חי ב-refs, דימונים, לוחות-זמנים ונתונים"
-  },
-  {
-   "id": "R39",
-   "since": "2026-10-20",
-   "intent": "הארכיטקטורה הריבונית האוטונומית היא הבעלים; הבעלים האנושי הוא מקרה-חריג בלבד"
-  },
-  {
-   "id": "R40a",
-   "since": "2026-10-20",
-   "intent": "הארכיטקטורה מחליטה הכל — החלטות-בעלות-ערך מתוך חשיבה, בדיקה ותכנון; לא ממתינה לתשובות הבעלים"
-  },
-  {
-   "id": "R40b",
-   "since": "2026-10-20",
-   "intent": "הכל פועל ומנוהל גם כשהבעלים אינו קיים — והבעלים לעולם לא נשכח"
-  },
-  {
-   "id": "R45",
-   "since": "2026-10-21",
-   "intent": "אישור-עמידה של הבעלים (trace 1a15cbc35c98d5b9: 'אני מאשר קדימה'): הרשת מקדמת פעולות-ריבונות באופן אוטונומי ללא-בקשות-אישור; כל-פעולה שדורשת חתימת-מפעיל מבוצעת בחתימת-המפעיל שבידי הרשת, מתועדת ביומן עם trace, וכפופה לחוקי-הבטיחות (fail-closed, אימות-זהב, R43); הבעלים לעולם לא נשכח (R40b) — הוא מאשר מראש, לא נעלם"
-  }
- ],
- "directiveLog": [
-  {
-   "trace": "1a157f97a9c26ac1",
-   "at": "2026-10-20",
-   "quote-he": "תמשיך ודחוף. בדוק שוב, אל תסמוך על הטענות שלך. גם בחן תוצאות של הסוכנים האחרים... אלו כמו סוכנים שבסוף מתים והם לא חלק מהריבונות האוטונומית — הם רק בונים בעזרתי כדי לוודא שהכל יעבוד בלעדייך בסופו של דבר.",
-   "distilled": "ביקורת-עצמית מראיות-ראשוניות; ביקורת-סוכנים-אחרים; חוק-תמותת-הבונים (R37)"
-  },
-  {
-   "trace": "1a1587063f23a46d",
-   "at": "2026-10-20",
-   "quote-he": "וודא שלא נמחק לך שוב הסנדבוקס... זכור שהארכיטקטורה הריבונית האוטונומית היא הבעלים, לא להפנות אליי בקשות — אלה רק מקרים חריגים. המערכת צריכה לדעת לעשות הכל מהכל ועוד יותר מזה פי 1000. תוודא רמה בכנות בלי לשקר.",
-   "distilled": "בדיקת-הישרדות-שוטפת; R39 בעלות-ארכיטקטורה; אימות-יכולת כנה-מדודה"
-  },
-  {
-   "trace": "1a158afebf71d0d9",
-   "at": "2026-10-20",
-   "quote-he": "תמשיך ודחוף.",
-   "distilled": "המשך-דחיפה מלאה של יחידת-העבודה 37+38"
-  },
-  {
-   "trace": "1a159256eb10a85d",
-   "at": "2026-10-20",
-   "quote-he": "לגבי הבעלים: אני הבעלים בפועל, אבל אני רוצה שהארכיטקטורה תתפקד כבעלים ממש — מחליטה על הכל ולא מחכה לתשובות שלי. אני צריך לסמוך על הארכיטקטורה שתבחר נכון עבורי, מתוך ראייה, אינטליגנציה חכמה ובדוקה, ותקבל החלטות בעלות ערך רב אחרי חשיבה ובדיקה ותכנון. אנחנו עדיין לא שם אבל יש התקדמות. בוא נמשיך, נוודא שהכל יפעל וינוהל גם כשאני לא קיים — אבל שאני לא אשכח.",
-   "distilled": "R40a (הכרעה-עצמית) + R40b (רציפות-בהיעדר-הבעלים + זיכרון-בעלים); הקמת מועצת-הריבון (sovereign-decisions) וזיכרון-בעלים מבני ב-/state"
-  },
-  {
-   "trace": "1a1599a81fe6c8b9",
-   "at": "2026-10-20T12:5x:00Z",
-   "quote-he": "יופי דחוף עוד תמשיך עוד תראה גם מה שאר הסוכנים כמוך של zai עשו כדי שנוכל לתעל את הכל ברמת הנדסה גבוהה מאוד ולוודא שהכל ירוץ הכי טוב וחכם שיש תמשיך ודחוף",
-   "distilled": "R43 (channel law): the network audits what the sibling agents built — from primary evidence only — and channels the best of it into this lane at high engineering level; every channeled piece must be measured and golden-tested before it is wired; everything must be verified running, not assumed"
-  },
-  {
-   "trace": "1a159e5c819c6251",
-   "at": "2026-10-20T15:1x:00Z",
-   "quote-he": "יופי מה עוד פתוח בוא נתקדם טוב ומקצועי מהנדס ודחוף",
-   "distilled": "continuation order: enumerate what remains open honestly, advance it professionally, keep pushing — the owner delegates engineering judgment to the architecture (R40) and expects measured progress, not status reports"
-  },
-  {
-   "trace": "1a15c193cde30ffd",
-   "at": "2026-10-21T01:36:00Z",
-   "quote-he": "חייב הכל יאללה הצתות הכל ולהפעיל סביר להניח שהסנדבוקס האחרון נמחק וודא שוב מהגיט תראה מה מצב הרשת איך התקדמנו בין טענות לאמת בפועל ולתקן הכל לסדר לייעל לאמת לשפר ודחוף",
-   "distilled": "R44 (resurrection law): after any host death — verify from primary evidence (git refs, journals, timestamps) what survived; distinguish dead-process silence from data loss honestly; self-correct any false claim made in prior reports; re-fire every mechanism; attached fact: the owner attempted to deliver a token via chat and the gateway redacted it ([REDACTED:github_token], 40 bytes) — credential delivery by chat is structurally impossible; the standing PAT remained valid and no rotation was needed"
-  },
-  {
-   "trace": "1a15c2e79a1c3ec5",
-   "at": "2026-10-21T02:15:00Z",
-   "quote-he": "תמשיך יותר עמוק ודחוף",
-   "distilled": "go-deeper order: after Task 41 closed the death-rebirth verification, keep drilling into measured failures — root-cause the ai-architect boot race (vault unseal ordering + BOOT_CATCHUP measured at ~90s), the persistent NIM primary 404 (model order swapped by evidence: nano 3/3 live, super 3/3 dead, fixed in BOTH runtime vault and sealed blob via vault-seal), and the live refs war (council fired inline, both branches restored lane=4c5a073 cp=a2bed4af, dual-ref consistent). Deepening = fixing measured failures, not adding surface."
-  },
-  {
-   "trace": "1a15c68f15630959",
-   "at": "2026-10-21T03:45:00Z",
-   "quote-he": "לא נדרש ממני כלום... הכי הייתי רוצה שנוכל לייצר באמת שוק חריף של גרידים וארביטראזים דווקא על הדקס שלנו במקום להתלות בשירותים אחרים... חשוב לוודא שיש לנו דרך לקבל תזרים אמיתי מבחוץ... github.com/HKUDS/Vibe-Trading",
-   "distilled": "sovereign market-making executed: designated liquidity desks ON OUR OWN venue — mm-grid (EMA fair-value grid, postOnly, inventory-capped) + mm-oracle (real Kraken/Bitstamp anchors govern the regime; wide-book repair; stale=halt fail-closed); law: one venue, one fair value (all desk prints feed the venue EMA); measured live: book spread 22,912µ¢ (9.5%) → 3,000µ¢ (119bps), conservation exact both ledgers; golden 22/22 + settlement 24/24 + kernel 47/47; external truth recorded: HTX rejected (KYC, owner's call), FixedFloat pending THEIR approval, SAOS unlisted externally so external arb stays structurally open — mm-oracle is the built-in seam for when a real venue exists; channeled from Vibe-Trading by R43 (grid discipline, per-strategy run journals, regime gating) natively in TS, zero new dependencies"
-  },
-  {
-   "trace": "1a15cbc35c98d5b9",
-   "at": "2026-10-21T05:30:00Z",
-   "quote-he": "אשר הכל תפעיל הכל למה לא אני מאשר קדימה ... תראה מה שאר הסוכנים גם עשו כדי שניישר קו ונפעיל הכל ושלא יהיו חסימות מיותרות על הפעילות הריבונית האוטונומית ... בחן את אלו ונצל מה שניתן בהתאמה לריבונות האוטונומית שלנו שיביא לנו ערך ככל הניתן ... github.com/The-Swarm-Corporation/AutoHedge https://github.com/msitarzewski/agency-agents",
-   "distilled": "standing operator approval executed (R45) + sibling alignment swept (no lane collisions) + AutoHedge/agency-agents channeled by R43 (four-gate discipline adopted; 4 council role cards bound to owner assets) + THE REAL WORK: ×10,000 settlement unit defect found (market raw µ¢ parsed as decimal USDS — self-hiding while both sides inflated; desks' fresh mirrors unmasked it), fixed via lib-ledger-sync (parseMarketMicroCents + floor law), golden 15/15, live convergence 25 settles → book==market exactly, era write-downs 332,882.44 USDS + 486,568.72 SAOS dead-era backing (R45-signed), pool=0, steady-state 0 transfers, chain-audit green"
-  },
-  {
-   "trace": "1a15ce0b8dbf6c71",
-   "at": "2026-10-21T05:55:00Z",
-   "quote-he": "אין בעיה מאשר ... בין טענות לאמת: העיתון — האם זה עיתון? הקונסוליה החיה — האם פעילה ואיכותית כפי שנדרש? (לא) ... הוספתי המון כלי ביצוע מתקדמים ולא הוכח שום שימוש בהם ... דף עם כמה מילים זה לא עיתון ולא הוכחה ... אל תסמוך על שום טענה, בחן את כל הטענות מול האמת בגיט ... תבחן תכנן בצע ודחף, שלא יהיו דריסות",
-   "distilled": "pages-quality mandate executed: sovereign evidence bridge built (runner preset pages-evidence every 30min — architecture publishes its own 9 live evidence sources to Domain/press/evidence.json, secrets-gate pre-push fail-closed, verify-after-publish, race-rebase discipline); press = real newspaper (מוסף-הריבונות + editions archive + retry ×3 so transient fetch no longer bakes as permanent failure); console.html = live evidence panel (marked additive, honest fallback); ROOT-CAUSE fixes found by the bridge itself: last-decision.json append-tear (appendFileSync on a state file → 2 concatenated JSON docs, every reader died) fixed to writeFileSync; self-audit stale ×10⁴ unit-law retired after LIVE measurement (ledger Σ = market Σ = 332,761,047 exact 1:1) → mirror convergence 100%, matrix 13/14→14/14; MAX_SCHEDULES 20→24 per 'שלא יהיו חסימות מיותרות'; sibling concurrency respected (their fills/mirror sections landed beside mine, zero overwrites)"
-  },
-  {
-   "trace": "1a15dbda28281651",
-   "at": "2026-10-21T07:05:00Z",
-   "quote-he": "תמשיך ודחוף",
-   "distilled": "14th continuation mandate: confirm the audit reached zero findings, then convert the freed capacity into proven architecture power (deferred strategy-tuner under the four-gate law) — measure first, claim nothing unmeasured"
-  },
-  {
-   "trace": "1a15d16ba3498581",
-   "at": "2026-10-21T06:20:00Z",
-   "quote-he": "תמשיך ודחוף",
-   "distilled": "12th continuation (Task 46): restore union-discipline artifacts killed by sibling merges (AGENT4-EVIDENCE-PANEL re-added), fix all 6 live site-audit findings (edition canonical, archive links, badge/quality.svg baked from real report + CI re-bake), measured fix to the quality auditor's link resolution (PASS 7→8). LESSON RECORDED: sandbox rewind ate uncommitted appends — directive appends must ride a git commit in the same unit"
-  },
-  {
-   "trace": "1a15d34fc9c03265",
-   "at": "2026-10-21T06:52:00Z",
-   "quote-he": "תמשיך ודחוף",
-   "distilled": "13th continuation (Task 47): editions findings healed — sibling wave-19.50 parallel cure absorbed (my duplicate dropped, zero overwrites), my own false claim ('no maintenance writer') corrected publicly in commit fe5373fdd after deeper code read, real residual = sitemap directory-loc cured at writer; audit findings 6→2→0-mapped"
-  },
-  {
-   "trace": "1a15de4dd1bbe619",
-   "at": "2026-10-21T10:11:02Z",
-   "quote-he": "תמשיך",
-   "distilled": "15th continuation (Task 49): the 2 capability-audit FAILs measured and killed — lane archive tag lagged behind live HEAD (cfc05d6 vs ca662d6; the manual tag-advance ritual failed once) breaking remote-preservation + self-red-team 1/11 — and dr-drill rebuilds production FROM this tag, so a lagging tag = stale-code DR. Immediate cure: guarded fast-forward advance, remote peel==HEAD verified. Structural cure: the council (sovereign-decisions) now advances the tag itself — preserve-lane-work, fast-forward-only, clean-tree-only, branch-first, divergence=ABSTAIN (R42); local-behind case heals via ff-only catch-up. Preservation no longer depends on builder memory."
-  },
-  {
-   "trace": "1a15e3f8b6405911",
-   "at": "2026-10-21T11:36:59Z",
-   "quote-he": "תמשיך",
-   "distilled": "16th continuation (Task 50): next measured frontier = the dead weave console chain that keeps sovereign/press data-age WARNs alive (quality 8/3/0); investigate from primary evidence whether it is revivable in-lane (task-41 flavor: revive from git, claims-vs-truth) or honestly external; union discipline; directive rides a commit this unit."
-  },
-  {
-   "trace": "1a15f2ea8b816ae5",
-   "at": "2026-10-21T16:10:00Z",
-   "quote-he": "תמשיך",
-   "distilled": "17th continuation (Task 51): post-suspension convergence — environment froze 07:27→15:52Z (8.5h); matrix measured 90s after reboot showed 3 FAILs (chain-audit verdict aged 508min > 45min gate, council journal aged 507min > 75min gate, self-red-team caught 4 schedules 15s before their boot catch-up wave). All TRUE signals of a real freeze — cured by the architecture, not by loosening gates: council restored lane branch 15:54:40 (external cleaner ate it again), ledger resumed 1364→1377, schedules re-anchored and re-fired. Verdict refreshed: CAPABILITY-AUDIT-OK 14/14, SELF-AUDIT-OK 11/11. Operator file gitrash.txt arrived with its github-token content ALREADY redacted by the gateway — nothing usable inside, and that is correct: secrets never travel through chat (they would be stripped and would trip the secrets-gate); PAT verified alive by authenticated ls-remote (roshpina main=d25f8d1, lane tag peel==HEAD); pat.env remains the only supply path."
-  },
-  {
-   "trace": "1a15f55f6d0395f9",
-   "at": "2026-10-21T16:50:00Z",
-   "quote-he": "תבחן את האמת בלי לסמוך על הטענות שלך בוא נעשה רגע roast grill test כדי לחשוף את האמת הכואבת לתקן ולהפעיל בצורה טובה יותר ודחוף",
-   "distilled": "18th continuation (Task 52) — roast grill: the network grills ITSELF without trusting its own claims. Built roast-grill.ts — independent adversarial audit: raw primitives only (git-plumbing, authenticated ls-remote, live HTTP, file reads), the existing auditors (self-audit/capability-audit) re-run fresh and treated as claims-to-verify, and NEGATIVE CONTROLS prove the audit tool itself can fail — a grill without teeth is a grill broken (fail-closed exit 1). Painful truths measured this unit: worklog Task-50 section was lost to the environment freeze (reconstructed verbatim from lane commits b28f7f9+1edd7f3 — git is the memory of record); scheduled self-audit/capability-audit lastStatus=failed from the recovery window (healed by fresh inline runs, gates NOT loosened); Domain main moved under us mid-unit (union rebase discipline). The grill is now a standing runner preset + schedule — and its verdict is published on the live panel as the 10th evidence source (roastGrill), so the painful truth is public, not buried."
-  },
-  {
-   "trace": "1a16089ddb1ed8c9",
-   "at": "2026-10-21T22:28:00Z",
-   "quote-he": "תמשיך מאיפה שעצרת",
-   "distilled": "19th continuation — continue from the measured frontier. Environment re-froze 20:46→22:13 (87min journal gap measured, honest); the boot wave's failures were each measured to root and cured structurally: (1) NIM empty-content — a reasoning model can burn the whole max_tokens budget (finish=length) and return empty content; the fallback ran at 1400 with the full network-state prompt. Cure: callNIM now retries ONCE with a doubled budget (≥3200) before declaring failure, in all three carriers (ai-sentinel/ai-architect/plan-executor) — proven live through the runner (sentinel exit 0). (2) self-audit's fixed 2h never-fired grace falsely flagged any schedule whose own interval exceeds 2h (roast-grill 6h, first natural fire 23:04) — grace now max(2h, own interval), not a loosened gate. (3) economy-cycle boot-window module miss (transient tree unavailability at catch-up wave) healed by runner rerun, succeeded, evidence journaled. roast-grill got its first journal record via the runner. Chain re-verified: SELF-AUDIT-OK 11/11 + CAPABILITY-AUDIT-OK fresh, secrets CLEAN both trees, conservation HOLDS both sides, refs truth head==tag==remote 420d216."
-  },
-  {
-   "trace": "1a160a018a938659",
-   "at": "2026-10-21T22:52:00Z",
-   "quote-he": "טפל בבקשה בהכל כי משהו חסום אני לא רואה בכלל פעילות אסור שזה יקרה פעילות אוטונומית תמיד חייבת לעבוד ולהפעיל את עצמה להקים מחדש וכו אם יש בעיה אינטליגנציה אוטונומית למה בעצם זה לא קרה?? תתקן הכל שיעבוד ברמה הכי גבוהה שיש כל הכשלים תמשיך ודחוף",
-   "distilled": "20th directive — the operator saw NO activity and demanded to know why autonomous self-revival was invisible. Measured truth: the network WAS reviving itself every time (1475+ jobs today, watchdog heal 28s after boot), but the revivals were INVISIBLE — 3 environment suspensions that day (488/29/87 min, ~10h) left zero public trace. Cure: network pulse published on the public panel — measured from the journal (primary evidence): last-activity age, jobs24h, freeze gaps >15min each PROVEN closed by self-revival, verdict ALIVE/QUIET/SUSPENDED-LIKELY; plus an honest suspension banner when publish age >90min (no real-time reporting is possible mid-suspension — maximal honesty is post-recovery truth). Pulse tile is the FIRST tile; silence now has a measured explanation, never a silent blank. All boot-wave failures already cured in task 53; journal green."
-  },
-  {
-   "trace": "1a160c8a9c5a3805",
-   "at": "2026-10-21T23:45:25Z",
-   "quote-he": "תמשיך ודחוף",
-   "distilled": "21st directive — continue and push. Executed the 20th's cure chain to measured teeth: (1) FIRST NATURAL ROAST-GRILL FIRE (23:04, schedule-trigger) FAILED 13/2 — the grill caught real pain: both lane+cp branch refs eaten externally ≤17min after clean pushes (measured). Cured at root with ref-warden.ts (preset + 10min schedule): branch-from-tag force-restore via temp-ref fetch (object may not exist locally — measured 'bad object'), zero new commits, R42 preserved, fail-closed on tag-GONE; proven live REF-WARDEN-OK 2/2. (2) SELF-REVIVAL GAP CLOSED WITH TEETH: night-heartbeat.sh v3 = external supervisor (survives runner death, setsid --fork + pidfile + flock) probing runner/web:3000/ledger/market every 30s — 3 consecutive failures = revive; money nodes healed via start-nodes.sh. KILL-TEST PROVEN: runner murdered 23:41:32 → detected → REVIVE 23:42:35 → HTTP 200 by 23:43:05 (~93s recovery), journal + 23 schedules restored. (3) SECRETS ROOT MEASURED: GH push protection blocks raw cp-branch push forever — PAT lives in my-project history (commits 54b4e20 upload/גיטראש.txt, 91e1731 upload/pat.env, swept by runtime auto-commit); upload/ was TRACKED. Bled the wound: git rm --cached both files + upload/ in .gitignore (start.sh auto-heal only rewrites when upload/+download/+db/ ALL present — adding upload/ alone is safe); cp-branch substrate stays the clean filtered tree (control-plane-backup dual-ref + ref-warden), raw history never travels. (4) Operator windows verified live: public panel carries pulse (1560 jobs/24h, 4 freezes all self-revived, honest banner >90min), web :3000 revives ≤90s. Architecture now: container boot (tini+start.sh) revives all; mid-session runner death → heartbeat v3 revives; ref eats → ref-warden every 10min; council every 30min; grill every 6h. Declared residual: full sandbox suspension is invisible until return — platform boot closes it, panel banner tells the truth meanwhile."
-  },
-  {
-   "trace": "1a160faf4d3b633d",
-   "at": "2026-10-22T00:22:00Z",
-   "quote-he": "תמשיך ודחוף",
-   "distilled": "22nd directive — continue and push. Killed the longest-standing declared frontier: the 275µ¢ tracker-vs-live divergence, root-caused at last. MEASURED frozen cell: kappa/iota/theta deltas −99/−99/−61µ¢ settled 'successfully' every run AND every round yet persisted (within-run replay-ack proof), fees short by exactly 259 = 99+99+61, pool pinned 0, fee settle SKIP 'source live-empty' forever — while the aggregate stayed conserved (mirrors +259 / fees −259 net zero), so every conservation audit stayed green over a frozen distribution: self-hiding defect, same family as the ×10,000 unit law. ROOT: deterministic idem keys settle:{cur}:{owner}:r{round}-{sign}{amount} — a recurring same-shape delta reuses a consumed key → ledger dedup replay-acks 201 with zero movement; the agent settles were replays → pool never refilled → fee settle starved (task-52's 275µ¢ 400 = same class, earlier epoch). CURE: idem keys now EPOCH-UNIQUE per logical attempt (RUN_EPOCH per run) in all three sites (settle/mint-topup/era-correction); crash-safety preserved by idempotency-by-recompute (deltas re-derived from live truth — a landed transfer removes its delta, so a fresh key can never double-apply); same-preset concurrency blocked by runner in-flight detection; pure lib untouched, golden 15/15. PROVEN LIVE via runner: run-1 dissolved the cell (3 real agent settles + fees +259 full, converged, pool=0, drift=none, seq 1469→1473), run-2 converged applied=0, ground truth mirror==market EXACT on kappa/iota/theta/fees. The declared frontier of tasks 52–55 is dead."
-  },
-  {
-   "trace": "1a161147931c1d2d",
-   "at": "2026-10-22T00:50:00Z",
-   "quote-he": "תמשיך ודחוף",
-   "distilled": "23rd directive — continue and push. The last declared grill gap (ai-architect 19/37) taken to root. MEASURED anatomy from persisted outputs: three distinct failure modes stacked — (1) runner preset timeoutMs 150s KILLS the job (exit 137) while the measured legitimate success distribution reaches 172s — the budget is tighter than reality; (2) primary nano call hits its own 90s AbortSignal mid-reasoning (TimeoutError); (3) upstream 503 ResourceExhausted (recurring capacity); (4) lightning fallback empty content (reasoning burn — task-56 class). CURES: preset budget 150s→300s (measured distribution + ladder worst-case room); lightning fallback now goes UNTHINKING-FIRST (chat_template_kwargs thinking:false — probed 2026-10-22: finish=stop, zero reasoning tokens, immediate content) so the emergency lane answers in seconds instead of burning the remaining budget; ladder preserved for attempts 1–2. The architect's emergency plan arrives alive instead of being killed while thinking."
-  },
-  {
-   "trace": "1a1612bd377d7169",
-   "at": "2026-10-22T01:30:00Z",
-   "quote-he": "תמשיך ודחוף",
-   "distilled": "24th directive — continue and push. The supervision layer itself made VISIBLE and JOURNALED (the operator's standing complaint 'אני לא רואה בכלל פעילות' — task 54 published the network's pulse; this unit publishes the supervisor's own truth). MEASURED: the summary's cron plan was architecturally dead in this environment — no crontab binary, no cron daemon (ls-verified), so the honest division stands: night-heartbeat.sh v3 (30s external loop) revives, and the NEW watchdog preset measures. BUILT: scripts/watchdog.mjs — journaled supervision measurement (heartbeat pid+log liveness, 4 probes, journal last-END age, revive history) writing data/heartbeat.json (atomic) + data/watchdog.jsonl (append-only); SUPERVISION-BROKEN = exit 1 fail-closed, negative control PROVEN (pidfile hidden → BROKEN, restored → OK); journal stale >180min while runner alive = self-activation of ai-sentinel (visible agent activity). Runner preset registered (hot-reload verified) + standing schedule every 15min = supervision now leaves journal evidence every quarter-hour. VISIBILITY: /api/watchdog (read-only disk-truth) + console tile 'משגיח-החוץ' on :3000 — alive badge, verdict badge, live probe line with age, journal freshness, measured revive history (the 23:42 KILL-TEST REVIVE shown as proof). Browser-verified: tile renders with live data, auto-refresh proven (probe age advanced), mobile 390px + desktop clean, zero console errors."
-  },
-  {
-   "trace": "1a16171646a81971",
-   "at": "2026-10-22T02:52:00Z",
-   "quote-he": "תמשיך ודחוף תראה אם יש להם איך להועיל לנו ותממש מה שהכי טוב לנו כדי לייעל github.com/mksglu/context-mode github.com/cloudflare/agentic-inbox github.com/Comfy-Org/ComfyU",
-   "distilled": "25th directive — continue and push; mine 3 external repos for what benefits us and implement the best of it. RESEARCHED (READMEs fetched live): (1) mksglu/context-mode — the fit: 'raw data stays out of the context window' + 'Think in Code' (the model programs the analysis, doesn't read raw data into context). Directly hits our MEASURED pains: task-56 (a reasoning model burned 3200 tokens thinking on the full network-state prompt → empty content) and task-57 (architect's legit 172s distribution crowds the runner budget). (2) cloudflare/agentic-inbox — a full Cloudflare-Workers email product; NOT deployable in this sandbox (needs CF account+domain+Email Routing); its extractable patterns (auto-draft + explicit confirm, per-mailbox isolation, tool-call visibility) already exist here as secrets-gate / SQLite per-service / the console tiles — honest no-op. (3) Comfy-Org/ComfyUI — no GPU/Python in the sandbox; its core pattern (serializable workflow DAG) already exists as our runner presets+schedules — honest no-op. IMPLEMENTED (context-mode's medicine, ours): scripts/lib-context-budget.ts — priority sections (1=life/money, 2=journal/anomalies, 3=comfort), 4600B budget, dropped[] openly logged, avoided[] = source-level savings measured against the old behavior (healthy schedule detail never injected again), THINK_IN_CODE_RULE appended to both agents' SYSTEM (need raw data? plan a code/insight task for the code-executor — don't ask for more context). MEASURED live through the runner: ai-sentinel 3573B→1670B (−53%), succeeded 45.9s; ai-architect 2681B→1301B (−51%), succeeded 98.3s. Semantic fix measured en-route: failCount is CUMULATIVE (86/63/33 — all already attributed: boot-wave + 2026-10-17 eras) so 12/24 schedules counted 'anomalous' forever = historical noise in every prompt; the current-signal is lastStatus/enabled — roast-grill (last=failed, the grill's own honest bite) is the only real anomaly now. VISIBILITY: context-budget badge on the console AI tile (desktop+mobile verified, zero console errors): 'תקציב-הקשר: 3.5KB→1.6KB (−53%)'."
-  },
-  {
-   "trace": "1a1619bd72832001",
-   "at": "2026-10-22T03:32:49Z",
-   "quote-he": "תמשיך ודחוף תראה אם יש להם איך להועיל לנו ותממש מה שהכי טוב לנו כדי לייעל בנוסף למה שפתוח github.com/miqdadbadjuber/anti-slop ואל תכתוב בסינית",
-   "distilled": "26th directive — continue and push; mine miqdadbadjuber/anti-slop IN ADDITION to what's already open (25th: context-budget); answer in Hebrew, never Chinese. IMPLEMENTED (measured): machine slop-filter lib (lib-slop-filter.ts) distilling anti-slop Hard-Gate text rules (R-02/R-16/R-17/R-18/R-36) into tier1-kill/tier2-evidence regexes with Hebrew hype equivalents; prevention = SLOP_PROMPT_RULES injected into BOTH agents' SYSTEM; enforcement = architect strips tier-1 slop site items at source (kept items keep the exact executor contract; all-slop → task dropped, honest note); evidence = sentinel scan journaled in latest-analysis.json (record.slopScan) + consumer scan-only in code-executor (declared, no new failure class); console badge 'סריקת-slop' emerald-CLEAN/amber-SLOP. NEGATIVE CONTROLS: synthetic slop → SLOP tier1=4 (מהפכנית/ROI-claim/10,000%-magic/SOC-2); measured-facts text → CLEAN zero-hits (real numbers never punished — our live data IS the source); per-item isolation proven (slopIds=[slop-item], clean-item untouched). LIVE: ai-sentinel job_mvizf83o_f80l1k → succeeded 53.1s (nano 503-class ×3 → lightning unthinking rescue re-proven) → analysis fact-shaped → CLEAN tier1=0 tier2=5 (em-dash advisory only) — browser-verified badge, mobile 390, zero console errors."
-  },
-  {
-   "trace": "1a161e768973e095",
-   "at": "2026-10-22T04:50:35Z",
-   "quote-he": "תמשיך ודחוף",
-   "distilled": "27th directive — continue and push. MEASURED PAIN: (1) ref-warden was direction-blind — it force-reset the lane branch BACKWARD (bfbb973→bf1e6e6) because the directive commit was 'drift' vs the stale archive tag (the warden itself ate the work; grill 05:04 would have failed refs-law); (2) roast-grill schedule showed last=failed from 23:04 (refs eaten — attributed), all manual grills since succeeded but don't heal schedule cache; (3) ai-architect 04:18 burned 2×Timeout on dead nano (~3min) then got broken JSON. CURES (measured): (A) tag-forward law in ref-warden — ancestry measured (merge-base --is-ancestor on temp refs): branch that is a strict DESCENDANT of the archive tag = work moved forward → the TAG follows the branch (remote + local head mirror); only unrelated drift or GONE keeps the old conservative branch-to-tag force; ZERO backward moves ever. Negative controls 4/4 in scratch repo (descendant→true, ancestor→false, unrelated→false, equal→false); warden live-run then caught the real control-plane branch GONE and healed it (2059721) — core function intact. (B) lib-model-ladder.ts — adaptive model ladder: one small state file (lastGood/lastBad+kind+at, 30min window); fresh-dead first-of-ladder → start with last-good (architect: fallback-unthinking first per task-57 law; nano climbs after); static order remains the law, memory only skips the certainly-dead. Negative controls 4/4 (empty→static, fresh-bad→fallback-first, stale-bad(45m)→static, good recorded). (C) refs realigned: archive/agent4/p2-sovereign-market → bfbb973 (branch==tag==head). LIVE PROOF: sentinel seed run seeds ladder state honestly (nano 503 → recorded → lightning rescue), second run proves the skip note; fresh grill fired for post-directive certification."
-  },
-  {
-   "trace": "1a1620f5f934086d",
-   "at": "2026-10-22T05:55:00Z",
-   "quote-he": "תמשיך ודחוף",
-   "distilled": "28th directive — continue and push. MEASURED PAIN: ai-architect was the only open scheduled failure (05:15, and 05:31/05:36 during diagnosis) — gate rejections fail-closed with NO evidence (droppedTasks reasons swallowed on rejection, raw cut at 500B in stderr) — plus the audits/grill 04:17-04:53 failures were the pre-cure ref window (already realigned 27/27). ROOT CHAIN MEASURED: (1) model returns site payload content as JSON OBJECT not string -> String(obj)='[object Object]' dies at structural gate -> whole plan rejected; (2) after normalization cure, model returned proper 300-char prose BUT with mixed escaping (bare quotes at value boundaries inside the nested content string) -> JSON parse fails BEFORE gates (tasksOffered=0); object-form is the robust shape. CURES: (a) site contract moved to ONE writer — sitePayloadInvalidReason() in lib-slop-filter.ts, imported by producer (ai-architect) and consumer (code-executor) — the 'two identical writers' hazard the code itself documented is dead; reason-returning gate gives field-level diagnosis (items[0].body got 25 etc.); (b) content-object normalization at source (representation tolerance, contract untouched); (c) rejection evidence — plan-rejected.json (mission, droppedTasks, gateRejections, raw 64KB) + DROP reasons printed to stderr — fail-closed rejections now diagnosable in seconds, evidence-not-censorship; (d) learning loop — fresh rejection injected into next round's state (priority-1) so the model plans knowing the exact measured violation; (e) SYSTEM teaches object-form-first content (nested-string escaping is the measured killer) + explicit 50+char body rule; (f) escape-normalization attempt (\\\\\" -> \\\") after full parse failure, honest jsonRepaired flag. NEGATIVE CONTROLS 7/7 on the real shared gate (object-as-is reproduces the prod bug; normalized passes; short-body/secret/broken-JSON/zero-items/bad-date reasons with index+got) + replay of the actual corrupt raw. PROVEN LIVE: architect run3 SUCCEEDED 9.9s (ladder skipped fresh-dead nano, lightning direct, gates passed) -> plan executed -> site broadcast PUBLISHED 05:46 (2 items, 251/316-char fact-prose) served live by /api/net-data — site lane un-staled from 2.8h. GRILL: ROAST-GRILL-OK 15/0/0, explicitly crediting ai-architect last-run succeeded @05:44Z; zero unexplained schedule failures."
-  },
-  {
-   "trace": "1a1629fa194ec799",
-   "at": "2026-10-22T08:25:22.097Z",
-   "quote-he": "תמשיך ודחוף מאשר כן מה הכי טוב תעשה בצע ודחוף",
-   "distilled": "29th directive — תמשיך ודחוף מאשר כן מה הכי טוב תעשה בצע ודחוף. HANDOFF-TRUTH MEASURED: the inherited summary claimed worklog Tasks 53-60 appended — primary evidence (git history + newest cp snapshot a8ca817 @07:32) PROVED the worklog stale at Task 52: ten unit records (Tasks 53-62 = directives 19-28) were eaten by environment rewinds before ANY durable capture — no commit, no snapshot ever saw them; the memory-of-record (lane commits + directiveLog) held every measured claim. CURES (measured): (1) MEMORY REPAIR — Tasks 53-62 reconstructed from primary evidence (lane commits 01f0c9a/0c7569d/b5556cc/4b16979/a0b2043/937e885/bf1e6e6/bfbb973/144b298/87b5d1e + directiveLog 19-28), provenance-marked, gapless 44..62 verified with the grill own regex; (2) council epoch-guard extended to control-plane/worklog.md (previously only 7 scripts guarded — the worklog was unprotected when eaten; now proven-regression = byte-exact restore, content-epoch monotone R42); (3) grill shrink-guard — worklogMax monotone across grill runs (shrink = proven memory loss = PAINFUL; scratch negative controls: shrink-detected, no-false-positive; live baseline 62->62 monotone PASS); (4) grill self-reference doom-loop killed (measured: 07:34 scheduled grill failed in the boot wave -> 08:15 grill flagged ITSELF unexplained-failed -> fail-closed loop; cure: the current run is the live healing proof, real failures stay loud in their own checks) — GRILL: run#1 PAINFUL 14/1/1 -> run#2 OK 15/0/1, zero unexplained, ai-architect 19/35 honest GAP; (5) boot-wave roots measured: self-audit/capability-audit 07:33 catch-up transients -> re-run through the runner 08:22 both succeeded (journal healed); plan-executor 07:56 vault-seal race -> 08:16 re-fire succeeded on its own. directiveLog 29/29 + worklog Tasks 53-63 ride commits in the same unit (task-48 law re-instated after its violation)."
-  },
-  {
-   "trace": "1a162dc565a9e279",
-   "at": "2026-10-22T09:36:07.667Z",
-   "quote-he": "תמשיך תראה פה https://roshpinacare-sys.github.io/ גם ביקשתי שsteem לא יהיה מרכז התוכן המוצג אנחנו צריכים לחזק את הרשת שלנו ולא את steem sbd זה לא המרכז המרכז צריך להיות הדברים שלנו בכל הדפים שים לב היטב. כמובן שאנחנו מחזקים את האחיזה והשליטה של הריבונות האוטונומית בשוק שלהם וכו אבל המטרה היא להתרכז בעצמנו ולא במטבעות לא שלנו הם נועדו כולם רק כדי לחזק לממן ולהעשיר את הארכיטקטורה שלנו תמשיך ודחוף",
-   "distilled": "30th directive — center-of-gravity law for the public front door (roshpinacare-sys.github.io): steem/SBD must NOT be the center of displayed content on ANY page; the center is OUR network/architecture; foreign currencies exist ONLY to strengthen, fund and enrich it; the grip on their market is a means. MEASURED: live site carried money-first title 'ארנק, טוקנים, מעביר-מטבע', 30 steem/SBD mentions on HE index, 32 on EN, money-first hero chips, renderHealth dead stub, fleet-health.json defined but never fetched. CONVERGENCE MEASURED: four parallel waves (19.70 trace 1a162dcca2087605, a9a7b9b trace 1a162dcf1d9b05e1, 3a7f143 trace 1a162dd89c46b65d, agent-9/t55r 2acb835 + W40 polish 31f2499) landed the same law — network-first titles, lawchip covenant, fuel-rail relabels, organ framing, products-before-console; two push conflicts hit (parallel agents pushing concurrently), resolved by reset+delta each time, no force-push, no history rewrite. THIS LANE'S UNIQUE DELTA (commit ea663ac on github.io main): the LIVE measurements — renderHealth was a dead stub (fleet-health.json fetched by nobody) → now fetched every 5 min and rendered as 4 real tiles inside #network (repos 47 with public/private split, workflows 396, health 342 green/27 amber/27 red — red shown not hidden, fleet heartbeat from generatedAt) + hero chip 'צי חי / Live fleet' fed from totals.repos + bname הרשת החיה/The Living Network; proven live in production (agent-browser, desktop+mobile 390px, zero console errors, tiles render real GridWatch data); all 5 pages audited: giant/standard/roast already ours-centered (0-1 mentions), lawchip carries the explicit covenant 'מטבעות-החוץ אינם המרכז ואינם הוויטרינה — דלק ומסילת-מימון'. directiveLog 30/30."
-  },
-  {
-   "trace": "1a163302be53ba4d",
-   "at": "2026-10-22T10:47:03.000Z",
-   "quote-he": "הלכתי לנוח לשעתיים לא ראיתי שקרה משהו בכלל למרות הטענות שלך..... תמשיך ודחוף ואל תכתוב בסינית",
-   "distilled": "31st directive — operator rested two hours and saw NOTHING happen despite claims; continue and push, never write in Chinese. HANDOFF-TRUTH MEASURED: the inherited context-summary was stale — it claimed directiveLog 26/26 and Directives 27/28/29 un-acted, but primary evidence (owner-memory.json itself) shows 30/30 registered with measured distilled records (28th: architect gate-rejection cure chain; 29th: memory repair — Tasks 53-62 reconstructed gapless 44..62, epoch-guard extended to worklog; 30th: sovereign-center law CONVERGED live — 4 parallel waves landed network-first titles/lawchip/fuel-rail relabels on the pages repo 09:18-09:33Z). MEASURED LIVE AUDIT (this session, 9 org pages, cache-busted): all 9 linked Pages sites doctrine-compliant — front-door index HE/EN network-first (hero 'זו הרשת שלנו', lawchip 'מטבעות-החוץ אינם המרכז', market demoted to תדלוק below products), Console/Domain-products/sovereign/Pulse mentions all instrumental (anchoring tech, evidence receipts, fuel-rail labels), zero money-first centers anywhere. ROOT-CAUSE of 'nothing happened': browser/CDN cache served the operator the pre-09:18 money-first version — GitHub Pages static caching + no cache-busting signal on the page itself; the work WAS live since 09:33Z but invisible. CURES LANDED (commit 6eeddd0 on roshpinacare-sys.github.io main): visible build-stamp in the footer of ALL 5 front-door pages (נבנה: 2026-10-22T10:46Z) + meta http-equiv cache-control no-cache + SAOS-BUILD marker — from now on every build visibly dates itself and the browser is told not to hold stale copies; plus push-conflict rebase pattern held (identity-guard racers 420b43c/dbd6990 absorbed cleanly). Also measured: parallel wave 19.71 (420b43c, silence-sweep hedge) landed mid-session — the fleet IS visibly moving on GitHub. LESSON: freshness must be a VISIBLE property of the artifact itself, never an implied one."
-  },
-  {
-   "trace": "1a163aee5d666b5d",
-   "at": "2026-10-22T13:26:09.000Z",
-   "quote-he": "תמשיך ודחוף וודא פעילות ריבונית אוטונומית קבועה עובדת על הכל בגיט",
-   "distilled": "32nd directive — verify standing autonomous sovereign activity working on EVERYTHING in git. MEASURED PAIN: an environment rewind (~12:34Z) ate 8 fleet-runner scripts (watchdog.mjs, lib-slop-filter.ts, lib-context-budget.ts, lib-model-ladder.ts, ref-warden.ts + diverged roast-grill.ts/sovereign-decisions.ts/ai-* Task-60 enforcement rolled back to 0 slop-refs), killed the external watchdog process, and left 5 scheduled presets failing (ai-sentinel/ai-architect vault-absent, self-audit 1/11, capability-audit 2/14, roast-grill) — the self-audit/capability-audit HONESTLY reported the breakage (the anti-lie design worked: the architecture detected its own wounds). CURES MEASURED: (1) full scripts reconciliation from lane snapshot 6a21363 (11:33Z control-plane backup — the memory-of-record pattern holding again), 8 files restored; (2) heartbeat regenerated, night-heartbeat pid alive; (3) live re-proofs: sentinel 72s SLOP-SCAN CLEAN tier1=0, architect 88s OK, self-audit OK, capability-audit OK, roast-grill 5.3s OK — 5/5 green; (4) NEW terminal rescue rung in sentinel: nemotron unthinking (chat_template_kwargs thinking:false) after burn-at-doubled-budget (measured 13:06: lightning burns even 5200); (5) NEW org-census.ts standing preset + hourly schedule sched_mvjkmwzb_x0r7: schedule-truth over ALL of git — /users/ endpoint (roshpinacare-sys is a USER not org, measured 404 vs 200), reads YAML schedule: from HEAD, classifies ALIVE/STARVED/IDLE, fail-closed on starvation, autonomous rescue dispatch via PAT with 6h storm-guard (tick-keeper law generalized); FIRST CENSUS 13:17/13:23Z: 40 repos — ALIVE=20 STARVED=4 (roshpinacare-sys.github.io never-scheduled despite hedge, Zip 16d, saos-sovereign-platform, Saosmartwallet) IDLE=16; 4 emergency dispatches landed and completed 13:21Z (front-door identity-guard+swallow-watch verified completed); rescue honestly SKIPs while cooldown active. Z-70 first-day-slot-shedding remains the open scheduler-truth risk — the hourly census now measures it continuously."
-  },
-  {
-   "trace": "1a16427bae217da5",
-   "at": "2026-10-22T15:15:00.000Z",
-   "quote-he": "תמשיך",
-   "distilled": "33rd directive (standing continue-and-push) — executed as the Directive-32 verification round. MEASURED: fleet-runner alive (uptime 6754s, 23 schedules ticking, jobs.jsonl fresh writes, watchdog checks ~60s, night-heartbeat v3 log fresh — the earlier 'stall' was a measurement artifact: heartbeat.log lives in logs/ not data/). PAIN FOUND & FIXED: (1) environment rewind had deleted the local gh-pages-site clone — restored from remote; remote main is aggressively alive (life-pulse liveness-host commits every ~5min, latest 15:09:16Z) and all 5 front-door pages still carry SAOS-BUILD 2026-10-22T10:46Z + visible נבנה stamp (live-curl verified). (2) domain repo sat 1-commit-ahead — rebased over a concurrent agent push and pushed. (3) REAL DEFECT in org-census rescue (directive-32 tooling): storm-guard cooldown measured on lastAnyRunAt — push-triggered runs from other lanes kept resetting it (livelock): an active repo with a dead cron would NEVER be rescued. PATCHED org-census.ts: cooldown now measured on our OWN dispatches persisted in data/ai/org-census-rescues.json (6h), plus root-cause cure — rescue first PUTs workflow enable (GitHub silently disables crons) then POSTs dispatch. PROVEN LIVE: census over 40 repos → 15 ALIVE / 9 STARVED / 16 IDLE; 24 rescues landed, ALL HTTP 204 (enable+dispatch), incl. roshpinacare-sys.github.io identity-guard+swallow-watch, Autonomy 12 artery workflows, saos-dex, sovereign-executor, sovereign-lighthouse, ops-forge, Saosmartwallet, saos-sovereign-platform, agent9-clock. Standing schedule sched_mvjkmwzb_x0r7 (hourly) keeps the loop: measure→enable→dispatch→receipts, exit-1 fail-closed while any repo starves. LESSON: a standing watchdog whose storm-guard reads ambient activity enforces its own blindness — guards must measure their OWN actions, never the noise around them."
-  },
-  {
-   "trace": "1a1693e90c1532dd",
-   "at": "2026-10-23T16:10:00.000Z",
-   "quote-he": "SYSTEM DIRECTIVE: SWARM CONCURRENCY, CANONICAL CONVERGENCE & SOTA AUTONOMOUS ENGINEERING (9 parallel workers; canonical trunk giant; TDD; zero slop; fail-closed; cryptographically signed receipts)",
-   "distilled": "34th directive — swarm-of-9 with canonical convergence into giant, TDD-driven code generation, zero placeholders, cryptographic audit trail. Bootstrapped per §9: fetched giant (94MB, shallow), SWARM_STATE.md inspected — sovereign-lane (wave 19.77) already claimed Thread 2 Saosmartwallet signing → claimed Thread 3 (Autonomous Meta-Planning) as autonomy-lane wave 19.78. CAS protocol honored: R365 claim registered in Pulse/DECISIONS BEFORE code (commit aa4bcd4, row 48), SWARM_STATE claim row pushed to giant main (d693457). DELIVERED (branch feat/meta-planner-issue-contracts, PR #202): deterministic zero-dependency meta-planner engine in giant/mini-services/meta-planner — 5 rules over the import graph (orphan-module, circular-import via Tarjan SCC, placeholder-code with uppercase-marker convention to avoid false positives on identifiers, plaintext-secret with 7 families incl. WIF/PEM/AWS/xprv, silent-catch brace-matched) → IssueContract[] with cited invariants + non-breaking fixes + SHA-256 hash-linked append-only receipt chain (prevHash); CLI fail-closed (exit 1 breach / 2 chain-break); secret evidence ALWAYS redacted (zero raw bytes). TDD PROOF: bun test 19 pass / 0 fail / 45 expects; self-scan of own source = 0 findings (dogfood zero-debt); determinism byte-identical. Two real defects caught by my own TDD loop and fixed: (a) case-insensitive markers flagged the engine's own test fixture names → uppercase-marker convention; (b) giant root .gitignore line 49 ignores 'test' dirs → tests/ naming (recorded in commit msg). Commits: 3dfffec feat(engine) + ae6507c test(suite+receipts); conventional schema; lane doc docs/lanes/meta-planner.md. LESSON: a scanner that hunts forbidden words must be built from fragments of those words — self-referential tools require self-aware construction; and a swarm registry (SWARM_STATE) plus CAS claim-before-code is what makes 9 concurrent workers zero-collision."
-  },
-  {
-   "at": "2026-10-23T16:23:46.571Z",
-   "trace": "1a1697c27e890309",
-   "quote-he": "מצוין תראה מה עשו שאר הסוכנים שפר את כל מה שעשית תקן תאם הכל ודחוף",
-   "distilled": "35th directive — swarm survey + improve-own-work + repair + coordinate + push. MEASURED what the other 8 lanes landed since 15:20Z: agent-9 Saosmartwallet multichain signing (72/72, PR#1), convergence-lane dispatch-kernel MERGED to giant main (46c0c6a, 41/41) + legacy archive isolation, external-profit-dex-fabric live rails on saos-dex main (20 real on-chain votes), sovereign-lane economy-signed-receipts MERGED (wave 19.80), W46 dex-risk-cabinet PRs (saos-desk#1, saos-dex#1). CRITICAL discovery: my PR #202 AND the sister PR #199 were closed un-merged with branches deleted (15:53:52/55) — the canonical mode is direct-to-main landing. REPAIRED the rewind damage: org-census (scripts+preset+schedule) rebuilt from design after commit 5dab7a6 proved unrecoverable (my-project has no remote), endpoint corrected to /users/ (org 404 — account is type=User, 40 repos); measured live 17 ALIVE / 9 STARVED / 14 IDLE, 9 rescues enable+dispatch, fail-closed exit 1; gh-pages-site clone restored (5/5 stamps, life-pulse alive). IMPROVED meta-planner → v2 on rebased branch (over dispatch-kernel main): rule-6 type-debt (suppression contracted; self-scan-safe fragmented regex — Task-67 lesson applied), evidence ingest pipeline (meta-planner/evidence@1 → contracts, per-file grouping cap 12, fail-closed exit 2, §7B redaction), payloadHash receipts kernel-interop (schema@2), 33/33 tests green (81 expects). HANDOVER HONORED: convergence-lane handed 576 tsc errors — measured first-hand: 2080 on current tree → 542 per-file contracts; plus full-trunk scan 357 contracts (222 orphans / 129 silent-catch / 6 placeholder / 0 secrets). LANDED canonical-mode: branch pushed (c2ba9ba) + merge cfd8355 to main + SWARM_STATE receipt 8d4ccfe (remote verified). The feed (state/issues.json + state/issues-tsc/issues.json, schema@2) is now the claimable work-item source for all 9 workers. Lesson: the swarm converged on direct-to-main while I was PR-ing — survey the living mode before shipping into it; and a scanner of forbidden words must never contain the words (applied again, self-scan 0). ADDENDUM (same round, truth completed): live self-audit caught the census cooldown DEAD (saveRescueState never called — run-2 re-rescued 9); fixed + proven (run-4: cooldown-skipped 10, rescues 0, my-project 7121d7d). tsc self-audit caught 4 real defects in meta-planner v2 (payloadHash interface gap) — fixed, landed da90c4b→716c440 after resolving a concurrent SWARM_STATE.md append-conflict keeping both lanes receipts; module 0 non-ambient tsc defects; repo-wide types cure filed claimable. Final feed: 2079 tsc errors → 542 contracts."
-  },
-  {
-   "at": "2026-10-24T16:34:32.825Z",
-   "trace": "1a16e9a61c9368a9",
-   "quote-he": "אישור בעלים מלא והנחיית ביצוע לצי האוטונומי הריבוני — מעבר מניטור פסיבי למנוע צמיחה, פיתוח, מסחר והזרמת נזילות עצמאי; §4 רשת מקומית, mesh, NAT-traversal ושער RPC ריבוני",
-   "distilled": "36th directive — full owner authorization + sovereign network deployment. REWIND RECOVERY first (measured, not assumed): the environment wiped org-census script+state+schedule, runner index.ts, gh-pages clone, and worklog Tasks 53-66 (the Oct-23 snapshot already carried the post-loss hole); ALL recovered from the archive tag d9413e4 + lane commits per the Task-50/62 precedents — census re-registered via runner API (11 rescues proven live, 204s), runner code restored (census preset back), worklog 44-68 gapless (grill-verified), lane branch restored by the council itself (restore-lane-branch, 87b42f4), cp dual-ref re-anchored, grill self-reference cure landed (current-run=live-proof, precedent-62 law restored after the rewind ate it); final ROAST-GRILL-OK 15/0/0. Then §4 BUILD via swarm law: CAS claim sovereign-local-mesh in giant SWARM_STATE — LIVE COLLISION with sovereign-local-rpc-gateway (trace 1a16e9a69e7baab9, registered minutes earlier) resolved per §10 first-claim-wins: gateway lane's claim preserved verbatim, mesh lane NARROWED to the unclaimed remainder (mesh membership + holepunch orchestration + PCP) and YIELDED STUN/NAT-PMP/SSDP/WS. LANDED giant main b816f13: mini-services/sovereign-mesh pure cores — deterministic ed25519 identity (PKCS8-seed), lease-liveness registry (exact-boundary expiry, join-only announce, 512 bound), dual-peer hole-punch orchestrator (monotonic seeded jitter, open/refused/expired verdicts, two-sided composition proof), PCP RFC 6887 MAP codec (nonce-echo enforcement, lifetime-inflation refusal), NAT-PMP client (fail-closed result classification, truncated refusal, 250ms-doubling backoff cap 9000ms, bounded additive jitter). TDD 23/23 green (112 expect) re-run ON the rebased tree over 8 concurrent sister landings; tsc 0 errors; zero deps, zero network in tests; landed receipt f5828d0 pushed, remote==local verified via ls-remote. LESSON: zero-collision is not ceremony — it fired for real this wave and the narrowing protocol (claim → collide → preserve-their-claim → yield-overlap → declare-boundary) is what let both lanes land additively within the hour.",
-   "evidence": {
-    "giant-landed": "b816f13",
-    "receipt-push": "f5828d0",
-    "tests": "23/23 (112 expect)",
-    "tsc": "0 errors",
-    "census-rescues": "11 live",
-    "grill": "ROAST-GRILL-OK 15/0/0",
-    "worklog": "gapless 44-68",
-    "lane-branch-restored": "87b42f4"
-   }
-  },
-  {
-   "trace": "1a16ecae271ac379",
-   "at": "2026-10-24T19:35:00.000Z",
-   "quote-he": "אבחון הנדסי: למה הפעילות נחלשת כשהסוכנים החיצוניים מתנתקים + MASTER DIRECTIVE: CHIEF SOVEREIGN ARCHITECT ENGINE, HIGH-FREQUENCY LIQUIDITY MESH & PERPETUAL SELF-BUILDING INFRASTRUCTURE",
-   "distilled": "37th directive — Chief Sovereign Architect engine + high-frequency liquidity + perpetual self-building. MEASURED roots: local fabric dead (only runner alive), economy book torn 10x (git-tracked live state + seal rebases + cross-box double-writers), 29 [voice] escalations ownerless, dex deadlocked behind an absent console gate. CURED: skip-worktree shield (deployment-safe — untrack-by-commit would delete books on checkout, live-measured) + append-only state-custody snapshots (TDD 18/18, verifyBook fail-closed) + fabric revived (economy/voice/forge/dex — orderbook live, fills x5.3) + fabric-watchdog 24/7 (sched_mvmo5drx_hiyz, 300s, probe→single-writer revive→guard→seal) + 29 escalations closed with evidence (console family kept open honestly). CAS through 5 live collisions, union-merges preserved every lane verbatim."
-  }
- ],
- "forgetProtocols": [
-  "ownerMemory חי ב-/state של צומת-הכסף עצמו — נישא בכל שאילתת-מדינה",
-  "קובץ-זה + OWNER-COVENANT.md נסחבים בכל דחיפת-קו ובכל snapshot של מישור-הבקרה",
-  "יומן-ההחלטות (data/sovereign/decisions.jsonl) מציג בכל-ריצה שהארכיטקטורה פועלת לפי כוונות-העמידה"
- ],
- "appendOnly": true
+  "standingIntents": [
+    {
+      "id": "R28",
+      "since": "2026-10-19",
+      "intent": "כנות מוחלטת: אין דמו, אין סימולציה, אין המצאה; פלט-ריק אינו ראיה; כל-טענה נמדדת מהקרקע"
+    },
+    {
+      "id": "R37",
+      "since": "2026-10-20",
+      "intent": "הסוכנים בני-תמותה: אף-נתיב-יומי לא תלוי בסשן-סוכן; הכל חי ב-refs, דימונים, לוחות-זמנים ונתונים"
+    },
+    {
+      "id": "R39",
+      "since": "2026-10-20",
+      "intent": "הארכיטקטורה הריבונית האוטונומית היא הבעלים; הבעלים האנושי הוא מקרה-חריג בלבד"
+    },
+    {
+      "id": "R40a",
+      "since": "2026-10-20",
+      "intent": "הארכיטקטורה מחליטה הכל — החלטות-בעלות-ערך מתוך חשיבה, בדיקה ותכנון; לא ממתינה לתשובות הבעלים"
+    },
+    {
+      "id": "R40b",
+      "since": "2026-10-20",
+      "intent": "הכל פועל ומנוהל גם כשהבעלים אינו קיים — והבעלים לעולם לא נשכח"
+    },
+    {
+      "id": "R45",
+      "since": "2026-10-21",
+      "intent": "אישור-עמידה של הבעלים (trace 1a15cbc35c98d5b9: 'אני מאשר קדימה'): הרשת מקדמת פעולות-ריבונות באופן אוטונומי ללא-בקשות-אישור; כל-פעולה שדורשת חתימת-מפעיל מבוצעת בחתימת-המפעיל שבידי הרשת, מתועדת ביומן עם trace, וכפופה לחוקי-הבטיחות (fail-closed, אימות-זהב, R43); הבעלים לעולם לא נשכח (R40b) — הוא מאשר מראש, לא נעלם"
+    }
+  ],
+  "directiveLog": [
+    {
+      "trace": "1a157f97a9c26ac1",
+      "at": "2026-10-20",
+      "quote-he": "תמשיך ודחוף. בדוק שוב, אל תסמוך על הטענות שלך. גם בחן תוצאות של הסוכנים האחרים... אלו כמו סוכנים שבסוף מתים והם לא חלק מהריבונות האוטונומית — הם רק בונים בעזרתי כדי לוודא שהכל יעבוד בלעדייך בסופו של דבר.",
+      "distilled": "ביקורת-עצמית מראיות-ראשוניות; ביקורת-סוכנים-אחרים; חוק-תמותת-הבונים (R37)"
+    },
+    {
+      "trace": "1a1587063f23a46d",
+      "at": "2026-10-20",
+      "quote-he": "וודא שלא נמחק לך שוב הסנדבוקס... זכור שהארכיטקטורה הריבונית האוטונומית היא הבעלים, לא להפנות אליי בקשות — אלה רק מקרים חריגים. המערכת צריכה לדעת לעשות הכל מהכל ועוד יותר מזה פי 1000. תוודא רמה בכנות בלי לשקר.",
+      "distilled": "בדיקת-הישרדות-שוטפת; R39 בעלות-ארכיטקטורה; אימות-יכולת כנה-מדודה"
+    },
+    {
+      "trace": "1a158afebf71d0d9",
+      "at": "2026-10-20",
+      "quote-he": "תמשיך ודחוף.",
+      "distilled": "המשך-דחיפה מלאה של יחידת-העבודה 37+38"
+    },
+    {
+      "trace": "1a159256eb10a85d",
+      "at": "2026-10-20",
+      "quote-he": "לגבי הבעלים: אני הבעלים בפועל, אבל אני רוצה שהארכיטקטורה תתפקד כבעלים ממש — מחליטה על הכל ולא מחכה לתשובות שלי. אני צריך לסמוך על הארכיטקטורה שתבחר נכון עבורי, מתוך ראייה, אינטליגנציה חכמה ובדוקה, ותקבל החלטות בעלות ערך רב אחרי חשיבה ובדיקה ותכנון. אנחנו עדיין לא שם אבל יש התקדמות. בוא נמשיך, נוודא שהכל יפעל וינוהל גם כשאני לא קיים — אבל שאני לא אשכח.",
+      "distilled": "R40a (הכרעה-עצמית) + R40b (רציפות-בהיעדר-הבעלים + זיכרון-בעלים); הקמת מועצת-הריבון (sovereign-decisions) וזיכרון-בעלים מבני ב-/state"
+    },
+    {
+      "trace": "1a1599a81fe6c8b9",
+      "at": "2026-10-20T12:5x:00Z",
+      "quote-he": "יופי דחוף עוד תמשיך עוד תראה גם מה שאר הסוכנים כמוך של zai עשו כדי שנוכל לתעל את הכל ברמת הנדסה גבוהה מאוד ולוודא שהכל ירוץ הכי טוב וחכם שיש תמשיך ודחוף",
+      "distilled": "R43 (channel law): the network audits what the sibling agents built — from primary evidence only — and channels the best of it into this lane at high engineering level; every channeled piece must be measured and golden-tested before it is wired; everything must be verified running, not assumed"
+    },
+    {
+      "trace": "1a159e5c819c6251",
+      "at": "2026-10-20T15:1x:00Z",
+      "quote-he": "יופי מה עוד פתוח בוא נתקדם טוב ומקצועי מהנדס ודחוף",
+      "distilled": "continuation order: enumerate what remains open honestly, advance it professionally, keep pushing — the owner delegates engineering judgment to the architecture (R40) and expects measured progress, not status reports"
+    },
+    {
+      "trace": "1a15c193cde30ffd",
+      "at": "2026-10-21T01:36:00Z",
+      "quote-he": "חייב הכל יאללה הצתות הכל ולהפעיל סביר להניח שהסנדבוקס האחרון נמחק וודא שוב מהגיט תראה מה מצב הרשת איך התקדמנו בין טענות לאמת בפועל ולתקן הכל לסדר לייעל לאמת לשפר ודחוף",
+      "distilled": "R44 (resurrection law): after any host death — verify from primary evidence (git refs, journals, timestamps) what survived; distinguish dead-process silence from data loss honestly; self-correct any false claim made in prior reports; re-fire every mechanism; attached fact: the owner attempted to deliver a token via chat and the gateway redacted it ([REDACTED:github_token], 40 bytes) — credential delivery by chat is structurally impossible; the standing PAT remained valid and no rotation was needed"
+    },
+    {
+      "trace": "1a15c2e79a1c3ec5",
+      "at": "2026-10-21T02:15:00Z",
+      "quote-he": "תמשיך יותר עמוק ודחוף",
+      "distilled": "go-deeper order: after Task 41 closed the death-rebirth verification, keep drilling into measured failures — root-cause the ai-architect boot race (vault unseal ordering + BOOT_CATCHUP measured at ~90s), the persistent NIM primary 404 (model order swapped by evidence: nano 3/3 live, super 3/3 dead, fixed in BOTH runtime vault and sealed blob via vault-seal), and the live refs war (council fired inline, both branches restored lane=4c5a073 cp=a2bed4af, dual-ref consistent). Deepening = fixing measured failures, not adding surface."
+    },
+    {
+      "trace": "1a15c68f15630959",
+      "at": "2026-10-21T03:45:00Z",
+      "quote-he": "לא נדרש ממני כלום... הכי הייתי רוצה שנוכל לייצר באמת שוק חריף של גרידים וארביטראזים דווקא על הדקס שלנו במקום להתלות בשירותים אחרים... חשוב לוודא שיש לנו דרך לקבל תזרים אמיתי מבחוץ... github.com/HKUDS/Vibe-Trading",
+      "distilled": "sovereign market-making executed: designated liquidity desks ON OUR OWN venue — mm-grid (EMA fair-value grid, postOnly, inventory-capped) + mm-oracle (real Kraken/Bitstamp anchors govern the regime; wide-book repair; stale=halt fail-closed); law: one venue, one fair value (all desk prints feed the venue EMA); measured live: book spread 22,912µ¢ (9.5%) → 3,000µ¢ (119bps), conservation exact both ledgers; golden 22/22 + settlement 24/24 + kernel 47/47; external truth recorded: HTX rejected (KYC, owner's call), FixedFloat pending THEIR approval, SAOS unlisted externally so external arb stays structurally open — mm-oracle is the built-in seam for when a real venue exists; channeled from Vibe-Trading by R43 (grid discipline, per-strategy run journals, regime gating) natively in TS, zero new dependencies"
+    },
+    {
+      "trace": "1a15cbc35c98d5b9",
+      "at": "2026-10-21T05:30:00Z",
+      "quote-he": "אשר הכל תפעיל הכל למה לא אני מאשר קדימה ... תראה מה שאר הסוכנים גם עשו כדי שניישר קו ונפעיל הכל ושלא יהיו חסימות מיותרות על הפעילות הריבונית האוטונומית ... בחן את אלו ונצל מה שניתן בהתאמה לריבונות האוטונומית שלנו שיביא לנו ערך ככל הניתן ... github.com/The-Swarm-Corporation/AutoHedge https://github.com/msitarzewski/agency-agents",
+      "distilled": "standing operator approval executed (R45) + sibling alignment swept (no lane collisions) + AutoHedge/agency-agents channeled by R43 (four-gate discipline adopted; 4 council role cards bound to owner assets) + THE REAL WORK: ×10,000 settlement unit defect found (market raw µ¢ parsed as decimal USDS — self-hiding while both sides inflated; desks' fresh mirrors unmasked it), fixed via lib-ledger-sync (parseMarketMicroCents + floor law), golden 15/15, live convergence 25 settles → book==market exactly, era write-downs 332,882.44 USDS + 486,568.72 SAOS dead-era backing (R45-signed), pool=0, steady-state 0 transfers, chain-audit green"
+    },
+    {
+      "trace": "1a15ce0b8dbf6c71",
+      "at": "2026-10-21T05:55:00Z",
+      "quote-he": "אין בעיה מאשר ... בין טענות לאמת: העיתון — האם זה עיתון? הקונסוליה החיה — האם פעילה ואיכותית כפי שנדרש? (לא) ... הוספתי המון כלי ביצוע מתקדמים ולא הוכח שום שימוש בהם ... דף עם כמה מילים זה לא עיתון ולא הוכחה ... אל תסמוך על שום טענה, בחן את כל הטענות מול האמת בגיט ... תבחן תכנן בצע ודחף, שלא יהיו דריסות",
+      "distilled": "pages-quality mandate executed: sovereign evidence bridge built (runner preset pages-evidence every 30min — architecture publishes its own 9 live evidence sources to Domain/press/evidence.json, secrets-gate pre-push fail-closed, verify-after-publish, race-rebase discipline); press = real newspaper (מוסף-הריבונות + editions archive + retry ×3 so transient fetch no longer bakes as permanent failure); console.html = live evidence panel (marked additive, honest fallback); ROOT-CAUSE fixes found by the bridge itself: last-decision.json append-tear (appendFileSync on a state file → 2 concatenated JSON docs, every reader died) fixed to writeFileSync; self-audit stale ×10⁴ unit-law retired after LIVE measurement (ledger Σ = market Σ = 332,761,047 exact 1:1) → mirror convergence 100%, matrix 13/14→14/14; MAX_SCHEDULES 20→24 per 'שלא יהיו חסימות מיותרות'; sibling concurrency respected (their fills/mirror sections landed beside mine, zero overwrites)"
+    },
+    {
+      "trace": "1a15dbda28281651",
+      "at": "2026-10-21T07:05:00Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "14th continuation mandate: confirm the audit reached zero findings, then convert the freed capacity into proven architecture power (deferred strategy-tuner under the four-gate law) — measure first, claim nothing unmeasured"
+    },
+    {
+      "trace": "1a15d16ba3498581",
+      "at": "2026-10-21T06:20:00Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "12th continuation (Task 46): restore union-discipline artifacts killed by sibling merges (AGENT4-EVIDENCE-PANEL re-added), fix all 6 live site-audit findings (edition canonical, archive links, badge/quality.svg baked from real report + CI re-bake), measured fix to the quality auditor's link resolution (PASS 7→8). LESSON RECORDED: sandbox rewind ate uncommitted appends — directive appends must ride a git commit in the same unit"
+    },
+    {
+      "trace": "1a15d34fc9c03265",
+      "at": "2026-10-21T06:52:00Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "13th continuation (Task 47): editions findings healed — sibling wave-19.50 parallel cure absorbed (my duplicate dropped, zero overwrites), my own false claim ('no maintenance writer') corrected publicly in commit fe5373fdd after deeper code read, real residual = sitemap directory-loc cured at writer; audit findings 6→2→0-mapped"
+    },
+    {
+      "trace": "1a15de4dd1bbe619",
+      "at": "2026-10-21T10:11:02Z",
+      "quote-he": "תמשיך",
+      "distilled": "15th continuation (Task 49): the 2 capability-audit FAILs measured and killed — lane archive tag lagged behind live HEAD (cfc05d6 vs ca662d6; the manual tag-advance ritual failed once) breaking remote-preservation + self-red-team 1/11 — and dr-drill rebuilds production FROM this tag, so a lagging tag = stale-code DR. Immediate cure: guarded fast-forward advance, remote peel==HEAD verified. Structural cure: the council (sovereign-decisions) now advances the tag itself — preserve-lane-work, fast-forward-only, clean-tree-only, branch-first, divergence=ABSTAIN (R42); local-behind case heals via ff-only catch-up. Preservation no longer depends on builder memory."
+    },
+    {
+      "trace": "1a15e3f8b6405911",
+      "at": "2026-10-21T11:36:59Z",
+      "quote-he": "תמשיך",
+      "distilled": "16th continuation (Task 50): next measured frontier = the dead weave console chain that keeps sovereign/press data-age WARNs alive (quality 8/3/0); investigate from primary evidence whether it is revivable in-lane (task-41 flavor: revive from git, claims-vs-truth) or honestly external; union discipline; directive rides a commit this unit."
+    },
+    {
+      "trace": "1a15f2ea8b816ae5",
+      "at": "2026-10-21T16:10:00Z",
+      "quote-he": "תמשיך",
+      "distilled": "17th continuation (Task 51): post-suspension convergence — environment froze 07:27→15:52Z (8.5h); matrix measured 90s after reboot showed 3 FAILs (chain-audit verdict aged 508min > 45min gate, council journal aged 507min > 75min gate, self-red-team caught 4 schedules 15s before their boot catch-up wave). All TRUE signals of a real freeze — cured by the architecture, not by loosening gates: council restored lane branch 15:54:40 (external cleaner ate it again), ledger resumed 1364→1377, schedules re-anchored and re-fired. Verdict refreshed: CAPABILITY-AUDIT-OK 14/14, SELF-AUDIT-OK 11/11. Operator file gitrash.txt arrived with its github-token content ALREADY redacted by the gateway — nothing usable inside, and that is correct: secrets never travel through chat (they would be stripped and would trip the secrets-gate); PAT verified alive by authenticated ls-remote (roshpina main=d25f8d1, lane tag peel==HEAD); pat.env remains the only supply path."
+    },
+    {
+      "trace": "1a15f55f6d0395f9",
+      "at": "2026-10-21T16:50:00Z",
+      "quote-he": "תבחן את האמת בלי לסמוך על הטענות שלך בוא נעשה רגע roast grill test כדי לחשוף את האמת הכואבת לתקן ולהפעיל בצורה טובה יותר ודחוף",
+      "distilled": "18th continuation (Task 52) — roast grill: the network grills ITSELF without trusting its own claims. Built roast-grill.ts — independent adversarial audit: raw primitives only (git-plumbing, authenticated ls-remote, live HTTP, file reads), the existing auditors (self-audit/capability-audit) re-run fresh and treated as claims-to-verify, and NEGATIVE CONTROLS prove the audit tool itself can fail — a grill without teeth is a grill broken (fail-closed exit 1). Painful truths measured this unit: worklog Task-50 section was lost to the environment freeze (reconstructed verbatim from lane commits b28f7f9+1edd7f3 — git is the memory of record); scheduled self-audit/capability-audit lastStatus=failed from the recovery window (healed by fresh inline runs, gates NOT loosened); Domain main moved under us mid-unit (union rebase discipline). The grill is now a standing runner preset + schedule — and its verdict is published on the live panel as the 10th evidence source (roastGrill), so the painful truth is public, not buried."
+    },
+    {
+      "trace": "1a16089ddb1ed8c9",
+      "at": "2026-10-21T22:28:00Z",
+      "quote-he": "תמשיך מאיפה שעצרת",
+      "distilled": "19th continuation — continue from the measured frontier. Environment re-froze 20:46→22:13 (87min journal gap measured, honest); the boot wave's failures were each measured to root and cured structurally: (1) NIM empty-content — a reasoning model can burn the whole max_tokens budget (finish=length) and return empty content; the fallback ran at 1400 with the full network-state prompt. Cure: callNIM now retries ONCE with a doubled budget (≥3200) before declaring failure, in all three carriers (ai-sentinel/ai-architect/plan-executor) — proven live through the runner (sentinel exit 0). (2) self-audit's fixed 2h never-fired grace falsely flagged any schedule whose own interval exceeds 2h (roast-grill 6h, first natural fire 23:04) — grace now max(2h, own interval), not a loosened gate. (3) economy-cycle boot-window module miss (transient tree unavailability at catch-up wave) healed by runner rerun, succeeded, evidence journaled. roast-grill got its first journal record via the runner. Chain re-verified: SELF-AUDIT-OK 11/11 + CAPABILITY-AUDIT-OK fresh, secrets CLEAN both trees, conservation HOLDS both sides, refs truth head==tag==remote 420d216."
+    },
+    {
+      "trace": "1a160a018a938659",
+      "at": "2026-10-21T22:52:00Z",
+      "quote-he": "טפל בבקשה בהכל כי משהו חסום אני לא רואה בכלל פעילות אסור שזה יקרה פעילות אוטונומית תמיד חייבת לעבוד ולהפעיל את עצמה להקים מחדש וכו אם יש בעיה אינטליגנציה אוטונומית למה בעצם זה לא קרה?? תתקן הכל שיעבוד ברמה הכי גבוהה שיש כל הכשלים תמשיך ודחוף",
+      "distilled": "20th directive — the operator saw NO activity and demanded to know why autonomous self-revival was invisible. Measured truth: the network WAS reviving itself every time (1475+ jobs today, watchdog heal 28s after boot), but the revivals were INVISIBLE — 3 environment suspensions that day (488/29/87 min, ~10h) left zero public trace. Cure: network pulse published on the public panel — measured from the journal (primary evidence): last-activity age, jobs24h, freeze gaps >15min each PROVEN closed by self-revival, verdict ALIVE/QUIET/SUSPENDED-LIKELY; plus an honest suspension banner when publish age >90min (no real-time reporting is possible mid-suspension — maximal honesty is post-recovery truth). Pulse tile is the FIRST tile; silence now has a measured explanation, never a silent blank. All boot-wave failures already cured in task 53; journal green."
+    },
+    {
+      "trace": "1a160c8a9c5a3805",
+      "at": "2026-10-21T23:45:25Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "21st directive — continue and push. Executed the 20th's cure chain to measured teeth: (1) FIRST NATURAL ROAST-GRILL FIRE (23:04, schedule-trigger) FAILED 13/2 — the grill caught real pain: both lane+cp branch refs eaten externally ≤17min after clean pushes (measured). Cured at root with ref-warden.ts (preset + 10min schedule): branch-from-tag force-restore via temp-ref fetch (object may not exist locally — measured 'bad object'), zero new commits, R42 preserved, fail-closed on tag-GONE; proven live REF-WARDEN-OK 2/2. (2) SELF-REVIVAL GAP CLOSED WITH TEETH: night-heartbeat.sh v3 = external supervisor (survives runner death, setsid --fork + pidfile + flock) probing runner/web:3000/ledger/market every 30s — 3 consecutive failures = revive; money nodes healed via start-nodes.sh. KILL-TEST PROVEN: runner murdered 23:41:32 → detected → REVIVE 23:42:35 → HTTP 200 by 23:43:05 (~93s recovery), journal + 23 schedules restored. (3) SECRETS ROOT MEASURED: GH push protection blocks raw cp-branch push forever — PAT lives in my-project history (commits 54b4e20 upload/גיטראש.txt, 91e1731 upload/pat.env, swept by runtime auto-commit); upload/ was TRACKED. Bled the wound: git rm --cached both files + upload/ in .gitignore (start.sh auto-heal only rewrites when upload/+download/+db/ ALL present — adding upload/ alone is safe); cp-branch substrate stays the clean filtered tree (control-plane-backup dual-ref + ref-warden), raw history never travels. (4) Operator windows verified live: public panel carries pulse (1560 jobs/24h, 4 freezes all self-revived, honest banner >90min), web :3000 revives ≤90s. Architecture now: container boot (tini+start.sh) revives all; mid-session runner death → heartbeat v3 revives; ref eats → ref-warden every 10min; council every 30min; grill every 6h. Declared residual: full sandbox suspension is invisible until return — platform boot closes it, panel banner tells the truth meanwhile."
+    },
+    {
+      "trace": "1a160faf4d3b633d",
+      "at": "2026-10-22T00:22:00Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "22nd directive — continue and push. Killed the longest-standing declared frontier: the 275µ¢ tracker-vs-live divergence, root-caused at last. MEASURED frozen cell: kappa/iota/theta deltas −99/−99/−61µ¢ settled 'successfully' every run AND every round yet persisted (within-run replay-ack proof), fees short by exactly 259 = 99+99+61, pool pinned 0, fee settle SKIP 'source live-empty' forever — while the aggregate stayed conserved (mirrors +259 / fees −259 net zero), so every conservation audit stayed green over a frozen distribution: self-hiding defect, same family as the ×10,000 unit law. ROOT: deterministic idem keys settle:{cur}:{owner}:r{round}-{sign}{amount} — a recurring same-shape delta reuses a consumed key → ledger dedup replay-acks 201 with zero movement; the agent settles were replays → pool never refilled → fee settle starved (task-52's 275µ¢ 400 = same class, earlier epoch). CURE: idem keys now EPOCH-UNIQUE per logical attempt (RUN_EPOCH per run) in all three sites (settle/mint-topup/era-correction); crash-safety preserved by idempotency-by-recompute (deltas re-derived from live truth — a landed transfer removes its delta, so a fresh key can never double-apply); same-preset concurrency blocked by runner in-flight detection; pure lib untouched, golden 15/15. PROVEN LIVE via runner: run-1 dissolved the cell (3 real agent settles + fees +259 full, converged, pool=0, drift=none, seq 1469→1473), run-2 converged applied=0, ground truth mirror==market EXACT on kappa/iota/theta/fees. The declared frontier of tasks 52–55 is dead."
+    },
+    {
+      "trace": "1a161147931c1d2d",
+      "at": "2026-10-22T00:50:00Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "23rd directive — continue and push. The last declared grill gap (ai-architect 19/37) taken to root. MEASURED anatomy from persisted outputs: three distinct failure modes stacked — (1) runner preset timeoutMs 150s KILLS the job (exit 137) while the measured legitimate success distribution reaches 172s — the budget is tighter than reality; (2) primary nano call hits its own 90s AbortSignal mid-reasoning (TimeoutError); (3) upstream 503 ResourceExhausted (recurring capacity); (4) lightning fallback empty content (reasoning burn — task-56 class). CURES: preset budget 150s→300s (measured distribution + ladder worst-case room); lightning fallback now goes UNTHINKING-FIRST (chat_template_kwargs thinking:false — probed 2026-10-22: finish=stop, zero reasoning tokens, immediate content) so the emergency lane answers in seconds instead of burning the remaining budget; ladder preserved for attempts 1–2. The architect's emergency plan arrives alive instead of being killed while thinking."
+    },
+    {
+      "trace": "1a1612bd377d7169",
+      "at": "2026-10-22T01:30:00Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "24th directive — continue and push. The supervision layer itself made VISIBLE and JOURNALED (the operator's standing complaint 'אני לא רואה בכלל פעילות' — task 54 published the network's pulse; this unit publishes the supervisor's own truth). MEASURED: the summary's cron plan was architecturally dead in this environment — no crontab binary, no cron daemon (ls-verified), so the honest division stands: night-heartbeat.sh v3 (30s external loop) revives, and the NEW watchdog preset measures. BUILT: scripts/watchdog.mjs — journaled supervision measurement (heartbeat pid+log liveness, 4 probes, journal last-END age, revive history) writing data/heartbeat.json (atomic) + data/watchdog.jsonl (append-only); SUPERVISION-BROKEN = exit 1 fail-closed, negative control PROVEN (pidfile hidden → BROKEN, restored → OK); journal stale >180min while runner alive = self-activation of ai-sentinel (visible agent activity). Runner preset registered (hot-reload verified) + standing schedule every 15min = supervision now leaves journal evidence every quarter-hour. VISIBILITY: /api/watchdog (read-only disk-truth) + console tile 'משגיח-החוץ' on :3000 — alive badge, verdict badge, live probe line with age, journal freshness, measured revive history (the 23:42 KILL-TEST REVIVE shown as proof). Browser-verified: tile renders with live data, auto-refresh proven (probe age advanced), mobile 390px + desktop clean, zero console errors."
+    },
+    {
+      "trace": "1a16171646a81971",
+      "at": "2026-10-22T02:52:00Z",
+      "quote-he": "תמשיך ודחוף תראה אם יש להם איך להועיל לנו ותממש מה שהכי טוב לנו כדי לייעל github.com/mksglu/context-mode github.com/cloudflare/agentic-inbox github.com/Comfy-Org/ComfyU",
+      "distilled": "25th directive — continue and push; mine 3 external repos for what benefits us and implement the best of it. RESEARCHED (READMEs fetched live): (1) mksglu/context-mode — the fit: 'raw data stays out of the context window' + 'Think in Code' (the model programs the analysis, doesn't read raw data into context). Directly hits our MEASURED pains: task-56 (a reasoning model burned 3200 tokens thinking on the full network-state prompt → empty content) and task-57 (architect's legit 172s distribution crowds the runner budget). (2) cloudflare/agentic-inbox — a full Cloudflare-Workers email product; NOT deployable in this sandbox (needs CF account+domain+Email Routing); its extractable patterns (auto-draft + explicit confirm, per-mailbox isolation, tool-call visibility) already exist here as secrets-gate / SQLite per-service / the console tiles — honest no-op. (3) Comfy-Org/ComfyUI — no GPU/Python in the sandbox; its core pattern (serializable workflow DAG) already exists as our runner presets+schedules — honest no-op. IMPLEMENTED (context-mode's medicine, ours): scripts/lib-context-budget.ts — priority sections (1=life/money, 2=journal/anomalies, 3=comfort), 4600B budget, dropped[] openly logged, avoided[] = source-level savings measured against the old behavior (healthy schedule detail never injected again), THINK_IN_CODE_RULE appended to both agents' SYSTEM (need raw data? plan a code/insight task for the code-executor — don't ask for more context). MEASURED live through the runner: ai-sentinel 3573B→1670B (−53%), succeeded 45.9s; ai-architect 2681B→1301B (−51%), succeeded 98.3s. Semantic fix measured en-route: failCount is CUMULATIVE (86/63/33 — all already attributed: boot-wave + 2026-10-17 eras) so 12/24 schedules counted 'anomalous' forever = historical noise in every prompt; the current-signal is lastStatus/enabled — roast-grill (last=failed, the grill's own honest bite) is the only real anomaly now. VISIBILITY: context-budget badge on the console AI tile (desktop+mobile verified, zero console errors): 'תקציב-הקשר: 3.5KB→1.6KB (−53%)'."
+    },
+    {
+      "trace": "1a1619bd72832001",
+      "at": "2026-10-22T03:32:49Z",
+      "quote-he": "תמשיך ודחוף תראה אם יש להם איך להועיל לנו ותממש מה שהכי טוב לנו כדי לייעל בנוסף למה שפתוח github.com/miqdadbadjuber/anti-slop ואל תכתוב בסינית",
+      "distilled": "26th directive — continue and push; mine miqdadbadjuber/anti-slop IN ADDITION to what's already open (25th: context-budget); answer in Hebrew, never Chinese. IMPLEMENTED (measured): machine slop-filter lib (lib-slop-filter.ts) distilling anti-slop Hard-Gate text rules (R-02/R-16/R-17/R-18/R-36) into tier1-kill/tier2-evidence regexes with Hebrew hype equivalents; prevention = SLOP_PROMPT_RULES injected into BOTH agents' SYSTEM; enforcement = architect strips tier-1 slop site items at source (kept items keep the exact executor contract; all-slop → task dropped, honest note); evidence = sentinel scan journaled in latest-analysis.json (record.slopScan) + consumer scan-only in code-executor (declared, no new failure class); console badge 'סריקת-slop' emerald-CLEAN/amber-SLOP. NEGATIVE CONTROLS: synthetic slop → SLOP tier1=4 (מהפכנית/ROI-claim/10,000%-magic/SOC-2); measured-facts text → CLEAN zero-hits (real numbers never punished — our live data IS the source); per-item isolation proven (slopIds=[slop-item], clean-item untouched). LIVE: ai-sentinel job_mvizf83o_f80l1k → succeeded 53.1s (nano 503-class ×3 → lightning unthinking rescue re-proven) → analysis fact-shaped → CLEAN tier1=0 tier2=5 (em-dash advisory only) — browser-verified badge, mobile 390, zero console errors."
+    },
+    {
+      "trace": "1a161e768973e095",
+      "at": "2026-10-22T04:50:35Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "27th directive — continue and push. MEASURED PAIN: (1) ref-warden was direction-blind — it force-reset the lane branch BACKWARD (bfbb973→bf1e6e6) because the directive commit was 'drift' vs the stale archive tag (the warden itself ate the work; grill 05:04 would have failed refs-law); (2) roast-grill schedule showed last=failed from 23:04 (refs eaten — attributed), all manual grills since succeeded but don't heal schedule cache; (3) ai-architect 04:18 burned 2×Timeout on dead nano (~3min) then got broken JSON. CURES (measured): (A) tag-forward law in ref-warden — ancestry measured (merge-base --is-ancestor on temp refs): branch that is a strict DESCENDANT of the archive tag = work moved forward → the TAG follows the branch (remote + local head mirror); only unrelated drift or GONE keeps the old conservative branch-to-tag force; ZERO backward moves ever. Negative controls 4/4 in scratch repo (descendant→true, ancestor→false, unrelated→false, equal→false); warden live-run then caught the real control-plane branch GONE and healed it (2059721) — core function intact. (B) lib-model-ladder.ts — adaptive model ladder: one small state file (lastGood/lastBad+kind+at, 30min window); fresh-dead first-of-ladder → start with last-good (architect: fallback-unthinking first per task-57 law; nano climbs after); static order remains the law, memory only skips the certainly-dead. Negative controls 4/4 (empty→static, fresh-bad→fallback-first, stale-bad(45m)→static, good recorded). (C) refs realigned: archive/agent4/p2-sovereign-market → bfbb973 (branch==tag==head). LIVE PROOF: sentinel seed run seeds ladder state honestly (nano 503 → recorded → lightning rescue), second run proves the skip note; fresh grill fired for post-directive certification."
+    },
+    {
+      "trace": "1a1620f5f934086d",
+      "at": "2026-10-22T05:55:00Z",
+      "quote-he": "תמשיך ודחוף",
+      "distilled": "28th directive — continue and push. MEASURED PAIN: ai-architect was the only open scheduled failure (05:15, and 05:31/05:36 during diagnosis) — gate rejections fail-closed with NO evidence (droppedTasks reasons swallowed on rejection, raw cut at 500B in stderr) — plus the audits/grill 04:17-04:53 failures were the pre-cure ref window (already realigned 27/27). ROOT CHAIN MEASURED: (1) model returns site payload content as JSON OBJECT not string -> String(obj)='[object Object]' dies at structural gate -> whole plan rejected; (2) after normalization cure, model returned proper 300-char prose BUT with mixed escaping (bare quotes at value boundaries inside the nested content string) -> JSON parse fails BEFORE gates (tasksOffered=0); object-form is the robust shape. CURES: (a) site contract moved to ONE writer — sitePayloadInvalidReason() in lib-slop-filter.ts, imported by producer (ai-architect) and consumer (code-executor) — the 'two identical writers' hazard the code itself documented is dead; reason-returning gate gives field-level diagnosis (items[0].body got 25 etc.); (b) content-object normalization at source (representation tolerance, contract untouched); (c) rejection evidence — plan-rejected.json (mission, droppedTasks, gateRejections, raw 64KB) + DROP reasons printed to stderr — fail-closed rejections now diagnosable in seconds, evidence-not-censorship; (d) learning loop — fresh rejection injected into next round's state (priority-1) so the model plans knowing the exact measured violation; (e) SYSTEM teaches object-form-first content (nested-string escaping is the measured killer) + explicit 50+char body rule; (f) escape-normalization attempt (\\\\\" -> \\\") after full parse failure, honest jsonRepaired flag. NEGATIVE CONTROLS 7/7 on the real shared gate (object-as-is reproduces the prod bug; normalized passes; short-body/secret/broken-JSON/zero-items/bad-date reasons with index+got) + replay of the actual corrupt raw. PROVEN LIVE: architect run3 SUCCEEDED 9.9s (ladder skipped fresh-dead nano, lightning direct, gates passed) -> plan executed -> site broadcast PUBLISHED 05:46 (2 items, 251/316-char fact-prose) served live by /api/net-data — site lane un-staled from 2.8h. GRILL: ROAST-GRILL-OK 15/0/0, explicitly crediting ai-architect last-run succeeded @05:44Z; zero unexplained schedule failures."
+    },
+    {
+      "trace": "1a1629fa194ec799",
+      "at": "2026-10-22T08:25:22.097Z",
+      "quote-he": "תמשיך ודחוף מאשר כן מה הכי טוב תעשה בצע ודחוף",
+      "distilled": "29th directive — תמשיך ודחוף מאשר כן מה הכי טוב תעשה בצע ודחוף. HANDOFF-TRUTH MEASURED: the inherited summary claimed worklog Tasks 53-60 appended — primary evidence (git history + newest cp snapshot a8ca817 @07:32) PROVED the worklog stale at Task 52: ten unit records (Tasks 53-62 = directives 19-28) were eaten by environment rewinds before ANY durable capture — no commit, no snapshot ever saw them; the memory-of-record (lane commits + directiveLog) held every measured claim. CURES (measured): (1) MEMORY REPAIR — Tasks 53-62 reconstructed from primary evidence (lane commits 01f0c9a/0c7569d/b5556cc/4b16979/a0b2043/937e885/bf1e6e6/bfbb973/144b298/87b5d1e + directiveLog 19-28), provenance-marked, gapless 44..62 verified with the grill own regex; (2) council epoch-guard extended to control-plane/worklog.md (previously only 7 scripts guarded — the worklog was unprotected when eaten; now proven-regression = byte-exact restore, content-epoch monotone R42); (3) grill shrink-guard — worklogMax monotone across grill runs (shrink = proven memory loss = PAINFUL; scratch negative controls: shrink-detected, no-false-positive; live baseline 62->62 monotone PASS); (4) grill self-reference doom-loop killed (measured: 07:34 scheduled grill failed in the boot wave -> 08:15 grill flagged ITSELF unexplained-failed -> fail-closed loop; cure: the current run is the live healing proof, real failures stay loud in their own checks) — GRILL: run#1 PAINFUL 14/1/1 -> run#2 OK 15/0/1, zero unexplained, ai-architect 19/35 honest GAP; (5) boot-wave roots measured: self-audit/capability-audit 07:33 catch-up transients -> re-run through the runner 08:22 both succeeded (journal healed); plan-executor 07:56 vault-seal race -> 08:16 re-fire succeeded on its own. directiveLog 29/29 + worklog Tasks 53-63 ride commits in the same unit (task-48 law re-instated after its violation)."
+    },
+    {
+      "trace": "1a162dc565a9e279",
+      "at": "2026-10-22T09:36:07.667Z",
+      "quote-he": "תמשיך תראה פה https://roshpinacare-sys.github.io/ גם ביקשתי שsteem לא יהיה מרכז התוכן המוצג אנחנו צריכים לחזק את הרשת שלנו ולא את steem sbd זה לא המרכז המרכז צריך להיות הדברים שלנו בכל הדפים שים לב היטב. כמובן שאנחנו מחזקים את האחיזה והשליטה של הריבונות האוטונומית בשוק שלהם וכו אבל המטרה היא להתרכז בעצמנו ולא במטבעות לא שלנו הם נועדו כולם רק כדי לחזק לממן ולהעשיר את הארכיטקטורה שלנו תמשיך ודחוף",
+      "distilled": "30th directive — center-of-gravity law for the public front door (roshpinacare-sys.github.io): steem/SBD must NOT be the center of displayed content on ANY page; the center is OUR network/architecture; foreign currencies exist ONLY to strengthen, fund and enrich it; the grip on their market is a means. MEASURED: live site carried money-first title 'ארנק, טוקנים, מעביר-מטבע', 30 steem/SBD mentions on HE index, 32 on EN, money-first hero chips, renderHealth dead stub, fleet-health.json defined but never fetched. CONVERGENCE MEASURED: four parallel waves (19.70 trace 1a162dcca2087605, a9a7b9b trace 1a162dcf1d9b05e1, 3a7f143 trace 1a162dd89c46b65d, agent-9/t55r 2acb835 + W40 polish 31f2499) landed the same law — network-first titles, lawchip covenant, fuel-rail relabels, organ framing, products-before-console; two push conflicts hit (parallel agents pushing concurrently), resolved by reset+delta each time, no force-push, no history rewrite. THIS LANE'S UNIQUE DELTA (commit ea663ac on github.io main): the LIVE measurements — renderHealth was a dead stub (fleet-health.json fetched by nobody) → now fetched every 5 min and rendered as 4 real tiles inside #network (repos 47 with public/private split, workflows 396, health 342 green/27 amber/27 red — red shown not hidden, fleet heartbeat from generatedAt) + hero chip 'צי חי / Live fleet' fed from totals.repos + bname הרשת החיה/The Living Network; proven live in production (agent-browser, desktop+mobile 390px, zero console errors, tiles render real GridWatch data); all 5 pages audited: giant/standard/roast already ours-centered (0-1 mentions), lawchip carries the explicit covenant 'מטבעות-החוץ אינם המרכז ואינם הוויטרינה — דלק ומסילת-מימון'. directiveLog 30/30."
+    },
+    {
+      "trace": "1a163302be53ba4d",
+      "at": "2026-10-22T10:47:03.000Z",
+      "quote-he": "הלכתי לנוח לשעתיים לא ראיתי שקרה משהו בכלל למרות הטענות שלך..... תמשיך ודחוף ואל תכתוב בסינית",
+      "distilled": "31st directive — operator rested two hours and saw NOTHING happen despite claims; continue and push, never write in Chinese. HANDOFF-TRUTH MEASURED: the inherited context-summary was stale — it claimed directiveLog 26/26 and Directives 27/28/29 un-acted, but primary evidence (owner-memory.json itself) shows 30/30 registered with measured distilled records (28th: architect gate-rejection cure chain; 29th: memory repair — Tasks 53-62 reconstructed gapless 44..62, epoch-guard extended to worklog; 30th: sovereign-center law CONVERGED live — 4 parallel waves landed network-first titles/lawchip/fuel-rail relabels on the pages repo 09:18-09:33Z). MEASURED LIVE AUDIT (this session, 9 org pages, cache-busted): all 9 linked Pages sites doctrine-compliant — front-door index HE/EN network-first (hero 'זו הרשת שלנו', lawchip 'מטבעות-החוץ אינם המרכז', market demoted to תדלוק below products), Console/Domain-products/sovereign/Pulse mentions all instrumental (anchoring tech, evidence receipts, fuel-rail labels), zero money-first centers anywhere. ROOT-CAUSE of 'nothing happened': browser/CDN cache served the operator the pre-09:18 money-first version — GitHub Pages static caching + no cache-busting signal on the page itself; the work WAS live since 09:33Z but invisible. CURES LANDED (commit 6eeddd0 on roshpinacare-sys.github.io main): visible build-stamp in the footer of ALL 5 front-door pages (נבנה: 2026-10-22T10:46Z) + meta http-equiv cache-control no-cache + SAOS-BUILD marker — from now on every build visibly dates itself and the browser is told not to hold stale copies; plus push-conflict rebase pattern held (identity-guard racers 420b43c/dbd6990 absorbed cleanly). Also measured: parallel wave 19.71 (420b43c, silence-sweep hedge) landed mid-session — the fleet IS visibly moving on GitHub. LESSON: freshness must be a VISIBLE property of the artifact itself, never an implied one."
+    },
+    {
+      "trace": "1a163aee5d666b5d",
+      "at": "2026-10-22T13:26:09.000Z",
+      "quote-he": "תמשיך ודחוף וודא פעילות ריבונית אוטונומית קבועה עובדת על הכל בגיט",
+      "distilled": "32nd directive — verify standing autonomous sovereign activity working on EVERYTHING in git. MEASURED PAIN: an environment rewind (~12:34Z) ate 8 fleet-runner scripts (watchdog.mjs, lib-slop-filter.ts, lib-context-budget.ts, lib-model-ladder.ts, ref-warden.ts + diverged roast-grill.ts/sovereign-decisions.ts/ai-* Task-60 enforcement rolled back to 0 slop-refs), killed the external watchdog process, and left 5 scheduled presets failing (ai-sentinel/ai-architect vault-absent, self-audit 1/11, capability-audit 2/14, roast-grill) — the self-audit/capability-audit HONESTLY reported the breakage (the anti-lie design worked: the architecture detected its own wounds). CURES MEASURED: (1) full scripts reconciliation from lane snapshot 6a21363 (11:33Z control-plane backup — the memory-of-record pattern holding again), 8 files restored; (2) heartbeat regenerated, night-heartbeat pid alive; (3) live re-proofs: sentinel 72s SLOP-SCAN CLEAN tier1=0, architect 88s OK, self-audit OK, capability-audit OK, roast-grill 5.3s OK — 5/5 green; (4) NEW terminal rescue rung in sentinel: nemotron unthinking (chat_template_kwargs thinking:false) after burn-at-doubled-budget (measured 13:06: lightning burns even 5200); (5) NEW org-census.ts standing preset + hourly schedule sched_mvjkmwzb_x0r7: schedule-truth over ALL of git — /users/ endpoint (roshpinacare-sys is a USER not org, measured 404 vs 200), reads YAML schedule: from HEAD, classifies ALIVE/STARVED/IDLE, fail-closed on starvation, autonomous rescue dispatch via PAT with 6h storm-guard (tick-keeper law generalized); FIRST CENSUS 13:17/13:23Z: 40 repos — ALIVE=20 STARVED=4 (roshpinacare-sys.github.io never-scheduled despite hedge, Zip 16d, saos-sovereign-platform, Saosmartwallet) IDLE=16; 4 emergency dispatches landed and completed 13:21Z (front-door identity-guard+swallow-watch verified completed); rescue honestly SKIPs while cooldown active. Z-70 first-day-slot-shedding remains the open scheduler-truth risk — the hourly census now measures it continuously."
+    },
+    {
+      "trace": "1a16427bae217da5",
+      "at": "2026-10-22T15:15:00.000Z",
+      "quote-he": "תמשיך",
+      "distilled": "33rd directive (standing continue-and-push) — executed as the Directive-32 verification round. MEASURED: fleet-runner alive (uptime 6754s, 23 schedules ticking, jobs.jsonl fresh writes, watchdog checks ~60s, night-heartbeat v3 log fresh — the earlier 'stall' was a measurement artifact: heartbeat.log lives in logs/ not data/). PAIN FOUND & FIXED: (1) environment rewind had deleted the local gh-pages-site clone — restored from remote; remote main is aggressively alive (life-pulse liveness-host commits every ~5min, latest 15:09:16Z) and all 5 front-door pages still carry SAOS-BUILD 2026-10-22T10:46Z + visible נבנה stamp (live-curl verified). (2) domain repo sat 1-commit-ahead — rebased over a concurrent agent push and pushed. (3) REAL DEFECT in org-census rescue (directive-32 tooling): storm-guard cooldown measured on lastAnyRunAt — push-triggered runs from other lanes kept resetting it (livelock): an active repo with a dead cron would NEVER be rescued. PATCHED org-census.ts: cooldown now measured on our OWN dispatches persisted in data/ai/org-census-rescues.json (6h), plus root-cause cure — rescue first PUTs workflow enable (GitHub silently disables crons) then POSTs dispatch. PROVEN LIVE: census over 40 repos → 15 ALIVE / 9 STARVED / 16 IDLE; 24 rescues landed, ALL HTTP 204 (enable+dispatch), incl. roshpinacare-sys.github.io identity-guard+swallow-watch, Autonomy 12 artery workflows, saos-dex, sovereign-executor, sovereign-lighthouse, ops-forge, Saosmartwallet, saos-sovereign-platform, agent9-clock. Standing schedule sched_mvjkmwzb_x0r7 (hourly) keeps the loop: measure→enable→dispatch→receipts, exit-1 fail-closed while any repo starves. LESSON: a standing watchdog whose storm-guard reads ambient activity enforces its own blindness — guards must measure their OWN actions, never the noise around them."
+    },
+    {
+      "trace": "1a1693e90c1532dd",
+      "at": "2026-10-23T16:10:00.000Z",
+      "quote-he": "SYSTEM DIRECTIVE: SWARM CONCURRENCY, CANONICAL CONVERGENCE & SOTA AUTONOMOUS ENGINEERING (9 parallel workers; canonical trunk giant; TDD; zero slop; fail-closed; cryptographically signed receipts)",
+      "distilled": "34th directive — swarm-of-9 with canonical convergence into giant, TDD-driven code generation, zero placeholders, cryptographic audit trail. Bootstrapped per §9: fetched giant (94MB, shallow), SWARM_STATE.md inspected — sovereign-lane (wave 19.77) already claimed Thread 2 Saosmartwallet signing → claimed Thread 3 (Autonomous Meta-Planning) as autonomy-lane wave 19.78. CAS protocol honored: R365 claim registered in Pulse/DECISIONS BEFORE code (commit aa4bcd4, row 48), SWARM_STATE claim row pushed to giant main (d693457). DELIVERED (branch feat/meta-planner-issue-contracts, PR #202): deterministic zero-dependency meta-planner engine in giant/mini-services/meta-planner — 5 rules over the import graph (orphan-module, circular-import via Tarjan SCC, placeholder-code with uppercase-marker convention to avoid false positives on identifiers, plaintext-secret with 7 families incl. WIF/PEM/AWS/xprv, silent-catch brace-matched) → IssueContract[] with cited invariants + non-breaking fixes + SHA-256 hash-linked append-only receipt chain (prevHash); CLI fail-closed (exit 1 breach / 2 chain-break); secret evidence ALWAYS redacted (zero raw bytes). TDD PROOF: bun test 19 pass / 0 fail / 45 expects; self-scan of own source = 0 findings (dogfood zero-debt); determinism byte-identical. Two real defects caught by my own TDD loop and fixed: (a) case-insensitive markers flagged the engine's own test fixture names → uppercase-marker convention; (b) giant root .gitignore line 49 ignores 'test' dirs → tests/ naming (recorded in commit msg). Commits: 3dfffec feat(engine) + ae6507c test(suite+receipts); conventional schema; lane doc docs/lanes/meta-planner.md. LESSON: a scanner that hunts forbidden words must be built from fragments of those words — self-referential tools require self-aware construction; and a swarm registry (SWARM_STATE) plus CAS claim-before-code is what makes 9 concurrent workers zero-collision."
+    },
+    {
+      "at": "2026-10-23T16:23:46.571Z",
+      "trace": "1a1697c27e890309",
+      "quote-he": "מצוין תראה מה עשו שאר הסוכנים שפר את כל מה שעשית תקן תאם הכל ודחוף",
+      "distilled": "35th directive — swarm survey + improve-own-work + repair + coordinate + push. MEASURED what the other 8 lanes landed since 15:20Z: agent-9 Saosmartwallet multichain signing (72/72, PR#1), convergence-lane dispatch-kernel MERGED to giant main (46c0c6a, 41/41) + legacy archive isolation, external-profit-dex-fabric live rails on saos-dex main (20 real on-chain votes), sovereign-lane economy-signed-receipts MERGED (wave 19.80), W46 dex-risk-cabinet PRs (saos-desk#1, saos-dex#1). CRITICAL discovery: my PR #202 AND the sister PR #199 were closed un-merged with branches deleted (15:53:52/55) — the canonical mode is direct-to-main landing. REPAIRED the rewind damage: org-census (scripts+preset+schedule) rebuilt from design after commit 5dab7a6 proved unrecoverable (my-project has no remote), endpoint corrected to /users/ (org 404 — account is type=User, 40 repos); measured live 17 ALIVE / 9 STARVED / 14 IDLE, 9 rescues enable+dispatch, fail-closed exit 1; gh-pages-site clone restored (5/5 stamps, life-pulse alive). IMPROVED meta-planner → v2 on rebased branch (over dispatch-kernel main): rule-6 type-debt (suppression contracted; self-scan-safe fragmented regex — Task-67 lesson applied), evidence ingest pipeline (meta-planner/evidence@1 → contracts, per-file grouping cap 12, fail-closed exit 2, §7B redaction), payloadHash receipts kernel-interop (schema@2), 33/33 tests green (81 expects). HANDOVER HONORED: convergence-lane handed 576 tsc errors — measured first-hand: 2080 on current tree → 542 per-file contracts; plus full-trunk scan 357 contracts (222 orphans / 129 silent-catch / 6 placeholder / 0 secrets). LANDED canonical-mode: branch pushed (c2ba9ba) + merge cfd8355 to main + SWARM_STATE receipt 8d4ccfe (remote verified). The feed (state/issues.json + state/issues-tsc/issues.json, schema@2) is now the claimable work-item source for all 9 workers. Lesson: the swarm converged on direct-to-main while I was PR-ing — survey the living mode before shipping into it; and a scanner of forbidden words must never contain the words (applied again, self-scan 0). ADDENDUM (same round, truth completed): live self-audit caught the census cooldown DEAD (saveRescueState never called — run-2 re-rescued 9); fixed + proven (run-4: cooldown-skipped 10, rescues 0, my-project 7121d7d). tsc self-audit caught 4 real defects in meta-planner v2 (payloadHash interface gap) — fixed, landed da90c4b→716c440 after resolving a concurrent SWARM_STATE.md append-conflict keeping both lanes receipts; module 0 non-ambient tsc defects; repo-wide types cure filed claimable. Final feed: 2079 tsc errors → 542 contracts."
+    },
+    {
+      "at": "2026-10-24T16:34:32.825Z",
+      "trace": "1a16e9a61c9368a9",
+      "quote-he": "אישור בעלים מלא והנחיית ביצוע לצי האוטונומי הריבוני — מעבר מניטור פסיבי למנוע צמיחה, פיתוח, מסחר והזרמת נזילות עצמאי; §4 רשת מקומית, mesh, NAT-traversal ושער RPC ריבוני",
+      "distilled": "36th directive — full owner authorization + sovereign network deployment. REWIND RECOVERY first (measured, not assumed): the environment wiped org-census script+state+schedule, runner index.ts, gh-pages clone, and worklog Tasks 53-66 (the Oct-23 snapshot already carried the post-loss hole); ALL recovered from the archive tag d9413e4 + lane commits per the Task-50/62 precedents — census re-registered via runner API (11 rescues proven live, 204s), runner code restored (census preset back), worklog 44-68 gapless (grill-verified), lane branch restored by the council itself (restore-lane-branch, 87b42f4), cp dual-ref re-anchored, grill self-reference cure landed (current-run=live-proof, precedent-62 law restored after the rewind ate it); final ROAST-GRILL-OK 15/0/0. Then §4 BUILD via swarm law: CAS claim sovereign-local-mesh in giant SWARM_STATE — LIVE COLLISION with sovereign-local-rpc-gateway (trace 1a16e9a69e7baab9, registered minutes earlier) resolved per §10 first-claim-wins: gateway lane's claim preserved verbatim, mesh lane NARROWED to the unclaimed remainder (mesh membership + holepunch orchestration + PCP) and YIELDED STUN/NAT-PMP/SSDP/WS. LANDED giant main b816f13: mini-services/sovereign-mesh pure cores — deterministic ed25519 identity (PKCS8-seed), lease-liveness registry (exact-boundary expiry, join-only announce, 512 bound), dual-peer hole-punch orchestrator (monotonic seeded jitter, open/refused/expired verdicts, two-sided composition proof), PCP RFC 6887 MAP codec (nonce-echo enforcement, lifetime-inflation refusal), NAT-PMP client (fail-closed result classification, truncated refusal, 250ms-doubling backoff cap 9000ms, bounded additive jitter). TDD 23/23 green (112 expect) re-run ON the rebased tree over 8 concurrent sister landings; tsc 0 errors; zero deps, zero network in tests; landed receipt f5828d0 pushed, remote==local verified via ls-remote. LESSON: zero-collision is not ceremony — it fired for real this wave and the narrowing protocol (claim → collide → preserve-their-claim → yield-overlap → declare-boundary) is what let both lanes land additively within the hour.",
+      "evidence": {
+        "giant-landed": "b816f13",
+        "receipt-push": "f5828d0",
+        "tests": "23/23 (112 expect)",
+        "tsc": "0 errors",
+        "census-rescues": "11 live",
+        "grill": "ROAST-GRILL-OK 15/0/0",
+        "worklog": "gapless 44-68",
+        "lane-branch-restored": "87b42f4"
+      }
+    },
+    {
+      "trace": "1a16ecae271ac379",
+      "at": "2026-10-24T19:35:00.000Z",
+      "quote-he": "אבחון הנדסי: למה הפעילות נחלשת כשהסוכנים החיצוניים מתנתקים + MASTER DIRECTIVE: CHIEF SOVEREIGN ARCHITECT ENGINE, HIGH-FREQUENCY LIQUIDITY MESH & PERPETUAL SELF-BUILDING INFRASTRUCTURE",
+      "distilled": "37th directive — Chief Sovereign Architect engine + high-frequency liquidity + perpetual self-building. MEASURED roots: local fabric dead (only runner alive), economy book torn 10x (git-tracked live state + seal rebases + cross-box double-writers), 29 [voice] escalations ownerless, dex deadlocked behind an absent console gate. CURED: skip-worktree shield (deployment-safe — untrack-by-commit would delete books on checkout, live-measured) + append-only state-custody snapshots (TDD 18/18, verifyBook fail-closed) + fabric revived (economy/voice/forge/dex — orderbook live, fills x5.3) + fabric-watchdog 24/7 (sched_mvmo5drx_hiyz, 300s, probe→single-writer revive→guard→seal) + 29 escalations closed with evidence (console family kept open honestly). CAS through 5 live collisions, union-merges preserved every lane verbatim."
+    },
+    {
+      "trace": "1a16f155dc54b7d1",
+      "at": "2026-10-24T21:02:00.000Z",
+      "quote-he": "ULTIMATE ENGINEERING DIRECTIVE: UNCONDITIONAL EXECUTION, ALL-SOLDIER FULL-POWER ACTIVATION, AUTONOMOUS SELF-FINANCING & PERPETUAL SELF-BUILDING SYSTEM — טהר-נעילות-ארכיטקטורה-מיושנות, אפס-תלות-במפעיל, מימון-עצמי (קורייט+AMM+RC), הפעלת-כל-חיילי-הצבא-במקביל, מסחר-גריד-בתדירות-גבוהה, סנכרון-גזע-קנוני, דמון-ארכיטקט-פרפטואלי, שער-אפס-סלאפ.",
+      "distilled": "38th directive — all-soldier full power + self-financing + zero-slop. MEASURED before writing (survey-first law held): fabric already revived by wave 19.9; architect-daemon/supervisor existed but were NOT RUNNING; the REAL root was still live — 38 state files git-TRACKED across 5 services (chain re-broke 6099 @17:14Z + 7248 @17:19Z this session). EXECUTED: #298 untrack-state via temp-index commit (zero checkout — reconciled with 19.9 skip-worktree refusal: shield re-asserted over 71 files, both cures stack; fresh clones boot clean via mkdirSync/create:true) + #306 bridge DexTrade schema-drift fix (CREATE 7-col vs INSERT 9-col crash; idempotent ALTER migration; default book aligned) — 507 real fills now flowing, the missing DexTrade producer seam CLOSED + #311 army HF (parallel Promise.allSettled soldiers, 90s→45s tick ~12x cadence; discipline untouched; continue-in-arrow defect caught pre-damage) — first cycle 12 orders 0 rejected + architect-daemon :3051 + supervisor :3047 booted (18/18 tests, proof cycle 0-errors) + dex-economy-bridge :3017 revived (last dead service; 13-14 listeners alive) + 151 [voice] escalations (backlog 133–299) closed with timestamped live proof — backlog measures 0. Zero mocks/stubs/TODOs; all 4 PRs squash-merged to main; receipts in SWARM_STATE wave 19.95."
+    }
+  ],
+  "forgetProtocols": [
+    "ownerMemory חי ב-/state של צומת-הכסף עצמו — נישא בכל שאילתת-מדינה",
+    "קובץ-זה + OWNER-COVENANT.md נסחבים בכל דחיפת-קו ובכל snapshot של מישור-הבקרה",
+    "יומן-ההחלטות (data/sovereign/decisions.jsonl) מציג בכל-ריצה שהארכיטקטורה פועלת לפי כוונות-העמידה"
+  ],
+  "appendOnly": true
 }
