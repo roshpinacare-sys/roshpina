@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-22T07:34:08.177Z",
+  "verdict": "ROAST-GRILL-PAINFUL",
+  "summary": {
+    "pass": 14,
+    "fail": 1,
+    "gaps": 1,
+    "controls": "proven"
+  },
+  "directives": 28,
+  "painful": [
+    "כישלונות-תזמון לא מוסברים: ledger-sync(lastStatus=failed · ריצה-אחרונה-בפועל=failed), economy-cycle(lastStatus=failed · ריצה-אחרונה-בפועל=failed), state-backup(lastStatus=failed · ריצה-אחרונה-בפועל=failed), economy-run(lastStatus=failed · ריצה-אחרונה-בפועל=failed), ai-sentinel(lastStatus=failed · ריצה-אחרונה-בפועל=failed), self-audit(lastStatus=failed · ריצה-אחרונה-בפועל=failed), capability-audit(lastStatus=failed · ריצה-אחרונה-בפועל=failed)"
+  ]
+}
