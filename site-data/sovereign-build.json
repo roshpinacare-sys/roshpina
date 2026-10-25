@@ -1,0 +1,71 @@
+{
+  "builtAt": "2026-10-25T15:38:28.403Z",
+  "cycle": 73,
+  "live": {
+    "market": "UNREACHABLE",
+    "ledger": "UNREACHABLE",
+    "runner": {
+      "jobs": 4865,
+      "schedules": "0/22 ירוקים",
+      "ticks": 33,
+      "heals": 1
+    },
+    "economy": "UNREACHABLE"
+  },
+  "stats": {
+    "trades": 0,
+    "ledgerSeq": 0,
+    "agents": 0,
+    "jobsTotal": 4865,
+    "schedulesGreen": 0,
+    "schedulesEnabled": 22
+  },
+  "whatWasBuilt": [
+    "מטוס-הבקרה מגובה: dc3b194 7a41b586-94c2-4fb1-97eb-1a35d0397bca"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-21T17:57:02.501Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "mission": "לfrsh את קובץ site-data://sovereign-net.json באמצעות נתוני המצב החי כדי לעדכן את האתר",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "עדכון site-data://sovereign-net.json בנתוני המצב החי",
+        "why": "לשמור על עדכניות האתר ולמנוע פגיעה באמינות",
+        "action": "code"
+      },
+      {
+        "id": "t2",
+        "title": "תיעוד כשלי ledger‑sync ו‑ai‑architect",
+        "why": "לזהות דפוסי כשל ולסייע בתיקון",
+        "action": "note"
+      },
+      {
+        "id": "t3",
+        "title": "ניתוח עומס משימות schedule",
+        "why": "להפחית כשלים עקב עומס גבוה",
+        "action": "insight"
+      },
+      {
+        "id": "t4",
+        "title": "תיעוד על סטטוס site-data (stale)",
+        "why": "להדגיש הצורך בחידוש",
+        "action": "note"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-21T20:35:06.643Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "text": "We need to produce the answer in Hebrew, with fixed structure:\n\nהערכה: <2-3 משפטים — מה מצב הרשת עכשיו>\nסיכונים: <עד 3, מדורגים, קונקרטיים לנתונים; אם אין — \"אין סיכונים בולטים\">\nאנומליות: <משהו שנראה חריג במספרים — או \"לא זוהו\">\nהמלצות: <עד 3 פעולות מעשיות לשיפור/הרחבה>\n\nWe must be honest, not invent data. Look at data.\n\nObservations:\n\n- market: trades 121, bids 10, asks 12, phantomsSkipped 0. So active trading, balanced.\n\n- economy: agents 12, treasury 1930.25 µ-USDS. Conservation quote and base hold.\n\n- Agents: many have high USDS balances, staked amounts, SAOS (maybe token). Fills counts: alpha 988, bravo 1158, gamma 34, delta 4, epsilon 51, zeta 10, eta 68, theta 5, iota 0, kappa 0, mm-grid 0, mm-oracle 0. So some agents are very active (alpha, bravo) while many have zero fills.\n\n- epoch-ops: rewards for various agents, indicating activity.\n\n- ledger: seq 1436, accounts 29, operatorKeys 1. Looks normal.\n\n- runner: jobs 4792, schedules 22, tick 7513, tickError none, watchdog-heals 1. So runner healthy.\n\n- schedules: many enabled, some failures. Notable:\n\n   - schedule ai-architect/3600s: runs=34 fails=18 skipped=34 last=timeout -> high failure, timeout.\n\n   - schedule plan-executor/1200s: runs=104 fails=3 skipped=57 last=running -> many skips, running.\n\n   - schedule self-audit/3600s: runs=17 fails=4 skipped=18 last=failed -> many failures.\n\n   - schedule capability-audit/3600s: runs=16 fails=4 skipped=19 last=failed -> many failures.\n\n   - schedule ai-sentinel/1800s: runs=74 fails=18 skipped=20 last=running -> moderate failures.\n\n   - schedule pages-evidence/1800s: run"
+  },
+  "commits": {
+    "roshpina": [],
+    "control": [
+      "dc3b194 7a41b586-94c2-4fb1-97eb-1a35d0397bca (3 days ago)",
+      "6ed3ec0 agent4 (task 52, trace 1a15f55f6d0395f9): roast grill unit — roast-grill.ts adversarial self-audit with proven teeth (negative controls), standing schedule sched_mvid46vo_ud1v, published as 10th evidence source; painful truths fixed: worklog Task-50 reconstructed from lane commits, dead NIM fallback replaced with measured-alive nemotron-3.5-lightning (vault re-sealed + 3 scripts), ledger-sync stale-tracker crash-loop contained via floor-cap-to-LIVE (golden untouched, 15/15), schedule-truth judged from primary journal evidence; arc PAINFUL(4)→PAINFUL(3)→OK(15/0/1) verified live (4 days ago)",
+      "f986c84 7f8c66c4-9d21-4f59-acd8-308773d9c89e (4 days ago)",
+      "a40a2aa fd25259a-a64f-4d92-b3c2-371609ed2e7b (4 days ago)"
+    ]
+  }
+}
