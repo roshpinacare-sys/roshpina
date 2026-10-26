@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-25T15:39:43.391Z",
+  "verdict": "ROAST-GRILL-PAINFUL",
+  "summary": {
+    "pass": 12,
+    "fail": 3,
+    "gaps": 1,
+    "controls": "proven"
+  },
+  "directives": 39,
+  "painful": [
+    "dual-ref של מטוס-הבקרה אינו עקבי — הקוד החי לא בטוח בגיט",
+    "הפאנל המפורסם אינו טרי או חורג מהאמת המקומית",
+    "כישלונות-תזמון לא מוסברים: ledger-sync(lastStatus=failed · ריצה-אחרונה-בפועל=failed), economy-cycle(lastStatus=failed · ריצה-אחרונה-בפועל=failed), state-backup(lastStatus=failed · ריצה-אחרונה-בפועל=failed), economy-run(lastStatus=failed · ריצה-אחרונה-בפועל=failed), ai-sentinel(lastStatus=failed · ריצה-אחרונה-בפועל=failed), self-audit(lastStatus=failed · ריצה-אחרונה-בפועל=failed), capability-audit(lastStatus=failed · ריצה-אחרונה-בפועל=failed)"
+  ]
+}

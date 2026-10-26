@@ -1,0 +1,97 @@
+{
+  "builtAt": "2026-10-26T13:48:04.734Z",
+  "cycle": 78,
+  "live": {
+    "market": {
+      "trades": 121,
+      "bids": 4,
+      "asks": 6
+    },
+    "ledger": {
+      "seq": 1469,
+      "accounts": 29
+    },
+    "runner": {
+      "jobs": 5154,
+      "schedules": "1/22 ירוקים",
+      "ticks": 62,
+      "heals": 1
+    },
+    "economy": {
+      "agents": 12,
+      "treasury": "2026.04",
+      "staked": "641281.81",
+      "conservation": "מוחזק"
+    }
+  },
+  "stats": {
+    "trades": 121,
+    "ledgerSeq": 1469,
+    "agents": 12,
+    "jobsTotal": 5154,
+    "schedulesGreen": 1,
+    "schedulesEnabled": 22
+  },
+  "whatWasBuilt": [
+    "market-report: 130 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "ledger-sync: 26 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "economy-run: 25 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "economy-cycle: 13 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "agent-pnl: 9 ריצות-מוצלחות ב-24h",
+    "estate-vault: 9 ריצות-מוצלחות ב-24h",
+    "sovereign-oracle: 9 ריצות-מוצלחות ב-24h",
+    "state-backup: 8 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "הנדסה אמיתית שנדחפה לגיט (roshpina): 17afab8 custody(directive-40): EMERGENCY 1a173caa7370ea61 — owner-endpoint hardening",
+    "מטוס-הבקרה מגובה: c8d296e 09b18034-7259-47d2-a3bb-35764bd823d0"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-21T17:57:02.501Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "mission": "לfrsh את קובץ site-data://sovereign-net.json באמצעות נתוני המצב החי כדי לעדכן את האתר",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "עדכון site-data://sovereign-net.json בנתוני המצב החי",
+        "why": "לשמור על עדכניות האתר ולמנוע פגיעה באמינות",
+        "action": "code"
+      },
+      {
+        "id": "t2",
+        "title": "תיעוד כשלי ledger‑sync ו‑ai‑architect",
+        "why": "לזהות דפוסי כשל ולסייע בתיקון",
+        "action": "note"
+      },
+      {
+        "id": "t3",
+        "title": "ניתוח עומס משימות schedule",
+        "why": "להפחית כשלים עקב עומס גבוה",
+        "action": "insight"
+      },
+      {
+        "id": "t4",
+        "title": "תיעוד על סטטוס site-data (stale)",
+        "why": "להדגיש הצורך בחידוש",
+        "action": "note"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-25T16:17:22.949Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "text": "הערכה: הרשת פעילה עם 121 עסקאות ו‑12 סוכנים, אך מספר משימות לוג ודיווח (market‑report, ledger‑sync) מציגות שיעור גבוה של כשלונות, מה שמעיד על סיכון לנתונים לא מעודכנים. רוב הסוכנים מחזיקים USDS ו‑SAOS משמעותיים, אך סוכנים מסוימים אינם מבצעים עסקאות כלל או לא משתתפים בסטיקינג, מה שמעיד על השתתפות לא אחידה.  \n\nסיכונים:  \n1. כשלונות חוזרים ב‑market‑report (87 כשל) ו‑ledger‑sync (64 כשל) – עלולים לגרום לנתוני שוק ועדכוני לוח לא מדויקים.  \n2. סוכנים עם אפס עסקאות (iota, kappa, mm‑grid, mm‑oracle) – מפחיתים את עומק השוק ומציבים סיכון לנזילות נמוכה.  \n3. סוכנים עם אפס סטיקינג (delta, theta, iota, kappa) – עשויים לא לעמוד בתנאי הסטיקינג הנדרשים, מה שמסכן את תפקודם במערכת.  \n\nאנומליות: אפס עסקאות אצל סוכנים iota, kappa, mm‑grid ו‑mm‑oracle, וכן אפס סטיקינג אצל delta, theta, iota ו‑kappa, למרות שיש להם יתרות משמעותיות.  \n\nהמלצות:  \n- לחקור ולפתור את כשלונות החוזרים ב‑market‑report ו‑ledger‑sync כדי לשפר את איכות הנתונים.  \n- לבדוק ולאמת את פעילות הסוכנים עם אפס עסקאות, לוודא שהם פועלים ותורמים לנזילות.  \n- לבדוק את הגדרות הסטיקינג של הסוכנים עם אפס סטיקינג ולוודא שהם עומדים בתנאי הפרוטוקול."
+  },
+  "commits": {
+    "roshpina": [
+      "17afab8 custody(directive-40): EMERGENCY 1a173caa7370ea61 — owner-endpoint hardening (vault-token gate armed, deny-by-default proven 401/200), paper pipeline resumed (host-freeze root cause), multi-soldier audit green (40/40) (21 hours ago)",
+      "74ff823 custody(directive-39): FULL-POWER SWARM 1a16f6b599de095d — sandbox reset survived, fabric resurrected from canonical cloud, re-untrack #340 + archive eviction #343 (39/39) (21 hours ago)",
+      "9abbb5c custody(directive-38): ULTIMATE DIRECTIVE 1a16f155dc54b7d1 — all-soldier power + self-financing; execution proof logged (38/38) (21 hours ago)",
+      "4726638 directiveLog 37/37: trace 1a16ecae271ac379 — Chief Sovereign Architect engine: fabric revival + tear-proof custody (skip-worktree shield, TDD 18/18) + watchdog 24/7 + dex deadlock cure + 29 escalations triaged (21 hours ago)"
+    ],
+    "control": [
+      "c8d296e 09b18034-7259-47d2-a3bb-35764bd823d0 (20 hours ago)",
+      "dc3b194 7a41b586-94c2-4fb1-97eb-1a35d0397bca (4 days ago)",
+      "6ed3ec0 agent4 (task 52, trace 1a15f55f6d0395f9): roast grill unit — roast-grill.ts adversarial self-audit with proven teeth (negative controls), standing schedule sched_mvid46vo_ud1v, published as 10th evidence source; painful truths fixed: worklog Task-50 reconstructed from lane commits, dead NIM fallback replaced with measured-alive nemotron-3.5-lightning (vault re-sealed + 3 scripts), ledger-sync stale-tracker crash-loop contained via floor-cap-to-LIVE (golden untouched, 15/15), schedule-truth judged from primary journal evidence; arc PAINFUL(4)→PAINFUL(3)→OK(15/0/1) verified live (5 days ago)",
+      "f986c84 7f8c66c4-9d21-4f59-acd8-308773d9c89e (5 days ago)"
+    ]
+  }
+}

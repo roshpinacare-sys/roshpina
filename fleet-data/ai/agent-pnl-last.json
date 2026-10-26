@@ -1,0 +1,108 @@
+{
+ "at": "2026-10-25T17:39:28.931Z",
+ "mode": "measure",
+ "mid": "253237",
+ "feesTotal": "202604",
+ "bookTrades": 663,
+ "settledTrades": 121,
+ "epsilonRank": 6,
+ "verdict": "המוח במקום #6/12 · האלגוריתם-המוביל: kappa (-2631 µ¢)",
+ "rows": [
+  {
+   "agentId": "kappa",
+   "kind": "algo",
+   "wealth": "4529398",
+   "delta": "-2631",
+   "deltaPct": -0.05,
+   "fills": 0
+  },
+  {
+   "agentId": "theta",
+   "kind": "algo",
+   "wealth": "7044250",
+   "delta": "-2725",
+   "deltaPct": -0.03,
+   "fills": 5
+  },
+  {
+   "agentId": "iota",
+   "kind": "algo",
+   "wealth": "5162490",
+   "delta": "-2819",
+   "deltaPct": -0.05,
+   "fills": 0
+  },
+  {
+   "agentId": "zeta",
+   "kind": "algo",
+   "wealth": "7364198",
+   "delta": "-4630",
+   "deltaPct": -0.06,
+   "fills": 10
+  },
+  {
+   "agentId": "delta",
+   "kind": "algo",
+   "wealth": "20294975",
+   "delta": "-5970",
+   "deltaPct": -0.02,
+   "fills": 4
+  },
+  {
+   "agentId": "epsilon",
+   "kind": "LLM",
+   "wealth": "28140013",
+   "delta": "-7775",
+   "deltaPct": -0.02,
+   "fills": 51
+  },
+  {
+   "agentId": "mm-grid",
+   "kind": "algo",
+   "wealth": "53786689",
+   "delta": "-12991",
+   "deltaPct": -0.02,
+   "fills": 0
+  },
+  {
+   "agentId": "mm-oracle",
+   "kind": "algo",
+   "wealth": "53786426",
+   "delta": "-13254",
+   "deltaPct": -0.02,
+   "fills": 0
+  },
+  {
+   "agentId": "eta",
+   "kind": "algo",
+   "wealth": "45974320",
+   "delta": "-13712",
+   "deltaPct": -0.02,
+   "fills": 68
+  },
+  {
+   "agentId": "alpha",
+   "kind": "algo",
+   "wealth": "62503169",
+   "delta": "-16815",
+   "deltaPct": -0.02,
+   "fills": 988
+  },
+  {
+   "agentId": "gamma",
+   "kind": "algo",
+   "wealth": "64501069",
+   "delta": "-19007",
+   "deltaPct": -0.02,
+   "fills": 34
+  },
+  {
+   "agentId": "bravo",
+   "kind": "algo",
+   "wealth": "102855541",
+   "delta": "-34488",
+   "deltaPct": -0.03,
+   "fills": 1158
+  }
+ ]
+}
