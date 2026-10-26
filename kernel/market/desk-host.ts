@@ -71,6 +71,11 @@ export class DeskHost {
    *  evidence is the book itself (filled counter per order). */
   private tracker = new Map<string, Map<string, { side: "bid" | "ask"; price: bigint; filled: bigint; remaining: bigint }>>();
   private justCanceled = new Map<string, Set<string>>();
+  /** boot-unique epoch — desk order ids embed it so a REBOOT can never collide
+   *  with the forever-unique usedOrderIds registry (the 2026-10-26 lesson:
+   *  tickNo restarts at 1 every boot; without this the next restart would
+   *  refuse every desk placement with DUPLICATE_ORDER_ID). */
+  private bootEpoch = Date.now().toString(36);
 
   constructor(private engine: MarketEngine, private opts: DeskHostOptions) {
     this.now = opts.now ?? Date.now;
@@ -274,7 +279,7 @@ export class DeskHost {
                 if (!this.justCanceled.has(cfg.agentId)) this.justCanceled.set(cfg.agentId, new Set());
                 this.justCanceled.get(cfg.agentId)!.add(it.orderId);
               } else if (it.action === "place" && it.side && it.price && it.amount) {
-                const orderId = `${cfg.agentId}-t${state.tickNo}-${placed.length}-${it.side}`;
+                const orderId = `${cfg.agentId}-${this.bootEpoch}-t${state.tickNo}-${placed.length}-${it.side}`;
                 const res = await this.engine.placeOrder({
                   agentId: cfg.agentId, orderId, side: it.side,
                   price: it.price, amount: it.amount, type: it.type ?? "limit",
