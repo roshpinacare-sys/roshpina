@@ -1,0 +1,79 @@
+{
+  "builtAt": "2026-10-27T16:29:46.026Z",
+  "cycle": 83,
+  "live": {
+    "market": {
+      "trades": 121,
+      "bids": 9,
+      "asks": 13
+    },
+    "ledger": {
+      "seq": 1535,
+      "accounts": 31
+    },
+    "runner": {
+      "jobs": 5468,
+      "schedules": "15/24 ירוקים",
+      "ticks": 8694,
+      "heals": 1
+    },
+    "economy": {
+      "agents": 13,
+      "treasury": "2160.96",
+      "staked": "794822.49",
+      "conservation": "מוחזק"
+    }
+  },
+  "stats": {
+    "trades": 121,
+    "ledgerSeq": 1535,
+    "agents": 13,
+    "jobsTotal": 5468,
+    "schedulesGreen": 15,
+    "schedulesEnabled": 24
+  },
+  "whatWasBuilt": [
+    "market-report: 142 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "economy-run: 28 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "ledger-sync: 28 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "economy-cycle: 14 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "agent-pnl: 10 ריצות-מוצלחות ב-24h",
+    "sovereign-oracle: 10 ריצות-מוצלחות ב-24h",
+    "estate-vault: 10 ריצות-מוצלחות ב-24h",
+    "state-backup: 9 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "הנדסה אמיתית שנדחפה לגיט (roshpina): 1cc34c6 directiveLog 42/42: master directive trace 1a178c71bcb7ddad",
+    "מטוס-הבקרה מגובה: e15af31 fix(architect): trunk-unit-boundary — tsconfig.json:0 TS0000 cured"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-27T14:30:48.395Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "mission": "לfrsh את file site-data://sovereign-net.json בעזרת עובדות חיות",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "עדכון site-data://sovereign-net.json בערכי המצב החי",
+        "why": "לשמור את הנתונים העדכניים באתר",
+        "action": "code"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-27T15:59:53.339Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "text": "הערכה: הרשת פעילה עם כ-121 עסקאות ו‑9 בידים/13 שאילתות, אך קיימים מספר צמתי כשל (לדוגמה ledger‑sync, economy‑cycle, market‑report) שמעידים על עומס ותנאי תשתית רגישים. רוב האגENTS עובדים, אך חלקם (iota, kappa, mm‑grid, saos‑0004) נותרו ללא מילואים, מה שמצביע על אי‑איזון נזילות.\n\nסיכונים: 1) כשלי ledger‑sync (66 כשלים) עלולים לגרום לאובדן קונסיסטנטיות של הספר‑מתמיד. 2) economy‑cycle operating with 37 כשלים עלול ליצור אי‑תאום בהקצאת משאבים והחזרת שכר. 3) כשלי market‑report (89 כשלים) עלולים לעצור עדכוני מחירים בזמן אמת, ảnh hưởng על קבלת הצעות ובחירת עסקאות.\n\nאנומליות: • iota ו‑kappa זהים במאזן USDS, בסטיקינג ובחוסר מילואים – חשד לכפילות או העתקה של פרופיל. • saos‑0004 מחזיק ב‑SAOS של 1,000,000 אבל ללא מילואים, ייתכן שמדובר ב‑sentinel או בבדיקה לא משולבת.\n\nהמלצות: 1) לבצע תחקור מיידי של לגר‑sync והסנכרון הכלכלי, לרבות בדיקת קונסיסטנטיות של חשבונות ו‑re‑sync אפשרי. 2) לבדוק ולאחד או למחוק את האגENTS הכפולים (iota/kappa) ו‑saos‑0004, ולוודא שכל סוכן תורם לפעילות המסחרית. 3) להגדיל משאבים (CPU/רוחב פס) או לפצל את ה‑schedules הכושלים (market‑report, economy‑cycle) כדי להפחית עומס ולקצר את זמן ההחלצה."
+  },
+  "commits": {
+    "roshpina": [
+      "1cc34c6 directiveLog 42/42: master directive trace 1a178c71bcb7ddad (saos-0004 vault keys, execution-state fix, USDS pools, all-soldier parallel, GAPs, 24/7 daemon) (25 hours ago)",
+      "eb3d65b custody(directive-41): ULTIMATE SWARM 1a1788500344fd59 — 22h trade-stall root killed LIVE (forever-unique id law vs deterministic generators: economy-run runId-ids + refusal bodies speak, desk bootEpoch defuses next-reboot collision), kernel 47/47, trades 121→163+ multi-soldier (bravo+41/epsilon 71/mm-grid 0→20), FixedFloat lane OPEN (ff.io v2 HMAC live quote, hourly sched, HIVE/STEEM not-listed measured) (41/41) (26 hours ago)",
+      "3c242b2 custody(directive-40): EMERGENCY 1a173caa7370ea61 — owner-endpoint hardening (vault-token gate armed, deny-by-default proven 401/200), paper pipeline resumed (host-freeze root cause), multi-soldier audit green (40/40) (26 hours ago)",
+      "67c782f custody(directive-39): FULL-POWER SWARM 1a16f6b599de095d — sandbox reset survived, fabric resurrected from canonical cloud, re-untrack #340 + archive eviction #343 (39/39) (26 hours ago)"
+    ],
+    "control": [
+      "e15af31 fix(architect): trunk-unit-boundary — tsconfig.json:0 TS0000 cured (architect-daemon cycle, tsc 376→57, honest-unsigned) (6 minutes ago)",
+      "abdb86e d2495f80-4059-4a94-8921-abe38f162bfd (51 minutes ago)",
+      "53f18b2 09b18034-7259-47d2-a3bb-35764bd823d0 (23 hours ago)",
+      "dc3b194 7a41b586-94c2-4fb1-97eb-1a35d0397bca (5 days ago)"
+    ]
+  }
+}
