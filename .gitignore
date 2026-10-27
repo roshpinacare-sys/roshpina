@@ -1,0 +1,9 @@
+*.pem
+*.priv.*
+*.key
+node_modules/
+.next/
+*.log
+.env*
+upload/
+p0-runbook/

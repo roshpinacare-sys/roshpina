@@ -1,0 +1,79 @@
+{
+  "builtAt": "2026-10-27T11:32:53.559Z",
+  "cycle": 83,
+  "live": {
+    "market": "UNREACHABLE",
+    "ledger": "UNREACHABLE",
+    "runner": {
+      "jobs": 5444,
+      "schedules": "1/24 ירוקים",
+      "ticks": 33,
+      "heals": 1
+    },
+    "economy": "UNREACHABLE"
+  },
+  "stats": {
+    "trades": 0,
+    "ledgerSeq": 0,
+    "agents": 0,
+    "jobsTotal": 5444,
+    "schedulesGreen": 1,
+    "schedulesEnabled": 24
+  },
+  "whatWasBuilt": [
+    "market-report: 128 ריצות-מוצלחות ב-24h (3 כישלונות-כנים)",
+    "economy-run: 25 ריצות-מוצלחות ב-24h (3 כישלונות-כנים)",
+    "ledger-sync: 25 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "economy-cycle: 12 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "agent-pnl: 9 ריצות-מוצלחות ב-24h",
+    "sovereign-oracle: 9 ריצות-מוצלחות ב-24h",
+    "estate-vault: 9 ריצות-מוצלחות ב-24h",
+    "state-backup: 8 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "מטוס-הבקרה מגובה: 53f18b2 09b18034-7259-47d2-a3bb-35764bd823d0"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-21T17:57:02.501Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "mission": "לfrsh את קובץ site-data://sovereign-net.json באמצעות נתוני המצב החי כדי לעדכן את האתר",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "עדכון site-data://sovereign-net.json בנתוני המצב החי",
+        "why": "לשמור על עדכניות האתר ולמנוע פגיעה באמינות",
+        "action": "code"
+      },
+      {
+        "id": "t2",
+        "title": "תיעוד כשלי ledger‑sync ו‑ai‑architect",
+        "why": "לזהות דפוסי כשל ולסייע בתיקון",
+        "action": "note"
+      },
+      {
+        "id": "t3",
+        "title": "ניתוח עומס משימות schedule",
+        "why": "להפחית כשלים עקב עומס גבוה",
+        "action": "insight"
+      },
+      {
+        "id": "t4",
+        "title": "תיעוד על סטטוס site-data (stale)",
+        "why": "להדגיש הצורך בחידוש",
+        "action": "note"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-26T15:19:02.195Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "text": "הערכה: הרשת פועלת עם מספר מציגים מרכזיים, אך ישנם כשלונות גבוהים במשימות קריטיות כמו דיווח שוק, ריצת כלכלה, סנכרון לדר, ו‑AI‑אדריכל. בנוסף, כמה Agents (איוטה, קאפה, אורקול) לא מבצעים מסחר כלל.  \nסיכונים: כשלונות מרובים במשימה market‑report עלולים לפגוע באמינות מחירי השוק; ריצת economy‑run עם כשלונות ו‑skips חריגה עלולה להוביל לאי‑שימור של משאבי האוצר; timeout של schedule ai‑architect מצביע על תקלה בתהליך האוטומציה של בוטים מתקדמים.  \nאנומליות: חוסר מילואים (fills) אצל agents iota, kappa ו‑mm‑oracle; timeout של schedule ai‑architect; ריבוי skips במשימות ledger‑sync ו‑state‑backup.  \nהמלצות: לבדוק ולטפל בתקלות ב‑market‑report להפחתת הכשלונות; לבצע אופטימיזציה של economy‑run על ידי הקצאת משאבים נוספים והפחתת skips; לבדוק ולתקן את תהליך האוטומציה של AI‑architect כדי למנוע timeout."
+  },
+  "commits": {
+    "roshpina": [],
+    "control": [
+      "53f18b2 09b18034-7259-47d2-a3bb-35764bd823d0 (18 hours ago)",
+      "dc3b194 7a41b586-94c2-4fb1-97eb-1a35d0397bca (5 days ago)",
+      "6ed3ec0 agent4 (task 52, trace 1a15f55f6d0395f9): roast grill unit — roast-grill.ts adversarial self-audit with proven teeth (negative controls), standing schedule sched_mvid46vo_ud1v, published as 10th evidence source; painful truths fixed: worklog Task-50 reconstructed from lane commits, dead NIM fallback replaced with measured-alive nemotron-3.5-lightning (vault re-sealed + 3 scripts), ledger-sync stale-tracker crash-loop contained via floor-cap-to-LIVE (golden untouched, 15/15), schedule-truth judged from primary journal evidence; arc PAINFUL(4)→PAINFUL(3)→OK(15/0/1) verified live (6 days ago)",
+      "f986c84 7f8c66c4-9d21-4f59-acd8-308773d9c89e (6 days ago)"
+    ]
+  }
+}
