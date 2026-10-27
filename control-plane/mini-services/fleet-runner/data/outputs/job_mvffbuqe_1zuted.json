@@ -1,0 +1,1 @@
+{"stdout":"CONTROL-PLANE-BACKUP-OK\nbranch: agent4/control-plane @ dc3f1ef (dual-ref: branch + archive tag)\nfiles:  3584 under control-plane/\nsecrets excluded: upload/, .env, db/, *.pem, p0-runbook/\n","stderr":"CONTROL-PLANE-BACKUP: push failed once — retrying in 15s (transient remote glitches self-heal)\n","truncated":false}

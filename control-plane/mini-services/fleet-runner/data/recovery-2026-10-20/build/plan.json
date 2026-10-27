@@ -1,0 +1,49 @@
+{
+  "generatedAt": "2026-10-20T11:28:36.648Z",
+  "model": "nvidia/nemotron-3-ultra-550b-a55b",
+  "jsonRepaired": false,
+  "mission": "אבחון כשלים חוזרים ב-state-backup וב-economy-run, מעקב ai-architect רץ, והקשחת עמידות הרשת",
+  "tasks": [
+    {
+      "id": "t1",
+      "title": "ניתוח שורשי לכשלי state-backup",
+      "why": "16 כשלים מצטברים, 5 בשעה האחרונה — סיכון לאובדן מצב ולגיבויים לא שלמים",
+      "action": "insight",
+      "detail": "להשוות טיימסטאמפים של כשלים מול עומס רשת (tick, trades, ledger seq) ולזהות דפוס: timeout, הרשאות גיט, מקום דיסק, או נעילת קבצים. להפיק מסקנה קונקרטית אחת לתיקון מיידי."
+    },
+    {
+      "id": "t2",
+      "title": "מעקב הרצת ai-architect נוכחית והשוואה להיסטוריה",
+      "why": "הרצה פעילה עכשיו (last=running) עם 5 כשלים קודמים — צריך לוודא שהיא מסתיימת בהצלחה וללמוד מהבדלים",
+      "action": "insight",
+      "detail": "לבדוק משך ריצה נוכחי מול ממוצע היסטורי, לזהות שלב שנתקע בעבר (generation, validation, import-gate), ולתעד האם שיפורי הקשחה קודמים הוטמעו."
+    },
+    {
+      "id": "t3",
+      "title": "ניתוח כשלי economy-run (31 כשלים)",
+      "why": "מחזור כלכלה מרכזי — כשלים פוגעים במיסוי, שכר, סטייקינג, ותמריצי סוכנים",
+      "action": "insight",
+      "detail": "לסווג כשלים: חישובית (overflow/underflow), מצבית (חשבונות נעולים), או חיצונית (oracle). להציע תיקון נקודתי אחד למחזור הבא."
+    },
+    {
+      "id": "t4",
+      "title": "תיעוד ממצאים והמלצות הקשחה ביומן הרשת",
+      "why": "ליצור רצף ידע אוטונומי למניעת הישנות ולאפשר ביקורת עתידית",
+      "action": "note",
+      "detail": "לכתוב כניסה מסודרת עם: תאריך, סיכום כשלים, סיבות שורשיות משוערות, פעולות מומלצות (קונפיג, קוד, פרמטרים), ובעל-אחריות (schedule name)."
+    },
+    {
+      "id": "t5",
+      "title": "בדיקת תקינות market-report (81 כשלים) ו-ledger-sync (31 כשלים)",
+      "why": "שני סchedules בתדירות גבוהה עם שיעור כשל ניכר — עלולים להצביע על בעיית תשתית משותפת",
+      "action": "insight",
+      "detail": "לבדוק האם כשלים מתואמים בזמן (אותו tick/חלון), ואם כן — לבודד משאב משותף (DB lock, network, memory). לדווח מסקנה אחת לפעולה."
+    }
+  ],
+  "risks": [
+    "state-backup עלול להיכשל שוב לפני תיקון — סיכון לאובדן מצב אחרון",
+    "ai-architect רץ כעת — אם ייכשל שוב, יידרש rollback ידני של קוד מוצע",
+    "אין נתוני לוג מפורטים (stack traces, exit codes) — ניתוח מוגבל לראיות עקיפות"
+  ],
+  "stateSnapshot": "time: 2026-10-20T11:28:12.168Z\nmarket: trades=121 bids=4 asks=6\nledger: seq=1247 accounts=25\nrunner: jobs=3710 schedules=19 tick=19837 heals=1\n  schedule ai-sentinel/1800s: runs=55 fails=2 last=succeeded\n  schedule state-backup/900s: runs=124 fails=16 last=succeeded\n  schedule economy-run/300s: runs=381 fails=31 last=succeeded\n  schedule site-builder/1800s: runs=52 fails=0 last=succeeded\n  schedule plan-executor/1200s: runs=76 fails=0 last=succeeded\n  schedule market-report/60s: runs=2134 fails=81 last=succeeded\n  schedule code-executor/1800s: runs=47 fails=2 last=succeeded\n  schedule sovereign-oracle/900s: runs=29 fails=0 last=succeeded\n  schedule self-audit/3600s: runs=5 fails=0 last=succeeded\n  schedule treasury-report/1800s: runs=14 fails=0 last=succeeded\n  schedule chain-audit/1800s: runs=5 fails=0 last=succeeded\n  schedule agent-pnl/900s: runs=23 fails=0 last=succeeded\n  schedule ledger-sync/300s: runs=421 fails=31 last=succeeded\n  schedule economy-cycle/600s: runs=199 fails=18 last=succeeded\n  schedule capability-audit/3600s: runs=1 fails=0 last=succeeded\n  schedule control-plane-backup/3600s: runs=26 fails=2 last=succeeded\n  schedule ai-architect/3600s: runs=25 fails=5 last=running\n  schedule estate-vault/7200s: runs=10 fails=0 last=succeeded\n  schedule dr-drill/86400s: runs=1 fails=0 last=succeeded\neconomy: agents=10 fills=alpha:988,bravo:1158,gamma:34,delta:4,epsilon:51,zeta:10,eta:68,theta:5,iota:0,kappa:0\nrecent failures (evidence): state-backup: failed @09:43:39 · state-backup: failed @09:28:38 · state-backup: failed @09:13:08 · state-backup: failed @08:58:08 · ai-architect: failed @08:27:33 · state-backup: failed @08:12:37 · ai-architect: failed @03:24:31 · economy-run: failed @03:24:16\nprevious plan (2026-10-20T10:28:29.212Z): t1=פרסום שידור-רשת מעודכן לאתר · t2=ניתוח לוגי state-backup - זיהוי סיבה שורשית · t3=מעקב ai-architect רץ נוכחי והשוואה לכשלים קודמים · t4=תיעוד ממצאים והמלצות הקשחה ביומן הרשת\nlast site build: cycle=53 @2026-10-20T10:59:09.682Z\nsite lane: sovereign-net.json published recently — refresh only when there is real news"
+}

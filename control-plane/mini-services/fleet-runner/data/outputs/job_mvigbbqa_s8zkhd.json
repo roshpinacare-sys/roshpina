@@ -1,0 +1,1 @@
+{"stdout":"","stderr":"PLAN-EXECUTOR-FAIL: vault sealed/absent — data/vault/nim-api.env לא נמצא.\n  שחזור: bash scripts/vault-unseal.sh nim-api.env\n","truncated":false}

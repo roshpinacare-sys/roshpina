@@ -1,0 +1,1 @@
+{"stdout":"market report — 2026-10-17T10:27:45.245Z · http://127.0.0.1:3033\nhealth: ok=true trades=0 book bids=0 asks=0\n\nbook: 0 bids × 0 asks\n\neconomy: 0 settled trades · agents=0\n  treasury: 0.00 USDS (הכנסות-אמת · משלם שכר/תגמולים)\n  escrow:  0.00 USDS · 0.00 SAOS\n\nconservation: HOLDS ✓ (שימור-מלא בשני-המטבעות)\n","stderr":"","truncated":false}

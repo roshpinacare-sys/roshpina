@@ -1,0 +1,1 @@
+{"stdout":"CONTROL-PLANE-BACKUP: overwriting archive tag — previous object 259b8a6 remains fetchable by SHA (R42)\nCONTROL-PLANE-BACKUP-OK\nbranch: agent4/control-plane @ ee9b3e1 (dual-ref: branch + archive tag)\nfiles:  4262 under control-plane/\nsecrets excluded: upload/, .env, db/, *.pem, p0-runbook/\n","stderr":"","truncated":false}

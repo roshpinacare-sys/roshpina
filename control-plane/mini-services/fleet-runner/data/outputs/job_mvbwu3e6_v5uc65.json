@@ -1,0 +1,1 @@
+{"stdout":"== ledger-sync: market http://127.0.0.1:3033 → book http://127.0.0.1:3032 (tenant market) ==\n","stderr":"market node not healthy: Error: Unable to connect. Is the computer able to access the url?\n","truncated":false}

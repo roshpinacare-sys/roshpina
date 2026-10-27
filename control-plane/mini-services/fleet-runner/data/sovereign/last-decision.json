@@ -1,0 +1,14 @@
+{
+ "runAt": "2026-10-27T16:01:15.391Z",
+ "decisions": [
+  {
+   "at": "2026-10-27T16:01:22.137Z",
+   "id": "dec_mvqvht5l_ex1p",
+   "kind": "hold",
+   "evidence": "refs: lane-branch=1cc34c6 · cp-branch=287058e · lane-tag=alive · cp-tag=alive | nodes: ledger=up · market=up · runner=up | capsule: state-2026-10-27T15-59-30.tar.gz (1.8min) | oracle-anchor: 0.8min",
+   "action": "no action — every subsystem within its law",
+   "outcome": "recorded",
+   "law": "R40: deciding to hold is a decision, evidenced"
+  }
+ ]
+}

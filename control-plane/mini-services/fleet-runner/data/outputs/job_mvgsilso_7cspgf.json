@@ -1,0 +1,1 @@
+{"stdout":"TREASURY-REPORT @ 2026-10-20T14:40:18.686Z — conservation holds:true (proof-backed)\n  fees (total earned): 102,285 fee-units\n  quote minted: 238,112,919 · staked: 44,378,928 · escrow: 2,447,696\n  trades: 121 settled / 663 book\n  (first measurement — baseline recorded)\n  ledger-health: ok\nTREASURY-OK\n","stderr":"","truncated":false}

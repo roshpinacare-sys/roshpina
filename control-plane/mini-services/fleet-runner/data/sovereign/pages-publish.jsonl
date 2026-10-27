@@ -1,0 +1,33 @@
+{"ts":"2026-10-21T05:31:03.742Z","action":"pages-evidence","result":"PUBLISHED","verified":"ok","sourcesAvailable":8}
+{"ts":"2026-10-21T05:32:52.324Z","action":"pages-evidence","result":"PUBLISHED","verified":"ok","sourcesAvailable":8}
+{"ts":"2026-10-21T05:36:58.582Z","action":"pages-evidence","result":"PUBLISHED","verified":"stale:2026-10-21T05:31:49.002Z","sourcesAvailable":9}
+{"ts":"2026-10-21T05:50:03.835Z","action":"pages-evidence","result":"PUBLISHED","verified":"ok","sourcesAvailable":9}
+{"ts":"2026-10-21T06:10:17.838Z","action":"pages-evidence","result":"PUBLISHED","verified":"ok","sourcesAvailable":9}
+{"ts":"2026-10-21T06:40:27.953Z","action":"pages-evidence","result":"PUBLISHED","verified":"ok","sourcesAvailable":9}
+{"ts":"2026-10-21T07:10:28.794Z","action":"pages-evidence","result":"PUBLISHED","verified":"ok","sourcesAvailable":9}
+{"ts":"2026-10-21T07:40:57.108Z","action":"pages-evidence","result":"PUBLISHED","verified":"stale:2026-10-21T07:09:45.041Z","sourcesAvailable":9}
+{"ts":"2026-10-21T15:54:37.452Z","action":"pages-evidence","result":"PUSH-FAIL","msg":"Command failed: git pull --rebase -q\nfatal: not a git repository (or any of the parent directories): .git\n"}
+{"ts":"2026-10-21T16:20:23.351Z","action":"pages-evidence","result":"PUBLISHED","verified":"stale:2026-10-21T11:51:50.037Z","sourcesAvailable":9}
+{"ts":"2026-10-21T16:25:21.497Z","action":"pages-evidence","result":"PUBLISHED","verified":"ok","sourcesAvailable":9}
+{"ts":"2026-10-21T16:27:24.305Z","action":"pages-evidence","result":"PUBLISHED","sha":"015e634f6c","verified":"ok","sourcesAvailable":9}
+{"ts":"2026-10-21T16:55:36.760Z","action":"pages-evidence","result":"PUBLISHED","sha":"4a474712ad","verified":"ok","sourcesAvailable":9}
+{"ts":"2026-10-21T17:17:52.045Z","action":"pages-evidence","result":"PUSH-FAIL","msg":"Command failed: git pull --rebase -q\nerror: cannot pull with rebase: You have unstaged changes.\nerror: Please commit or stash them.\n"}
+{"ts":"2026-10-21T17:20:06.723Z","action":"pages-evidence","result":"PUBLISHED","sha":"4023256899","verified":"ok","sourcesAvailable":10}
+{"ts":"2026-10-21T17:26:13.276Z","action":"pages-evidence","result":"PUBLISHED","sha":"a2bdfb0b27","verified":"stale:2026-10-21T17:19:21.610Z","sourcesAvailable":10}
+{"ts":"2026-10-21T17:57:54.349Z","action":"pages-evidence","result":"PUBLISHED","sha":"021a59be08","verified":"ok","sourcesAvailable":10}
+{"ts":"2026-10-21T18:36:01.936Z","action":"pages-evidence","result":"PUBLISHED","sha":"c68c22c415","verified":"ok","sourcesAvailable":10}
+{"ts":"2026-10-21T19:06:20.741Z","action":"pages-evidence","result":"PUBLISHED","sha":"f62edb9325","verified":"ok","sourcesAvailable":10}
+{"ts":"2026-10-21T19:36:00.560Z","action":"pages-evidence","result":"PUBLISHED","sha":"b7b6f5233c","verified":"ok","sourcesAvailable":10}
+{"ts":"2026-10-21T20:06:35.457Z","action":"pages-evidence","result":"PUBLISHED","sha":"3f51166380","verified":"stale:2026-10-21T19:35:16.061Z","sourcesAvailable":10}
+{"ts":"2026-10-21T20:36:15.399Z","action":"pages-evidence","result":"PUBLISHED","sha":"4ad50a2772","verified":"ok","sourcesAvailable":10}
+{"ts":"2026-10-22T07:35:12.926Z","action":"pages-evidence","result":"PUBLISHED","sha":"935d19aabb","verified":"stale:2026-10-22T07:21:15.598Z","sourcesAvailable":10}
+{"ts":"2026-10-25T15:41:04.763Z","action":"pages-evidence","result":"PUBLISHED","sha":"a19096b1c5","verified":"stale:2026-10-24T21:33:38.483Z","sourcesAvailable":10}
+{"ts":"2026-10-25T16:09:50.140Z","action":"pages-evidence","result":"PUSH-FAIL","msg":"Command failed: git pull --rebase -q\nerror: cannot pull with rebase: You have unstaged changes.\nerror: Please commit or stash them.\n"}
+{"ts":"2026-10-25T16:40:47.959Z","action":"pages-evidence","result":"PUBLISHED","sha":"af03d01a4d","verified":"stale:2026-10-25T16:09:43.414Z","sourcesAvailable":10}
+{"ts":"2026-10-25T17:10:48.490Z","action":"pages-evidence","result":"PUBLISHED","sha":"d05a44cadf","verified":"stale:2026-10-25T16:09:43.414Z","sourcesAvailable":10}
+{"ts":"2026-10-25T17:40:48.131Z","action":"pages-evidence","result":"PUBLISHED","sha":"07ca56284f","verified":"stale:2026-10-25T17:09:43.908Z","sourcesAvailable":10}
+{"ts":"2026-10-26T16:54:55.613Z","action":"pages-evidence","result":"PUBLISHED","sha":"4f4ee2c9c4","verified":"stale:2026-10-26T16:20:21.684Z","sourcesAvailable":10}
+{"ts":"2026-10-27T14:32:39.240Z","action":"pages-evidence","result":"PUBLISHED","sha":"87854ffe4b","verified":"stale:2026-10-27T13:34:53.732Z","sourcesAvailable":10}
+{"ts":"2026-10-27T15:02:19.879Z","action":"pages-evidence","result":"PUBLISHED","sha":"3b47265431","verified":"stale:2026-10-27T14:31:15.077Z","sourcesAvailable":10}
+{"ts":"2026-10-27T15:32:34.104Z","action":"pages-evidence","result":"PUBLISHED","sha":"768adc0d96","verified":"stale:2026-10-27T15:01:15.110Z","sourcesAvailable":10}
+{"ts":"2026-10-27T16:02:34.654Z","action":"pages-evidence","result":"PUBLISHED","sha":"032fc77df8","verified":"stale:2026-10-27T15:31:30.179Z","sourcesAvailable":10}
