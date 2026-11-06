@@ -1,0 +1,116 @@
+{
+ "at": "2026-11-06T11:28:43.220Z",
+ "mode": "measure",
+ "mid": "253312",
+ "feesTotal": "224551",
+ "bookTrades": 663,
+ "settledTrades": 121,
+ "epsilonRank": 8,
+ "verdict": "המוח במקום #8/13 · האלגוריתם-המוביל: delta (4999633 µ¢)",
+ "rows": [
+  {
+   "agentId": "delta",
+   "kind": "algo",
+   "wealth": "25300578",
+   "delta": "4999633",
+   "deltaPct": 24.62,
+   "fills": 4
+  },
+  {
+   "agentId": "theta",
+   "kind": "algo",
+   "wealth": "12045679",
+   "delta": "4998704",
+   "deltaPct": 70.93,
+   "fills": 5
+  },
+  {
+   "agentId": "iota",
+   "kind": "algo",
+   "wealth": "10163233",
+   "delta": "4997924",
+   "deltaPct": 96.75,
+   "fills": 0
+  },
+  {
+   "agentId": "kappa",
+   "kind": "algo",
+   "wealth": "9529953",
+   "delta": "4997924",
+   "deltaPct": 110.28,
+   "fills": 0
+  },
+  {
+   "agentId": "saos-0004",
+   "kind": "algo",
+   "wealth": "75328666",
+   "delta": "-2534",
+   "deltaPct": 0,
+   "fills": 0
+  },
+  {
+   "agentId": "zeta",
+   "kind": "algo",
+   "wealth": "7363496",
+   "delta": "-5332",
+   "deltaPct": -0.07,
+   "fills": 10
+  },
+  {
+   "agentId": "alpha",
+   "kind": "algo",
+   "wealth": "62512275",
+   "delta": "-7709",
+   "deltaPct": -0.01,
+   "fills": 988
+  },
+  {
+   "agentId": "epsilon",
+   "kind": "LLM",
+   "wealth": "28140056",
+   "delta": "-7732",
+   "deltaPct": -0.02,
+   "fills": 51
+  },
+  {
+   "agentId": "gamma",
+   "kind": "algo",
+   "wealth": "64507250",
+   "delta": "-12826",
+   "deltaPct": -0.01,
+   "fills": 34
+  },
+  {
+   "agentId": "mm-grid",
+   "kind": "algo",
+   "wealth": "53785018",
+   "delta": "-14662",
+   "deltaPct": -0.02,
+   "fills": 0
+  },
+  {
+   "agentId": "mm-oracle",
+   "kind": "algo",
+   "wealth": "53784675",
+   "delta": "-15005",
+   "deltaPct": -0.02,
+   "fills": 0
+  },
+  {
+   "agentId": "eta",
+   "kind": "algo",
+   "wealth": "45972613",
+   "delta": "-15419",
+   "deltaPct": -0.03,
+   "fills": 68
+  },
+  {
+   "agentId": "bravo",
+   "kind": "algo",
+   "wealth": "102854797",
+   "delta": "-35232",
+   "deltaPct": -0.03,
+   "fills": 1158
+  }
+ ]
+}

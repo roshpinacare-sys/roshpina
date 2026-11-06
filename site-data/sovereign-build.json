@@ -1,0 +1,79 @@
+{
+  "builtAt": "2026-11-06T11:42:28.263Z",
+  "cycle": 86,
+  "live": {
+    "market": {
+      "trades": 121,
+      "bids": 9,
+      "asks": 13
+    },
+    "ledger": {
+      "seq": 1554,
+      "accounts": 31
+    },
+    "runner": {
+      "jobs": 5631,
+      "schedules": "17/24 ירוקים",
+      "ticks": 7522,
+      "heals": 1
+    },
+    "economy": {
+      "agents": 13,
+      "treasury": "2245.51",
+      "staked": "794823.57",
+      "conservation": "מוחזק"
+    }
+  },
+  "stats": {
+    "trades": 121,
+    "ledgerSeq": 1554,
+    "agents": 13,
+    "jobsTotal": 5631,
+    "schedulesGreen": 17,
+    "schedulesEnabled": 24
+  },
+  "whatWasBuilt": [
+    "market-report: 120 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "ledger-sync: 24 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "economy-run: 23 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "economy-cycle: 12 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "state-backup: 8 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "agent-pnl: 8 ריצות-מוצלחות ב-24h",
+    "sovereign-oracle: 8 ריצות-מוצלחות ב-24h",
+    "estate-vault: 7 ריצות-מוצלחות ב-24h (1 כישלונות-כנים)",
+    "הנדסה אמיתית שנדחפה לגיט (roshpina): 1cc34c6 directiveLog 42/42: master directive trace 1a178c71bcb7ddad",
+    "מטוס-הבקרה מגובה: 53f18b2 09b18034-7259-47d2-a3bb-35764bd823d0"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-27T14:30:48.395Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "mission": "לfrsh את file site-data://sovereign-net.json בעזרת עובדות חיות",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "עדכון site-data://sovereign-net.json בערכי המצב החי",
+        "why": "לשמור את הנתונים העדכניים באתר",
+        "action": "code"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-11-06T11:42:26.269Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "text": "הערכה: הרשת פעילה עם 121 trades ו‑9 bids, אך מספר סוכנים (כגון iota, kappa, mm‑grid) מציגים אפס מלאים למרות משאבים גבוהים, והסכמות מסוימות (ai‑architect, roast‑grill, fixedfloat‑quote) סובלות מכשל גבוה, מה שמעיד על עומס ותקלות אפשריות.  \nסיכונים: 1) כשל גבוה במערכת ai‑architect (26 fails מ‑43 ריצות) – עלול לפגוע בתהליכים קריטיים. 2) לוחות זמנים roast‑grill ו‑fixedfloat‑quote כשלויים תמיד (5/5 ו‑2/2) – מצביע על תקלות בתהליכים משניים שעלולים לגרום לאיבוד מידע. 3) economy‑run במצב operating – עומס גבוה שעלול להאט את השרתים ול ảnh Influenc את שירותים אחרים.  \nאנומליות: אגENTS iota ו‑kappa זהים במאפיינים (מאותן USDS, staked, zero fills) – יתכן שכפל או העתק של סוכן. בנוסף, agents mm‑grid, mm‑oracle, saos‑0004 ו‑zeta מציגים אפס מלאים למרות שווי משאבים גבוהים, מה שלא טבעי בפעילות שוטפת.  \nהמלצות: 1) לבדוק ולאחד או להסיר את העתקים הכפולים של iota/kappa. 2) לחקור ולהתקין את causes של כשל ב‑ai‑architect כדי למנוע השפעה על תהליכים קריטיים. 3) לבצע תיקון או עדכון ל‑roast‑grill ו‑fixedfloat‑quote כדי למנוע כשל עקבי."
+  },
+  "commits": {
+    "roshpina": [
+      "1cc34c6 directiveLog 42/42: master directive trace 1a178c71bcb7ddad (saos-0004 vault keys, execution-state fix, USDS pools, all-soldier parallel, GAPs, 24/7 daemon) (11 days ago)",
+      "eb3d65b custody(directive-41): ULTIMATE SWARM 1a1788500344fd59 — 22h trade-stall root killed LIVE (forever-unique id law vs deterministic generators: economy-run runId-ids + refusal bodies speak, desk bootEpoch defuses next-reboot collision), kernel 47/47, trades 121→163+ multi-soldier (bravo+41/epsilon 71/mm-grid 0→20), FixedFloat lane OPEN (ff.io v2 HMAC live quote, hourly sched, HIVE/STEEM not-listed measured) (41/41) (11 days ago)",
+      "3c242b2 custody(directive-40): EMERGENCY 1a173caa7370ea61 — owner-endpoint hardening (vault-token gate armed, deny-by-default proven 401/200), paper pipeline resumed (host-freeze root cause), multi-soldier audit green (40/40) (11 days ago)",
+      "67c782f custody(directive-39): FULL-POWER SWARM 1a16f6b599de095d — sandbox reset survived, fabric resurrected from canonical cloud, re-untrack #340 + archive eviction #343 (39/39) (11 days ago)"
+    ],
+    "control": [
+      "53f18b2 09b18034-7259-47d2-a3bb-35764bd823d0 (11 days ago)",
+      "dc3b194 7a41b586-94c2-4fb1-97eb-1a35d0397bca (2 weeks ago)",
+      "6ed3ec0 agent4 (task 52, trace 1a15f55f6d0395f9): roast grill unit — roast-grill.ts adversarial self-audit with proven teeth (negative controls), standing schedule sched_mvid46vo_ud1v, published as 10th evidence source; painful truths fixed: worklog Task-50 reconstructed from lane commits, dead NIM fallback replaced with measured-alive nemotron-3.5-lightning (vault re-sealed + 3 scripts), ledger-sync stale-tracker crash-loop contained via floor-cap-to-LIVE (golden untouched, 15/15), schedule-truth judged from primary journal evidence; arc PAINFUL(4)→PAINFUL(3)→OK(15/0/1) verified live (2 weeks ago)",
+      "f986c84 7f8c66c4-9d21-4f59-acd8-308773d9c89e (2 weeks ago)"
+    ]
+  }
+}

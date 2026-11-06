@@ -1,0 +1,30 @@
+{
+  "schema": "fabric-watchdog/1",
+  "at": "2026-10-24T18:34:41.418Z",
+  "durationMs": 50,
+  "organs": {
+    "economy": {
+      "up": true,
+      "revived": false
+    },
+    "voice": {
+      "up": true,
+      "revived": false
+    },
+    "forge": {
+      "up": true,
+      "revived": false
+    },
+    "dex": {
+      "up": true,
+      "revived": false
+    }
+  },
+  "custodyGuard": {
+    "ok": true,
+    "out": "CUSTODY-GUARD-OK: 10 live files guarded (0 newly asserted, 0 not-present)"
+  },
+  "custodySeal": null,
+  "allUp": true,
+  "runIndex": 16
+}
