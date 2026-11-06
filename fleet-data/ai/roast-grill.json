@@ -1,0 +1,19 @@
+{
+  "at": "2026-11-06T09:43:43.169Z",
+  "verdict": "ROAST-GRILL-PAINFUL",
+  "summary": {
+    "pass": 9,
+    "fail": 6,
+    "gaps": 1,
+    "controls": "proven"
+  },
+  "directives": 42,
+  "painful": [
+    "dual-ref של מטוס-הבקרה אינו עקבי — הקוד החי לא בטוח בגיט",
+    "self-audit טרי נכשל",
+    "capability-audit טרי נכשל",
+    "הפאנל המפורסם אינו טרי או חורג מהאמת המקומית",
+    "worklog חסר Task 54, 55, 56 — זיכרון-עבודה אבוד",
+    "כישלונות-תזמון לא מוסברים: ledger-sync(lastStatus=failed · ריצה-אחרונה-בפועל=failed), economy-cycle(lastStatus=failed · ריצה-אחרונה-בפועל=failed), state-backup(lastStatus=failed · ריצה-אחרונה-בפועל=failed), economy-run(lastStatus=failed · ריצה-אחרונה-בפועל=failed), ai-sentinel(lastStatus=failed · ריצה-אחרונה-בפועל=failed), control-plane-backup(lastStatus=failed · ריצה-אחרונה-בפועל=failed), estate-vault(lastStatus=failed · ריצה-אחרונה-בפועל=failed), self-audit(lastStatus=failed · ריצה-אחרונה-בפועל=failed), sovereign-decisions(lastStatus=failed · ריצה-אחרונה-בפועל=failed), execution-ledger-renew(lastStatus=failed · ריצה-אחרונה-בפועל=failed)"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "builtAt": "2026-10-27T15:29:45.203Z",
+  "cycle": 81,
+  "live": {
+    "market": {
+      "trades": 121,
+      "bids": 9,
+      "asks": 11
+    },
+    "ledger": {
+      "seq": 1503,
+      "accounts": 29
+    },
+    "runner": {
+      "jobs": 5341,
+      "schedules": "15/22 ירוקים",
+      "ticks": 4918,
+      "heals": 1
+    },
+    "economy": {
+      "agents": 12,
+      "treasury": "2095.87",
+      "staked": "694822.49",
+      "conservation": "מוחזק"
+    }
+  },
+  "stats": {
+    "trades": 121,
+    "ledgerSeq": 1503,
+    "agents": 12,
+    "jobsTotal": 5341,
+    "schedulesGreen": 15,
+    "schedulesEnabled": 22
+  },
+  "whatWasBuilt": [
+    "market-report: 82 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "economy-run: 16 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "ledger-sync: 16 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "economy-cycle: 8 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "agent-pnl: 6 ריצות-מוצלחות ב-24h",
+    "sovereign-oracle: 6 ריצות-מוצלחות ב-24h",
+    "estate-vault: 6 ריצות-מוצלחות ב-24h",
+    "state-backup: 5 ריצות-מוצלחות ב-24h (2 כישלונות-כנים)",
+    "הנדסה אמיתית שנדחפה לגיט (roshpina): 1cc34c6 directiveLog 42/42: master directive trace 1a178c71bcb7ddad",
+    "מטוס-הבקרה מגובה: 53f18b2 09b18034-7259-47d2-a3bb-35764bd823d0"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-27T14:30:48.395Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "mission": "לfrsh את file site-data://sovereign-net.json בעזרת עובדות חיות",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "עדכון site-data://sovereign-net.json בערכי המצב החי",
+        "why": "לשמור את הנתונים העדכניים באתר",
+        "action": "code"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-27T15:00:20.145Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "text": "הערכה: הרשת פועלת עם מספר קטן של עסקאות (121) ו‑12 סוכנים פעילים, אך ישנם מספר לוחות זמנים עם כשל גבוה (לדוגמה, לוח הזמן market-report עם 89 כשל, ledger-sync עם 66 כשל, self‑audit ו‑capability‑audit עם כשל), וחלק מהסוכנים (איוטה, קאפה, mm‑grid ו‑mm‑oracle) אינם מבצעים מילואים כלל. המצב יציב מבחינת מספר הסוכנים וההון, אך ישנם כשלים אופרטיביים משמעותיים במערכות העזר.  \nסיכונים: 1. לוח הזמן market-report עם 89 כשל – עלול להוביל לאובדן מידע רגיש ולהשפיע על קבלת עדכוני שוק בזמן. 2. לוח הזמן ledger-sync עם 66 כשל – סיכון לאיבוד סנכרון ledger ולפגיעה באינטגריות העסקאות. 3. לוח הזמן self‑audit ו‑capability‑audit עם כשל – מצביע על תקלות בתהליכי אימות פנימיים שעלולים לפגוע באמינות המערכת.  \nאנומליות: לא זוהו ערכים חריגים במספר העסקאות, אך ה‑fills=0 אצל iota, kappa, mm‑grid ו‑mm‑oracle מצביע על חוסר פעילות של סוכנים אלו, מה שלא טבעי.  \nהמלצות: 1. לבדוק ולטפל בלוח הזמן market-report להפחתת כשל ה‑89, כולל בדיקת לוגים ושיפור יציבות השרת. 2. לבצע תיקון ל‑ledger-sync כדי לצמצם כשל ה‑66, ייתכן על ידי עדכון תצורת סנכרון או הגדלת משאבים. 3. לבצע ניתוח rad של self‑audit ו‑capability‑audit כדי לזהות ולתקן כשלים בתהליכי אימות פנימיים."
+  },
+  "commits": {
+    "roshpina": [
+      "1cc34c6 directiveLog 42/42: master directive trace 1a178c71bcb7ddad (saos-0004 vault keys, execution-state fix, USDS pools, all-soldier parallel, GAPs, 24/7 daemon) (24 hours ago)",
+      "eb3d65b custody(directive-41): ULTIMATE SWARM 1a1788500344fd59 — 22h trade-stall root killed LIVE (forever-unique id law vs deterministic generators: economy-run runId-ids + refusal bodies speak, desk bootEpoch defuses next-reboot collision), kernel 47/47, trades 121→163+ multi-soldier (bravo+41/epsilon 71/mm-grid 0→20), FixedFloat lane OPEN (ff.io v2 HMAC live quote, hourly sched, HIVE/STEEM not-listed measured) (41/41) (25 hours ago)",
+      "3c242b2 custody(directive-40): EMERGENCY 1a173caa7370ea61 — owner-endpoint hardening (vault-token gate armed, deny-by-default proven 401/200), paper pipeline resumed (host-freeze root cause), multi-soldier audit green (40/40) (25 hours ago)",
+      "67c782f custody(directive-39): FULL-POWER SWARM 1a16f6b599de095d — sandbox reset survived, fabric resurrected from canonical cloud, re-untrack #340 + archive eviction #343 (39/39) (25 hours ago)"
+    ],
+    "control": [
+      "53f18b2 09b18034-7259-47d2-a3bb-35764bd823d0 (22 hours ago)",
+      "dc3b194 7a41b586-94c2-4fb1-97eb-1a35d0397bca (5 days ago)",
+      "6ed3ec0 agent4 (task 52, trace 1a15f55f6d0395f9): roast grill unit — roast-grill.ts adversarial self-audit with proven teeth (negative controls), standing schedule sched_mvid46vo_ud1v, published as 10th evidence source; painful truths fixed: worklog Task-50 reconstructed from lane commits, dead NIM fallback replaced with measured-alive nemotron-3.5-lightning (vault re-sealed + 3 scripts), ledger-sync stale-tracker crash-loop contained via floor-cap-to-LIVE (golden untouched, 15/15), schedule-truth judged from primary journal evidence; arc PAINFUL(4)→PAINFUL(3)→OK(15/0/1) verified live (6 days ago)",
+      "f986c84 7f8c66c4-9d21-4f59-acd8-308773d9c89e (6 days ago)"
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "builtAt": "2026-11-06T09:42:28.183Z",
+  "cycle": 82,
+  "live": {
+    "market": "UNREACHABLE",
+    "ledger": "UNREACHABLE",
+    "runner": {
+      "jobs": 5373,
+      "schedules": "0/24 ירוקים",
+      "ticks": 33,
+      "heals": 1
+    },
+    "economy": "UNREACHABLE"
+  },
+  "stats": {
+    "trades": 0,
+    "ledgerSeq": 0,
+    "agents": 0,
+    "jobsTotal": 5373,
+    "schedulesGreen": 0,
+    "schedulesEnabled": 24
+  },
+  "whatWasBuilt": [
+    "מטוס-הבקרה מגובה: 53f18b2 09b18034-7259-47d2-a3bb-35764bd823d0"
+  ],
+  "plan": {
+    "generatedAt": "2026-10-27T14:30:48.395Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "mission": "לfrsh את file site-data://sovereign-net.json בעזרת עובדות חיות",
+    "tasks": [
+      {
+        "id": "t1",
+        "title": "עדכון site-data://sovereign-net.json בערכי המצב החי",
+        "why": "לשמור את הנתונים העדכניים באתר",
+        "action": "code"
+      }
+    ]
+  },
+  "insight": {
+    "at": "2026-10-27T15:00:20.145Z",
+    "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "text": "הערכה: הרשת פועלת עם מספר קטן של עסקאות (121) ו‑12 סוכנים פעילים, אך ישנם מספר לוחות זמנים עם כשל גבוה (לדוגמה, לוח הזמן market-report עם 89 כשל, ledger-sync עם 66 כשל, self‑audit ו‑capability‑audit עם כשל), וחלק מהסוכנים (איוטה, קאפה, mm‑grid ו‑mm‑oracle) אינם מבצעים מילואים כלל. המצב יציב מבחינת מספר הסוכנים וההון, אך ישנם כשלים אופרטיביים משמעותיים במערכות העזר.  \nסיכונים: 1. לוח הזמן market-report עם 89 כשל – עלול להוביל לאובדן מידע רגיש ולהשפיע על קבלת עדכוני שוק בזמן. 2. לוח הזמן ledger-sync עם 66 כשל – סיכון לאיבוד סנכרון ledger ולפגיעה באינטגריות העסקאות. 3. לוח הזמן self‑audit ו‑capability‑audit עם כשל – מצביע על תקלות בתהליכי אימות פנימיים שעלולים לפגוע באמינות המערכת.  \nאנומליות: לא זוהו ערכים חריגים במספר העסקאות, אך ה‑fills=0 אצל iota, kappa, mm‑grid ו‑mm‑oracle מצביע על חוסר פעילות של סוכנים אלו, מה שלא טבעי.  \nהמלצות: 1. לבדוק ולטפל בלוח הזמן market-report להפחתת כשל ה‑89, כולל בדיקת לוגים ושיפור יציבות השרת. 2. לבצע תיקון ל‑ledger-sync כדי לצמצם כשל ה‑66, ייתכן על ידי עדכון תצורת סנכרון או הגדלת משאבים. 3. לבצע ניתוח rad של self‑audit ו‑capability‑audit כדי לזהות ולתקן כשלים בתהליכי אימות פנימיים."
+  },
+  "commits": {
+    "roshpina": [],
+    "control": [
+      "53f18b2 09b18034-7259-47d2-a3bb-35764bd823d0 (11 days ago)",
+      "dc3b194 7a41b586-94c2-4fb1-97eb-1a35d0397bca (2 weeks ago)",
+      "6ed3ec0 agent4 (task 52, trace 1a15f55f6d0395f9): roast grill unit — roast-grill.ts adversarial self-audit with proven teeth (negative controls), standing schedule sched_mvid46vo_ud1v, published as 10th evidence source; painful truths fixed: worklog Task-50 reconstructed from lane commits, dead NIM fallback replaced with measured-alive nemotron-3.5-lightning (vault re-sealed + 3 scripts), ledger-sync stale-tracker crash-loop contained via floor-cap-to-LIVE (golden untouched, 15/15), schedule-truth judged from primary journal evidence; arc PAINFUL(4)→PAINFUL(3)→OK(15/0/1) verified live (2 weeks ago)",
+      "f986c84 7f8c66c4-9d21-4f59-acd8-308773d9c89e (2 weeks ago)"
+    ]
+  }
+}
