@@ -1,0 +1,1 @@
+{"stdout":"quiesced: http://127.0.0.1:3032, http://127.0.0.1:3033\nSTATE-BACKUP-OK\ncapsule: /home/z/my-project/state-snapshots/state-2026-10-19T12-58-52.tar.gz (2713.5 KB)\npacked:  roshpina[data/ledger-net, data/market-net] runner[data/jobs.jsonl, data/schedules.json, data/keys/manifest.json]\nretained: 10 capsules (pruned 1 old)\n","stderr":"","truncated":false}

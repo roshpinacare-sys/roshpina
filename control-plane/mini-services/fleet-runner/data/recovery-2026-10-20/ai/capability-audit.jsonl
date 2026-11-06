@@ -1,0 +1,5 @@
+{"at":"2026-10-20T10:04:29.460Z","verdict":"CAPABILITY-AUDIT-FAIL","pass":9,"fail":1,"gaps":5}
+{"at":"2026-10-20T10:05:15.210Z","verdict":"CAPABILITY-AUDIT-OK","pass":10,"fail":0,"gaps":5}
+{"at":"2026-10-20T11:05:41.561Z","verdict":"CAPABILITY-AUDIT-OK","pass":10,"fail":0,"gaps":5}
+{"at":"2026-10-20T12:05:43.175Z","verdict":"CAPABILITY-AUDIT-OK","pass":10,"fail":0,"gaps":5}
+{"at":"2026-10-20T12:12:15.475Z","verdict":"CAPABILITY-AUDIT-OK","pass":12,"fail":0,"gaps":5}

@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-10-27T14:30:48.395Z",
+  "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  "jsonRepaired": false,
+  "mission": "לfrsh את file site-data://sovereign-net.json בעזרת עובדות חיות",
+  "tasks": [
+    {
+      "id": "t1",
+      "title": "עדכון site-data://sovereign-net.json בערכי המצב החי",
+      "why": "לשמור את הנתונים העדכניים באתר",
+      "action": "code",
+      "detail": "ליצור JSON עם פרטי המצב החי",
+      "path": "site-data://sovereign-net.json",
+      "content": "{\"items\":[{\"id\":\"snapshot-2026-10-27\",\"title\":\"מצב רשת ריבונית אוטונומית – 27 באוקטובר 2026\",\"body\":\"בשעה 14:29:45 UTC, השוק כולל 121 בידים ו‑9 בקשות, ledger מספר 1480 עם 29 חשבונות, הרצת jobs 5214, schedules 22, tick 68, heals 1. מספר הכישלונות כולל ai‑sentinel 26, economy‑run 37, state‑backup 17, economy‑cycle 25, ledger‑sync 66, market‑report 89, roast‑grill 3, capability‑audit 7, ai‑architect 23. המצב משקף פעילות גבוהה עם כשלונות משמעותיות\",\"kind\":\"broadcast\",\"createdAt\":\"2026-10-27T14:29:45.086Z\"}]}"
+    }
+  ],
+  "risks": [],
+  "stateSnapshot": "time: 2026-10-27T14:29:45.086Z\nmarket: trades=121 bids=9 asks=11\nledger: seq=1480 accounts=29\nrunner: jobs=5214 schedules=22 tick=68 heals=1\n  schedule plan-executor/1200s: runs=114 fails=3 last=skipped\n  schedule code-executor/1800s: runs=72 fails=3 last=skipped\n  schedule estate-vault/900s: runs=79 fails=0 last=skipped\n  schedule sovereign-oracle/900s: runs=72 fails=0 last=skipped\n  schedule treasury-report/1800s: runs=38 fails=0 last=skipped\n  schedule self-audit/3600s: runs=22 fails=7 last=skipped\n  schedule agent-pnl/900s: runs=72 fails=0 last=skipped\n  schedule chain-audit/1800s: runs=38 fails=0 last=skipped\n  schedule capability-audit/3600s: runs=21 fails=7 last=skipped\n  schedule sovereign-decisions/1800s: runs=38 fails=0 last=skipped\n  schedule pages-evidence/1800s: runs=21 fails=2 last=skipped\n  schedule roast-grill/21600s: runs=3 fails=3 last=skipped\n  schedule market-report/60s: runs=2781 fails=89 last=failed\n  schedule ledger-sync/300s: runs=555 fails=66 last=failed\n  schedule economy-run/300s: runs=515 fails=37 last=failed\n  schedule economy-cycle/600s: runs=271 fails=25 last=failed\n  schedule state-backup/900s: runs=171 fails=17 last=failed\n  schedule ai-sentinel/1800s: runs=82 fails=26 last=failed\n  schedule site-builder/1800s: runs=78 fails=0 last=running\n  schedule control-plane-backup/3600s: runs=41 fails=2 last=running\n  schedule ai-architect/3600s: runs=40 fails=23 last=running\n  schedule dr-drill/86400s: runs=4 fails=0 last=succeeded\neconomy: agents=12 fills=alpha:988,bravo:1158,gamma:34,delta:4,epsilon:51,zeta:10,eta:68,theta:5,iota:0,kappa:0,mm-grid:0,mm-oracle:0\nrecent failures (evidence): ai-sentinel: failed @14:29:30 · economy-run: failed @14:29:30 · state-backup: failed @14:29:30 · economy-cycle: failed @14:29:15 · ledger-sync: failed @14:29:15 · market-report: failed @14:29:15 · roast-grill: failed @16:53:32 · capability-audit: failed @16:53:17\nprevious plan (2026-10-21T17:57:02.501Z): t1=עדכון site-data://sovereign-net.json בנתוני המצב החי · t2=תיעוד כשלי ledger‑sync ו‑ai‑architect · t3=ניתוח עומס משימות schedule · t4=תיעוד על סטטוס site-data (stale)\nlast site build: cycle=78 @2026-10-26T16:52:17.173Z\nsite lane: sovereign-net.json is STALE (157.1h old) — prefer exactly one action:\"code\" task with path site-data://sovereign-net.json this round, refreshing it with the real live facts below"
+}

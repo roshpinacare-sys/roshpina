@@ -1,0 +1,1 @@
+{"stdout":"fleet health sweep — 2026-10-19T07:01:54.496Z\n\n  UP   control-plane      52ms  http 200\n  UP   runner              1ms  uptime=22806s jobs=2608\n  UP   ledger              0ms  seq=1319 accounts=25\n  UP   market              1ms  trades=283 escrow=?\n\nresult: 4/4 nodes up\n","stderr":"","truncated":false}

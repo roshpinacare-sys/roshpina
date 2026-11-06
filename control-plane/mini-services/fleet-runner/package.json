@@ -1,0 +1,8 @@
+{
+  "name": "fleet-runner",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun --hot index.ts"
+  }
+}

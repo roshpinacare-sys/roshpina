@@ -1,0 +1,1 @@
+{"stdout":"CONTROL-PLANE-BACKUP-OK\nbranch: agent4/control-plane @ 7e2db59 (dual-ref: branch + archive tag)\nfiles:  2967 under control-plane/\nsecrets excluded: upload/, .env, db/, *.pem, p0-runbook/\n","stderr":"","truncated":false}

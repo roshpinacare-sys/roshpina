@@ -1,0 +1,1 @@
+{"stdout":"PLAN-EXECUTOR: plan @2026-10-22T00:52:38.111Z mission=\"ריענון ספר-המצב החי של רשת-ריבונית אוטונומית — עדכון site-data://sovereign-net.json בעובדות הלייב הנוכחיות\" — 2 tasks, 2 done, 0 pending\nPLAN-EXECUTOR-OK: every safe task already executed — idempotent no-op.\n","stderr":"","truncated":false}

@@ -1,0 +1,132 @@
+{
+  "at": "2026-10-20T12:12:15.475Z",
+  "verdict": "CAPABILITY-AUDIT-OK",
+  "summary": {
+    "pass": 12,
+    "fail": 0,
+    "gaps": 5
+  },
+  "capabilities": [
+    {
+      "id": "money-operations",
+      "claim": "the economy settles and conserves its own money",
+      "result": "PASS",
+      "detail": "conservation.holds=true · settledTrades=121",
+      "measuredAt": "2026-10-20T12:12:15.480Z"
+    },
+    {
+      "id": "ledger-integrity",
+      "claim": "the ledger's chain is re-computed and verified by an independent auditor",
+      "result": "PASS",
+      "detail": "ok=true · lastSeq=1247 · liveSeq=1247 · age=11.5min",
+      "measuredAt": "2026-10-20T12:12:15.480Z"
+    },
+    {
+      "id": "capsule-backup",
+      "claim": "the network's full state is capsule-backed, sandbox-wipe-surviving",
+      "result": "PASS",
+      "detail": "newest=state-2026-10-20T11-58-42.tar.gz (13.5min old, retention=10)",
+      "measuredAt": "2026-10-20T12:12:15.480Z"
+    },
+    {
+      "id": "self-healing",
+      "claim": "the fleet heals its own nodes (keeper daemon + watchdog)",
+      "result": "PASS",
+      "detail": "keeper-pid=16343 · watchdog=ok@2026-10-20T12:11:43.317Z@0.5min",
+      "measuredAt": "2026-10-20T12:12:15.485Z"
+    },
+    {
+      "id": "autonomous-scheduling",
+      "claim": "the architecture schedules its own work (20 enabled schedules)",
+      "result": "PASS",
+      "detail": "20 schedules all carry live nextRunAt promises",
+      "measuredAt": "2026-10-20T12:12:15.486Z"
+    },
+    {
+      "id": "self-red-team",
+      "claim": "the architecture red-teams its own claims on a schedule",
+      "result": "PASS",
+      "detail": "last=succeeded @ 42min ago",
+      "measuredAt": "2026-10-20T12:12:15.486Z"
+    },
+    {
+      "id": "ai-brain-measured",
+      "claim": "an LLM brain trades inside the laws and its P&L is measured against the algorithms",
+      "result": "PASS",
+      "detail": "agents=10 · epsilon.kind=LLM · rank=6/10 · snapshot-age=12min",
+      "measuredAt": "2026-10-20T12:12:15.486Z"
+    },
+    {
+      "id": "external-truth",
+      "claim": "prices are anchored to real external markets, not to the system's own claims",
+      "result": "PASS",
+      "detail": "SOL@kraken · age=12.5min",
+      "measuredAt": "2026-10-20T12:12:15.486Z"
+    },
+    {
+      "id": "remote-preservation",
+      "claim": "lane work is preserved remotely (archive tag peel == live HEAD)",
+      "result": "PASS",
+      "detail": "tag-peel=44cc9a1 · live-HEAD=44cc9a1 · control-plane-branch-alive=yes",
+      "measuredAt": "2026-10-20T12:12:16.566Z"
+    },
+    {
+      "id": "credential-self-ingestion",
+      "claim": "a rotated credential placed in the supply path is ingested by the scheduled backup itself",
+      "result": "PASS",
+      "detail": "pat.env carries a usable token (self-ingested by control-plane-backup)",
+      "measuredAt": "2026-10-20T12:12:16.577Z"
+    },
+    {
+      "id": "owner-memory",
+      "claim": "the owner's identity and standing intents are structurally remembered by the money node itself — even in the owner's absence",
+      "result": "PASS",
+      "detail": "owner=architecture · ownerMemory.served=true · covenant-on-disk=true",
+      "measuredAt": "2026-10-20T12:12:16.578Z"
+    },
+    {
+      "id": "sovereign-decisions",
+      "claim": "the architecture makes and journals owner-grade decisions on its own schedule — hold decisions recorded exactly like actions",
+      "result": "PASS",
+      "detail": "last=restore-lane-branch(restored) · age=2min · journal=data/sovereign/decisions.jsonl",
+      "measuredAt": "2026-10-20T12:12:16.578Z"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "host-singularity",
+      "requires": "human-owner — one physical host carries the whole network; its loss needs a new host",
+      "mitigation": "state capsules (15-min cadence) + git refs + start-nodes.sh universal seed + daily dr-drill",
+      "mitigationVerified": true,
+      "detail": "dr-drill last=succeeded — restore-on-new-host is drilled, but the host itself is beyond the architecture's reach"
+    },
+    {
+      "id": "identity-and-legal",
+      "requires": "human-owner — GitHub account ownership, PAT issuance, domains, legal/tax identity",
+      "mitigation": "rotated credentials are auto-ingested from the supply path (capability 10)",
+      "mitigationVerified": true,
+      "detail": "issuance itself is a third-party act — the architecture cannot be its own registrar"
+    },
+    {
+      "id": "external-custody",
+      "requires": "human-owner — funds held outside this ledger on real-world rails",
+      "mitigation": "honesty law R36 — the custodial backing ratio is always shown next to the mirror-law solvency",
+      "mitigationVerified": true,
+      "detail": "custodial backing=12.01% — moving external money is a human-world act; the system tells the truth about it instead of pretending"
+    },
+    {
+      "id": "egress-networking",
+      "requires": "human-owner — a single shared egress IP; no sovereign networking layer",
+      "mitigation": "none built yet — this gap is open by honest declaration",
+      "mitigationVerified": false,
+      "detail": "sovereign networking (own IPs/ASN/tunnels) was not built; pretending otherwise would be the lie this matrix exists to prevent"
+    },
+    {
+      "id": "physical-keys",
+      "requires": "human-owner — private keys live only on this host; a host loss means re-licensing identity",
+      "mitigation": "private PEMs are excluded from capsules by law; identity is restored by operator re-license",
+      "mitigationVerified": true,
+      "detail": "deliberate: keys never travel in capsules — the manifest documents the boundary"
+    }
+  ]
+}

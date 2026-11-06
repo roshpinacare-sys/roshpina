@@ -1,0 +1,1 @@
+{"stdout":"","stderr":"error: Cannot find module '/home/z/repos/roshpina/kernel/fleet/sovereign-agents' from '/home/z/my-project/mini-services/fleet-runner/scripts/economy-cycle.ts'\n\nBun v1.3.14 (Linux x64 baseline)\n","truncated":false}

@@ -1,0 +1,9 @@
+{
+ "generatedAt": "2026-10-19T01:27:39.534Z",
+ "dryRun": true,
+ "agent": "cashmachine",
+ "oldAddress": "0x0fb6c1807d8d7945b5e3a14ea3679e19795cb545",
+ "newAddress": "0x431e20a0f08725c40cba8e1d6d44b474b3c064e4",
+ "sealName": "r11-sweep-key-2026-10-19T01-27-39",
+ "note": "dry run — generate+seal only"
+}

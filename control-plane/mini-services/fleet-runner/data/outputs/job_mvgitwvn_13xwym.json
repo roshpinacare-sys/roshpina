@@ -1,0 +1,1 @@
+{"stdout":"PLAN-EXECUTOR: plan @2026-10-20T09:28:29.774Z mission=\"לחקור ולתקן את כשלי הגיבוי החוזרים (state-backup) ולהבין את כשלי ai-architect כדי להבטיח עמידות הרשת\" — 5 tasks, 5 done, 0 pending\nPLAN-EXECUTOR-OK: every safe task already executed — idempotent no-op.\n","stderr":"","truncated":false}

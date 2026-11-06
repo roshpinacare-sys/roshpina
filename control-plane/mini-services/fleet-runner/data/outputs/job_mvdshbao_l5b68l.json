@@ -1,0 +1,1 @@
+{"stdout":"== economy-cycle against LIVE node http://127.0.0.1:3033 ==\nepoch e2026-10-18T12 · treasury before: 265778 µ¢ · trades=20\n","stderr":"tax refused: http 400 {\"error\":\"market is quiesced for a consistent backup — retry shortly\",\"code\":\"MARKET_QUIESCED\"}\n","truncated":false}

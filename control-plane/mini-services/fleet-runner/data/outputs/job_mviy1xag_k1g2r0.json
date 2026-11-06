@@ -1,0 +1,1 @@
+{"stdout":"ref-warden: lane: branch GONE → bf1e6e6 (restored from archive tag)\nref-warden: control-plane: branch GONE → f3822fe (restored from archive tag)\nREF-WARDEN-OK · consistent=0/2 · healed=2 · tagGone=0\n","stderr":"","truncated":false}

@@ -1,0 +1,1 @@
+{"stdout":"PLAN-EXECUTOR: plan @2026-10-22T13:10:57.701Z mission=\"רענון שידורי-הרשת באתר עם נתוני המצב החי האחרונים\" — 1 tasks, 1 done, 0 pending\nPLAN-EXECUTOR-OK: every safe task already executed — idempotent no-op.\n","stderr":"","truncated":false}

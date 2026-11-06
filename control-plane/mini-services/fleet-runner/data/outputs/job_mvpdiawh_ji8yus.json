@@ -1,0 +1,1 @@
+{"stdout":"CHAIN-AUDIT-OK — the ledger's chain is real, re-verified by an independent engine\nchain: baseSeq=261 records=1303 lastSeq=1564 head=02c28d2c5eb8c50d…\nanchor: snapshot-fold@1321 · live: seq=1564 head=02c28d2c5eb8c50d… · journal 2043.8 KB\n","stderr":"","truncated":false}

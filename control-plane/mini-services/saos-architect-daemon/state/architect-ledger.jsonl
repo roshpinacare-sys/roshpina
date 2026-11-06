@@ -1,0 +1,2 @@
+{"schema":"SAOS-ARCHITECT/1","seq":1,"at":"2026-10-27T13:44:06.366Z","prev":"","phase":"selftest","verdict":"chain-test-1","hash":"1b99533c50b13b46feb3a1aae64a9778"}
+{"schema":"SAOS-ARCHITECT/1","seq":2,"at":"2026-10-27T13:44:06.366Z","prev":"1b99533c50b13b46feb3a1aae64a9778","phase":"selftest","verdict":"chain-test-2","hash":"77c3398589bfeee72a57773ca1aacc59"}

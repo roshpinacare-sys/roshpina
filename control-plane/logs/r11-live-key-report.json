@@ -1,0 +1,442 @@
+{
+ "generatedAt": "2026-10-19T01:11:46Z",
+ "method": "read-only live-key audit; WIF\u2192pubkey derived in-memory, never stored; zero broadcast; zero secret printing",
+ "archiveIntegrity": "14/14 files sha256-verified against inner MANIFEST",
+ "partA_liveKeyCheck": [
+  {
+   "account": "cashmachine",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "cashmachine",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "haran",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "haran",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "israelnews",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "israelnews",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "lsa",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "lsa",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "macrame",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "macrame",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "siq",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "siq",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "tov",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "tov",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "wic",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "wic",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "wog",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "wog",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "woq",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "woq",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "ynet",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "ynet",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "headcorner",
+   "chain": "steem",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  },
+  {
+   "account": "headcorner",
+   "chain": "hive",
+   "verdict": {
+    "owner": "no-wif",
+    "active": "no-wif",
+    "posting": "no-wif",
+    "memo": "no-wif"
+   }
+  }
+ ],
+ "partA_stillLiveCount": 0,
+ "partB_balances": [
+  {
+   "agent": "cashmachine",
+   "evm": {
+    "ethereum": 367435513080,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": "RPC-FAIL:HTTPError",
+   "sol": 0,
+   "btc": "RPC-FAIL:HTTPError"
+  },
+  {
+   "agent": "haran",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": 0,
+   "sol": 0,
+   "btc": "RPC-FAIL:HTTPError"
+  },
+  {
+   "agent": "headcorner",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": 192818,
+   "sol": 0,
+   "btc": 0
+  },
+  {
+   "agent": "israelnews",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": 0,
+   "sol": 0,
+   "btc": "RPC-FAIL:HTTPError"
+  },
+  {
+   "agent": "lsa",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": "RPC-FAIL:HTTPError",
+   "sol": 0,
+   "btc": 0
+  },
+  {
+   "agent": "macrame",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": 0,
+   "sol": 0,
+   "btc": "RPC-FAIL:HTTPError"
+  },
+  {
+   "agent": "siq",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": 0,
+   "sol": 0,
+   "btc": 0
+  },
+  {
+   "agent": "tov",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": 0,
+   "sol": 0,
+   "btc": 0
+  },
+  {
+   "agent": "wic",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": 0,
+   "sol": 0,
+   "btc": 0
+  },
+  {
+   "agent": "wog",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": 0,
+   "sol": 0,
+   "btc": 0
+  },
+  {
+   "agent": "woq",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": 0,
+   "sol": 0,
+   "btc": "RPC-FAIL:HTTPError"
+  },
+  {
+   "agent": "ynet",
+   "evm": {
+    "ethereum": 0,
+    "bsc": 0,
+    "polygon": 0,
+    "arbitrum": 0,
+    "optimism": 0,
+    "base": 0,
+    "avalanche": 0
+   },
+   "tron": 0,
+   "sol": 0,
+   "btc": 0
+  }
+ ],
+ "partB_nonZero": [
+  {
+   "agent": "cashmachine",
+   "chain": "evm:ethereum",
+   "raw": "367435513080"
+  },
+  {
+   "agent": "headcorner",
+   "chain": "tron",
+   "raw": "192818"
+  }
+ ]
+}

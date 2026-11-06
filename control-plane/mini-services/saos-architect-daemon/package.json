@@ -1,0 +1,10 @@
+{
+  "name": "saos-architect-daemon",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "flock -n /tmp/saos-architect-daemon.instance.lock bun index.ts",
+    "once": "bun index.ts --once",
+    "test": "bun test tests/"
+  }
+}
