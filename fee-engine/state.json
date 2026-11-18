@@ -63,13 +63,13 @@
   "noSecrets": true,
   "hosting": {
     "decision": "D4 (T-63) — substrate: the saos-runtime runner lane (roshpina-own Actions walled, measured 2026-10-12); kernel-smoke green = live per REVIVAL.md",
-    "decidedAt": "2026-11-18T11:48:22.406Z",
+    "decidedAt": "2026-11-18T15:59:00.026Z",
     "decidedBy": "the sovereignty (owner directive trace 1a12…f45d)",
     "measuredEvidence": "roshpina fee-engine 38187350674 + controls-audit 38187704256 both die in seconds with zero steps (wall); saos-runtime runs green"
   },
   "lastSmoke": {
-    "at": "2026-11-18T11:48:22.406Z",
-    "runUrl": "https://github.com/roshpinacare-sys/saos-runtime/actions/runs/44297945288",
+    "at": "2026-11-18T15:59:00.026Z",
+    "runUrl": "https://github.com/roshpinacare-sys/saos-runtime/actions/runs/44341627888",
     "verdict": "green — self-proving invariants passed on the saos-runtime runner",
     "runner": "saos-runtime-lane"
   }
